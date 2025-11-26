@@ -8,16 +8,15 @@ const FORCE_UPDATE = true; // Fuerza actualizaciones inmediatas
 
 // Archivos críticos a cachear para funcionamiento offline
 const urlsToCache = [
-  // Páginas HTML - solo archivos que sabemos que existen
   "./",
   "index.html",
-  "login.html", 
+  "login.html",
   "register.html",
   "donationcenter.html",
   "requests.html",
   "reset-password.html",
   "auth-required.html",
-  
+
   // Estilos CSS
   "styles.css",
   "index.css",
@@ -25,8 +24,8 @@ const urlsToCache = [
   "auth.css",
   "requests.css",
   "two-factor.css",
-  
-  // JavaScript - Solo archivos existentes
+
+  // JavaScript
   "script.js",
   "session-manager.js",
   "login.js",
@@ -35,7 +34,7 @@ const urlsToCache = [
   "profile.js",
   "requests-page.js",
   "reset-password.js",
-  
+
   // JavaScript - Servicios
   "auth.js",
   "firebase.js",
@@ -44,31 +43,30 @@ const urlsToCache = [
   "articles.js",
   "requests.js",
   "notifications.js",
-  
+
   // JavaScript - Utilidades
   "ui.js",
-  
+
   // Configuración
   "env.js",
-  
+
   // PWA
   "manifest.json",
   "sw.js",
   "pwa-debug.html",
-  
-  // Assets - Solo imágenes que existen
+
+  // Assets
   "assets/logo.ico",
   "assets/logo192.png",
   "assets/logo512.png",
-  "assets/S_SDG_inverted_WEB-12.png"
-  
-  
+  "assets/S_SDG_inverted_WEB-12.png",
+
   // Archivos HTML especiales
   "verificar-permisos.html",
   "test-edit-delete.html",
   "reinicio-completo.html",
   "clear-cache-force.html",
-  
+
   // CDN externas (críticas)
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css",
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js",
@@ -86,6 +84,9 @@ self.addEventListener("install", event => {
       return cache.addAll(urlsToCache);
     })
   );
+  if (FORCE_UPDATE) {
+    self.skipWaiting();
+  }
 });
 
 // Activar y limpiar versiones antiguas del caché
@@ -99,6 +100,7 @@ self.addEventListener("activate", event => {
       );
     })
   );
+  self.clients.claim();
   console.log("Service Worker activado, versión:", VERSION);
 });
 
@@ -106,75 +108,73 @@ self.addEventListener("activate", event => {
 self.addEventListener("fetch", event => {
   const request = event.request;
   const url = new URL(request.url);
-  
+
   // Ignorar peticiones no GET para mejor rendimiento
   if (request.method !== 'GET') {
     return;
   }
-  
-// Estrategia Network First solo para APIs externas relevantes en producción
-if (
-    url.hostname.includes('firebase') || 
+
+  // Network First para APIs externas y backend
+  if (
+    url.hostname.includes('firebase') ||
     url.hostname.includes('googleapis.com') ||
     url.hostname.includes('firebaseio.com') ||
     url.hostname.includes('firebasestorage.googleapis.com') ||
     url.origin === 'https://donantes-backend-202152301689.northamerica-south1.run.app' ||
     url.pathname.startsWith('/api/')
-) {
-  event.respondWith(
-    fetch(request, { cache: 'no-cache' })
-      .then(response => {
-        if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
-          const responseClone = response.clone();
-          caches.open(RUNTIME_CACHE).then(cache => {
-            cache.put(request, responseClone);
-            setTimeout(() => cache.delete(request), 300000);
-          });
-        }
-        return response;
-      })
-      .catch(() => caches.match(request))
-  );
-  return;
-}
-  // Estrategia Cache First para recursos estáticos con stale-while-revalidate
+  ) {
+    event.respondWith(
+      fetch(request, { cache: 'no-cache' })
+        .then(response => {
+          if (
+            response.ok
+            && response.headers.get('content-type')?.includes('application/json')
+          ) {
+            const responseClone = response.clone();
+            caches.open(RUNTIME_CACHE).then(cache => {
+              cache.put(request, responseClone);
+              setTimeout(() => cache.delete(request), 300000); // 5 mins cache runtime para APIs
+            });
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
+    return;
+  }
+
+  // Cache First para recursos estáticos (stale-while-revalidate)
   event.respondWith(
     caches.match(request)
       .then(response => {
         if (response) {
-          // Servir desde cache inmediatamente
-          // Y actualizar en background
-          fetch(request).then(fetchResponse => {
-            if (fetchResponse.ok) {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(request, fetchResponse);
-              });
-            }
-          }).catch(() => {});
-          
+          // Actualizar en background si se encuentra en caché
+          fetch(request)
+            .then(fetchResponse => {
+              if (fetchResponse.ok) {
+                caches.open(CACHE_NAME).then(cache => {
+                  cache.put(request, fetchResponse);
+                });
+              }
+            })
+            .catch(() => { });
           return response;
         }
-        
-        // Si no está en caché, intentar fetch
+        // Si no está en caché, hacer fetch y almacenar si es válido
         return fetch(request)
           .then(fetchResponse => {
-            // Verificar si es una respuesta válida
             if (!fetchResponse || fetchResponse.status !== 200 || fetchResponse.type !== 'basic') {
               return fetchResponse;
             }
-            
-            // Cachear la respuesta para futuras consultas
             const responseToCache = fetchResponse.clone();
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(request, responseToCache);
-              });
-            
+            caches.open(CACHE_NAME).then(cache => {
+              cache.put(request, responseToCache);
+            });
             return fetchResponse;
           })
           .catch(() => {
             // Fallback para páginas HTML no cacheadas
-            if (request.headers.get('accept').includes('text/html')) {
+            if (request.headers.get('accept') && request.headers.get('accept').includes('text/html')) {
               return caches.match('index.html');
             }
           });
@@ -187,12 +187,12 @@ if (
 // Manejar notificaciones push
 self.addEventListener("push", event => {
   console.log("📩 Push notification recibida:", event);
-  
+
   let notificationData = {
     title: "DonantesApp",
     body: "Tienes una nueva notificación",
-    icon: "assets/icon-192x192.png",
-    badge: "assets/icon-72x72.png",
+    icon: "assets/logo192.png",
+    badge: "assets/logo192.png",
     vibrate: [100, 50, 100],
     tag: "donantes-notification",
     requireInteraction: false,
@@ -210,7 +210,7 @@ self.addEventListener("push", event => {
     ]
   };
 
-  // Si hay datos en el push, usar esos datos
+  // Si hay datos en el push, usarlos
   if (event.data) {
     try {
       const pushData = event.data.json();
@@ -235,7 +235,7 @@ self.addEventListener("push", event => {
 // Manejar clicks en las notificaciones
 self.addEventListener("notificationclick", event => {
   console.log("🔔 Click en notificación:", event);
-  
+
   const notification = event.notification;
   const action = event.action;
   const data = notification.data || {};
@@ -248,7 +248,7 @@ self.addEventListener("notificationclick", event => {
 
   // Determinar URL de destino
   let targetUrl = "/";
-  
+
   if (data.type === "request_approved") {
     targetUrl = "requests.html";
   } else if (data.type === "new_request") {
@@ -257,19 +257,15 @@ self.addEventListener("notificationclick", event => {
     targetUrl = `donationcenter.html`;
   }
 
-  // Abrir la aplicación o navegar a la URL
   event.waitUntil(
-    clients.matchAll().then(clientList => {
-      // Buscar si ya hay una ventana abierta
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clientList => {
       for (const client of clientList) {
-        if (client.url.includes(self.location.origin) && "focus" in client) {
+        if (client.url && client.url.includes(self.location.origin) && 'focus' in client) {
           client.focus();
           client.navigate(targetUrl);
           return;
         }
       }
-      
-      // Si no hay ventana abierta, abrir una nueva
       if (clients.openWindow) {
         return clients.openWindow(targetUrl);
       }
@@ -281,5 +277,3 @@ self.addEventListener("notificationclick", event => {
 self.addEventListener("notificationclose", event => {
   console.log("❌ Notificación cerrada:", event.notification.tag);
 });
-
-
