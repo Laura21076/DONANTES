@@ -1,5 +1,5 @@
 // Session Manager - Gestión de sesiones para PWA
-import { getCurrentUser } from '../services/auth.js';
+import { getCurrentUser } from 'auth.js';
 
 class SessionManager {
   constructor() {
@@ -242,4 +242,5 @@ const sessionManager = new SessionManager();
 window.sessionManager = sessionManager;
 
 export default SessionManager;
+
 export { SessionManager };
