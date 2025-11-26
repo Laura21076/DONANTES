@@ -1,7 +1,7 @@
 // Servicio de notificaciones push para DonantesApp
-import { getCurrentUser, getIdToken } from './auth.js';
+import { getCurrentUser, getIdToken } from 'auth.js';
 
-const API_URL = 'http://localhost:4000/api';
+const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
 
 // ================== INICIALIZACIÓN DE NOTIFICACIONES ==================
 
@@ -18,7 +18,7 @@ export async function initializeNotifications() {
     // Registrar service worker si no está registrado
     let registration = await navigator.serviceWorker.getRegistration();
     if (!registration) {
-      registration = await navigator.serviceWorker.register('/sw.js');
+      registration = await navigator.serviceWorker.register('sw.js');
       console.log('✅ Service Worker registrado');
     }
 
@@ -124,8 +124,8 @@ export async function showLocalNotification(title, options = {}) {
     }
 
     const notification = new Notification(title, {
-      icon: '/assets/icon-192x192.png',
-      badge: '/assets/icon-72x72.png',
+      icon: 'assets/logo.ico',
+      badge: 'assets/logo512.png',
       vibrate: [100, 50, 100],
       ...options
     });
@@ -153,7 +153,7 @@ export async function notifyRequestApproved(articleTitle, accessCode) {
     {
       body: `Tu solicitud para "${articleTitle}" ha sido aprobada. Código: ${accessCode}`,
       tag: 'request-approved',
-      url: '/pages/requests.html',
+      url: 'requests.html',
       requireInteraction: true,
       actions: [
         {
@@ -175,7 +175,7 @@ export async function notifyNewRequest(articleTitle, requesterName) {
     {
       body: `${requesterName} está interesado en tu artículo "${articleTitle}"`,
       tag: 'new-request',
-      url: '/pages/requests.html',
+      url: 'requests.html',
       actions: [
         {
           action: 'approve',
@@ -196,7 +196,7 @@ export async function notifyPickupReminder(articleTitle, hoursLeft) {
     {
       body: `Recuerda retirar "${articleTitle}". Quedan ${hoursLeft} horas.`,
       tag: 'pickup-reminder',
-      url: '/pages/requests.html'
+      url: 'requests.html'
     }
   );
 }
@@ -250,4 +250,5 @@ document.addEventListener('DOMContentLoaded', async () => {
       initializeNotifications();
     }, 2000);
   }
+
 });
