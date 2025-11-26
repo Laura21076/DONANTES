@@ -2,7 +2,7 @@
   "name": "donantes-pwa",
   "version": "1.0.0",
   "description": "Donantes PWA - Aplicación para donación de artículos",
-  "main": "pages/index.html",
+  "main": "index.html",
   "scripts": {
     "build": "npm-run-all clean vitebuild copyfiles",
     "clean": "rimraf dist",
