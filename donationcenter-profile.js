@@ -1,4 +1,4 @@
-import '../utils/toggle-password.js';
+import 'toggle-password.js';
 
 // Mostrar/ocultar contraseña actual
 const toggleCurrentPasswordBtn = document.getElementById('toggleCurrentPassword');
@@ -19,3 +19,4 @@ if (toggleNewPasswordBtn && newPasswordInput && newPasswordIcon) {
     window.togglePasswordVisibility('newPassword', 'newPasswordIcon');
   });
 }
+
