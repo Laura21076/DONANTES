@@ -1,12 +1,12 @@
 // Login handler
-import '../utils/error-handler.js'; // Cargar manejo global de errores
-import { auth, db } from '../services/firebase.js';
+import 'error-handler.js'; // Cargar manejo global de errores
+import { auth, db } from 'firebase.js';
 import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { saveToken } from '../services/db.js';
-import { showToast } from '../utils/ui.js';
-import { authRetryHandler, signInWithRetry } from '../utils/auth-retry.js';
-import { authGuard } from '../utils/auth-guard.js';
+import { saveToken } from 'db.js';
+import { showToast } from 'ui.js';
+import { authRetryHandler, signInWithRetry } from 'auth-retry.js';
+import { authGuard } from 'auth-guard.js';
 
 const loginForm = document.getElementById('loginForm');
 
@@ -40,7 +40,7 @@ if (loginForm) {
       // Enviar al backend para crear sesión
       const idToken = await user.getIdToken();
       console.log('🪪 idToken obtenido:', idToken);
-      const backendUrl = window.__ENV__?.BACKEND_URL || 'http://localhost:4000';
+      const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
       const resp = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -97,7 +97,7 @@ if (loginForm) {
   });
 }
 
-import '../utils/toggle-password.js';
+import 'toggle-password.js';
 
 // Mostrar/ocultar contraseña
 const toggleBtn = document.getElementById('toggleLoginPassword');
@@ -108,3 +108,4 @@ if (toggleBtn && passwordInput && passwordIcon) {
     window.togglePasswordVisibility('loginPassword', 'loginPasswordIcon');
   });
 }
+
