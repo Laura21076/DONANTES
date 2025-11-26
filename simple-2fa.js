@@ -3,6 +3,8 @@
  * Interfaz fácil de usar para el sistema 2FA
  */
 
+// No requiere imports propios, es standalone para tu raíz.
+
 class Simple2FA {
     constructor() {
         this.baseUrl = (window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app') + '/api/auth/2fa-simple';
@@ -12,7 +14,6 @@ class Simple2FA {
      * Mostrar notificación de usuario
      */
     showNotification(message, type = 'info') {
-        // Crear elemento de notificación
         const notification = document.createElement('div');
         notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
         notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; max-width: 400px;';
@@ -20,10 +21,7 @@ class Simple2FA {
             <strong>${type === 'success' ? '✅' : type === 'danger' ? '❌' : 'ℹ️'}</strong> ${message}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         `;
-
         document.body.appendChild(notification);
-
-        // Auto-remover después de 5 segundos
         setTimeout(() => {
             notification?.remove();
         }, 5000);
@@ -42,18 +40,11 @@ class Simple2FA {
                     ...(token && { Authorization: `Bearer ${token}` })
                 }
             };
-
-            if (data) {
-                options.body = JSON.stringify(data);
-            }
+            if (data) options.body = JSON.stringify(data);
 
             const response = await fetch(`${this.baseUrl}${endpoint}`, options);
             const result = await response.json();
-
-            if (!response.ok) {
-                throw new Error(result.error || 'Error en la solicitud');
-            }
-
+            if (!response.ok) throw new Error(result.error || 'Error en la solicitud');
             return result;
         } catch (error) {
             console.error('Error en petición:', error);
@@ -61,20 +52,10 @@ class Simple2FA {
         }
     }
 
-    /**
-     * Activar 2FA por email
-     */
     async enable(email) {
         try {
-            const result = await this.request('/enable', 'POST', {
-                method: 'email'
-            });
-
-            this.showNotification(
-                `Código enviado a ${result.destination}. Revisa tu email.`,
-                'success'
-            );
-
+            const result = await this.request('/enable', 'POST', { method: 'email' });
+            this.showNotification(`Código enviado a ${result.destination}. Revisa tu email.`, 'success');
             return result;
         } catch (error) {
             this.showNotification(error.message, 'danger');
@@ -82,18 +63,10 @@ class Simple2FA {
         }
     }
 
-    /**
-     * Verificar código para completar activación
-     */
     async verifySetup(code) {
         try {
             const result = await this.request('/verify-setup', 'POST', { code });
-            
-            this.showNotification(
-                '🎉 Autenticación de dos factores activada exitosamente',
-                'success'
-            );
-
+            this.showNotification('🎉 Autenticación de dos factores activada exitosamente', 'success');
             return result;
         } catch (error) {
             this.showNotification(error.message, 'danger');
@@ -101,18 +74,10 @@ class Simple2FA {
         }
     }
 
-    /**
-     * Solicitar código para login
-     */
     async requestLoginCode(email) {
         try {
             const result = await this.request('/request-code', 'POST', { email });
-            
-            this.showNotification(
-                `Código de acceso enviado a ${result.destination}`,
-                'info'
-            );
-
+            this.showNotification(`Código de acceso enviado a ${result.destination}`, 'info');
             return result;
         } catch (error) {
             this.showNotification(error.message, 'danger');
@@ -120,13 +85,9 @@ class Simple2FA {
         }
     }
 
-    /**
-     * Verificar código de login
-     */
     async verifyLogin(email, code) {
         try {
             const result = await this.request('/verify-login', 'POST', { email, code });
-            
             this.showNotification('✅ Código verificado correctamente', 'success');
             return result;
         } catch (error) {
@@ -135,27 +96,14 @@ class Simple2FA {
         }
     }
 
-    /**
-     * Desactivar 2FA
-     */
     async disable(confirmationCode = null) {
         try {
-            const result = await this.request('/disable', 'POST', 
-                confirmationCode ? { confirmationCode } : {}
-            );
-            
+            const result = await this.request('/disable', 'POST', confirmationCode ? { confirmationCode } : {});
             if (result.requiresConfirmation) {
-                this.showNotification(
-                    'Código de confirmación enviado a tu email',
-                    'info'
-                );
+                this.showNotification('Código de confirmación enviado a tu email', 'info');
             } else {
-                this.showNotification(
-                    '2FA desactivado exitosamente',
-                    'success'
-                );
+                this.showNotification('2FA desactivado exitosamente', 'success');
             }
-
             return result;
         } catch (error) {
             this.showNotification(error.message, 'danger');
@@ -163,9 +111,6 @@ class Simple2FA {
         }
     }
 
-    /**
-     * Obtener estado actual de 2FA
-     */
     async getStatus() {
         try {
             const result = await this.request('/status', 'GET');
@@ -176,9 +121,6 @@ class Simple2FA {
         }
     }
 
-    /**
-     * Crear interfaz de configuración de 2FA
-     */
     createSetupInterface(containerId) {
         const container = document.getElementById(containerId);
         if (!container) return;
@@ -199,55 +141,42 @@ class Simple2FA {
                             </div>
                         </div>
                     </div>
-
-                    <!-- Panel cuando 2FA está desactivado -->
                     <div id="2fa-disabled" class="d-none">
                         <div class="alert alert-info">
                             <h6><i class="fas fa-info-circle me-2"></i>¿Qué es la Autenticación de Dos Factores?</h6>
                             <p class="mb-0">Agrega una capa extra de seguridad a tu cuenta. Cuando inicies sesión, recibirás un código por email que deberás introducir.</p>
                         </div>
-
                         <div class="mb-3">
                             <label for="setup-email" class="form-label">Tu email para recibir códigos:</label>
                             <input type="email" class="form-control" id="setup-email" readonly>
                         </div>
-
                         <button id="enable-2fa-btn" class="btn btn-success">
                             <i class="fas fa-lock me-2"></i>Activar 2FA
                         </button>
                     </div>
-
-                    <!-- Panel cuando 2FA está activado -->
                     <div id="2fa-enabled" class="d-none">
                         <div class="alert alert-success">
                             <h6><i class="fas fa-check-circle me-2"></i>2FA Activado</h6>
                             <p class="mb-0">Tu cuenta está protegida con autenticación de dos factores.</p>
                         </div>
-
                         <div class="mb-3">
                             <small class="text-muted">
                                 Activado el: <span id="2fa-enabled-date"></span>
                             </small>
                         </div>
-
                         <button id="disable-2fa-btn" class="btn btn-outline-danger">
                             <i class="fas fa-unlock me-2"></i>Desactivar 2FA
                         </button>
                     </div>
-
-                    <!-- Panel de verificación -->
                     <div id="2fa-verify" class="d-none">
                         <div class="alert alert-warning">
                             <h6><i class="fas fa-envelope me-2"></i>Verificar Código</h6>
                             <p class="mb-0">Hemos enviado un código de verificación a tu email. Ingrésalo para continuar.</p>
                         </div>
-
                         <div class="mb-3">
                             <label for="verification-code" class="form-label">Código de 6 dígitos:</label>
-                            <input type="text" class="form-control text-center" id="verification-code" 
-                                   maxlength="6" placeholder="123456" style="font-size: 1.2em; letter-spacing: 3px;">
+                            <input type="text" class="form-control text-center" id="verification-code" maxlength="6" placeholder="123456" style="font-size: 1.2em; letter-spacing: 3px;">
                         </div>
-
                         <div class="d-flex gap-2">
                             <button id="verify-code-btn" class="btn btn-primary">
                                 <i class="fas fa-check me-2"></i>Verificar
@@ -260,43 +189,31 @@ class Simple2FA {
                 </div>
             </div>
         `;
-
         this.attachEventListeners();
         this.updateStatusDisplay();
     }
 
-    /**
-     * Adjuntar event listeners
-     */
     attachEventListeners() {
-        // Activar 2FA
         document.getElementById('enable-2fa-btn')?.addEventListener('click', async () => {
             const email = document.getElementById('setup-email').value;
             try {
                 await this.enable(email);
                 this.showVerifyPanel();
-            } catch (error) {
-                console.error('Error activando 2FA:', error);
-            }
+            } catch (error) { }
         });
 
-        // Verificar código
         document.getElementById('verify-code-btn')?.addEventListener('click', async () => {
             const code = document.getElementById('verification-code').value;
             if (!code || code.length !== 6) {
                 this.showNotification('Ingresa un código de 6 dígitos', 'warning');
                 return;
             }
-
             try {
                 await this.verifySetup(code);
                 this.updateStatusDisplay();
-            } catch (error) {
-                console.error('Error verificando código:', error);
-            }
+            } catch (error) { }
         });
 
-        // Desactivar 2FA
         document.getElementById('disable-2fa-btn')?.addEventListener('click', async () => {
             try {
                 const result = await this.disable();
@@ -305,25 +222,18 @@ class Simple2FA {
                 } else {
                     this.updateStatusDisplay();
                 }
-            } catch (error) {
-                console.error('Error desactivando 2FA:', error);
-            }
+            } catch (error) { }
         });
 
-        // Cancelar verificación
         document.getElementById('cancel-verify-btn')?.addEventListener('click', () => {
             this.updateStatusDisplay();
         });
 
-        // Auto-formato del código de verificación
         document.getElementById('verification-code')?.addEventListener('input', (e) => {
             e.target.value = e.target.value.replace(/\D/g, '');
         });
     }
 
-    /**
-     * Mostrar panel de verificación
-     */
     showVerifyPanel() {
         document.getElementById('2fa-disabled').classList.add('d-none');
         document.getElementById('2fa-enabled').classList.add('d-none');
@@ -331,24 +241,16 @@ class Simple2FA {
         document.getElementById('verification-code').focus();
     }
 
-    /**
-     * Solicitar confirmación para desactivar
-     */
     async promptDisableConfirmation() {
         const code = prompt('Ingresa el código de confirmación que se envió a tu email:');
         if (code) {
             try {
                 await this.disable(code);
                 this.updateStatusDisplay();
-            } catch (error) {
-                console.error('Error confirmando desactivación:', error);
-            }
+            } catch (error) { }
         }
     }
 
-    /**
-     * Actualizar visualización del estado
-     */
     async updateStatusDisplay() {
         try {
             const status = await this.getStatus();
@@ -357,7 +259,6 @@ class Simple2FA {
             const enabledDiv = document.getElementById('2fa-enabled');
             const verifyDiv = document.getElementById('2fa-verify');
 
-            // Ocultar todos los paneles primero
             statusDiv.classList.add('d-none');
             disabledDiv.classList.add('d-none');
             enabledDiv.classList.add('d-none');
@@ -366,19 +267,17 @@ class Simple2FA {
             if (status.twoFactorEnabled) {
                 enabledDiv.classList.remove('d-none');
                 if (status.enabledAt) {
-                    document.getElementById('2fa-enabled-date').textContent = 
+                    document.getElementById('2fa-enabled-date').textContent =
                         new Date(status.enabledAt).toLocaleString();
                 }
             } else {
                 disabledDiv.classList.remove('d-none');
-                // Obtener email del usuario actual
                 const user = window.currentUser;
                 if (user?.email) {
                     document.getElementById('setup-email').value = user.email;
                 }
             }
         } catch (error) {
-            console.error('Error actualizando estado:', error);
             document.getElementById('2fa-status').innerHTML = `
                 <div class="alert alert-warning">
                     Error cargando estado de 2FA
@@ -389,5 +288,4 @@ class Simple2FA {
 }
 
 // Exportar para uso global
-
 window.Simple2FA = Simple2FA;
