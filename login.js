@@ -1,13 +1,19 @@
-// Login handler
-import 'error-handler.js'; // Cargar manejo global de errores
-import { auth, db } from 'firebase.js';
+// login.js
+
+// 🔹 MÓDULOS PROPIOS SIEMPRE CON './'
+import './error-handler.js'; // Manejador global de errores, sólo si exporta efectos globales
+import { auth, db } from './firebase.js';
+import { saveToken } from './db.js';
+import { showToast } from './ui.js';
+import { AuthGuard } from './auth-guard.js';
+import { authRetryHandler, signInWithRetry } from './auth-retry.js';
+import './toggle-password.js';
+
+// 🔹 MÓDULOS EXTERNOS DE FIREBASE POR CDN = SE IMPORTAN CON URL ABSOLUTA
 import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { saveToken } from 'db.js';
-import { showToast } from 'ui.js';
-import { authRetryHandler, signInWithRetry } from 'auth-retry.js';
-import { authGuard } from 'auth-guard.js';
 
+// --- MANEJO DEL LOGIN ---
 const loginForm = document.getElementById('loginForm');
 
 if (loginForm) {
@@ -23,73 +29,60 @@ if (loginForm) {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value.trim();
     const submitBtn = loginForm.querySelector('button[type="submit"]');
-
+    const spinner = document.getElementById('loginSpinner');
 
     try {
       submitBtn.disabled = true;
-      const spinner = document.getElementById('loginSpinner');
       if (spinner) spinner.classList.remove('d-none');
       submitBtn.querySelector('span').textContent = 'Entrando...';
 
-      // 1. Login con Firebase Auth usando retry handler
-      console.log('🔐 Iniciando login con reintentos automáticos...');
+      // Login con Firebase Auth usando tu retry handler
       const userCredential = await signInWithRetry(auth, email, password);
       const user = userCredential.user;
 
-      // 2. Crear sesión en backend (sin esperar Firestore para mayor velocidad)
-      // Enviar al backend para crear sesión
+      // Obtener idToken para el backend
       const idToken = await user.getIdToken();
-      console.log('🪪 idToken obtenido:', idToken);
-      const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-      const resp = await fetch(`${backendUrl}/api/auth/login`, {
+      const backendUrl = window.__ENV__?.BACKEND_URL;
+
+      // Enviar a backend para obtener access/refresh tokens
+      const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({ idToken })
+        body: JSON.stringify({ idToken }),
       });
 
-      if (!resp.ok) {
-        const errorData = await resp.json();
+      if (!response.ok) {
+        const errorData = await response.json();
         throw new Error(errorData.error || 'Error en el servidor');
       }
+      const data = await response.json();
 
-      const data = await resp.json();
-      
-      // 4. Guardar tokens
+      // Guardar tokens de sesión
       await saveToken('access', data.accessToken);
       await saveToken('refresh', data.refreshToken);
 
-      // 5. Redirección INMEDIATA después del login exitoso
-      console.log('✅ Login exitoso - redirigiendo inmediatamente');
-      
-      // Redirección instantánea sin demoras
+      // Redirige al dashboard u otra página protegida
       window.location.replace('donationcenter.html');
 
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
-      
-      // Manejar errores específicos de rate limiting
-      if (authRetryHandler.showRateLimitMessage(error)) {
-        console.log('📝 Mensaje de rate limit mostrado');
+      if (authRetryHandler && authRetryHandler.showRateLimitMessage?.(error)) {
+        // El mensaje de rate limit ya fue mostrado
       } else {
-        // Usar el manejador global de errores de Firebase
-        const errorMessage = window.handleFirebaseError ? 
-          window.handleFirebaseError(error, 'Login') : 
-          'Error al iniciar sesión';
-        
+        const errorMessage = window.handleFirebaseError ?
+          window.handleFirebaseError(error, 'Login') :
+          (error.message || 'Error al iniciar sesión');
         showToast('error', errorMessage);
       }
-      
-      // Si es error de "too many requests", ofrecer limpiar bloqueos
+
       if (error.code === 'auth/too-many-requests') {
         setTimeout(async () => {
-          const cleared = await authRetryHandler.clearAuthBlocks();
-          if (cleared) {
-            showToast('info', 'Bloqueos de autenticación limpiados. Puedes intentar de nuevo.');
-          }
+          const cleared = await authRetryHandler.clearAuthBlocks?.();
+          if (cleared) showToast('info', 'Bloqueos limpiados. Puedes intentar de nuevo.');
         }, 2000);
       }
-      
+
       submitBtn.disabled = false;
       if (spinner) spinner.classList.add('d-none');
       submitBtn.querySelector('span').textContent = 'Entrar';
@@ -97,9 +90,7 @@ if (loginForm) {
   });
 }
 
-import 'toggle-password.js';
-
-// Mostrar/ocultar contraseña
+// Mostrar/ocultar contraseña:
 const toggleBtn = document.getElementById('toggleLoginPassword');
 const passwordInput = document.getElementById('loginPassword');
 const passwordIcon = document.getElementById('loginPasswordIcon');
@@ -108,4 +99,3 @@ if (toggleBtn && passwordInput && passwordIcon) {
     window.togglePasswordVisibility('loginPassword', 'loginPasswordIcon');
   });
 }
-
