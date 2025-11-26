@@ -307,4 +307,5 @@ onAuthStateChanged(auth, (user) => {
   }
 });
 
-export { initializeAuthGuard, isProtectedPage, isPublicPage };
+const AuthGuard = initializeAuthGuard;
+export { AuthGuard, initializeAuthGuard, isProtectedPage, isPublicPage };
