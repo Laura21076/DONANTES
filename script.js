@@ -1,10 +1,10 @@
 
-import { auth, db } from "../services/firebase.js";
-import { getUser, refreshTokenIfNeeded } from "../services/auth.js";
-import { saveToken, getToken } from "../services/db.js";
-import { showToast, handleAuthError } from "../utils/ui.js";
-import { SessionManager } from "./session-manager.js";
-import { authGuard } from "../utils/auth-guard.js";
+import { auth, db } from "firebase.js";
+import { getUser, refreshTokenIfNeeded } from "auth.js";
+import { saveToken, getToken } from "db.js";
+import { showToast, handleAuthError } from "ui.js";
+import { SessionManager } from "session-manager.js";
+import { authGuard } from "auth-guard.js";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
@@ -79,7 +79,7 @@ export async function logout() {
   });
   await saveToken("access", null);
   await saveToken("refresh", null);
-  window.location.href = "/login.html";
+  window.location.href = "login.html";
 }
 
 
@@ -223,7 +223,7 @@ auth.onAuthStateChanged(async (user) => {
   
   if (isOnProtectedPage && !window.location.pathname.includes('login.html')) {
     console.log('🔒 Acceso denegado - redirigiendo a login');
-    window.location.replace('./login.html');
+    window.location.replace('login.html');
   }
   
   if (sessionManager) {
@@ -237,3 +237,4 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionManager.onDOMLoaded();
   }
 });
+
