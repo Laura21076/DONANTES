@@ -9,10 +9,9 @@ if ('serviceWorker' in navigator) {
 }
 
 // Inicializar SessionManager para PWA
-import('../js/session-manager.js').then(module => {
+import('./session-manager.js').then(module => {
   const SessionManager = module.default;
   const sessionManager = new SessionManager();
   window.sessionManager = sessionManager;
   console.log('📱 SessionManager cargado en donation center');
-
 });
