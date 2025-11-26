@@ -2,11 +2,11 @@
 export function showToast(type, message) {
   const toast = document.getElementById('toast');
   const toastBody = toast.querySelector('.toast-body');
-  
+
   // Configurar estilo según el tipo con paleta personalizada
   toast.classList.remove('bg-primary', 'bg-success', 'bg-danger');
   toast.style.backgroundColor = '';
-  
+
   switch (type) {
     case 'success':
       toast.style.backgroundColor = '#A992D8'; // Morado claro
@@ -20,17 +20,27 @@ export function showToast(type, message) {
       toast.style.backgroundColor = '#8C78BF'; // Morado hover
       toast.style.color = '#ffffff';
   }
-  
+
   // Establecer mensaje
   toastBody.textContent = message;
-  
+
   // Mostrar toast
-  const bsToast = new bootstrap.Toast(toast);
-  bsToast.show();
+  if (window.bootstrap && typeof window.bootstrap.Toast === "function") {
+    const bsToast = new window.bootstrap.Toast(toast);
+    bsToast.show();
+  } else if (typeof bootstrap !== "undefined" && typeof bootstrap.Toast === "function") {
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+  } else {
+    // Fallback: mostrar como alerta flotante
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', 4000);
+  }
 }
 
 // Spinner de carga
 export function showSpinner() {
+  if (document.getElementById('loading-spinner')) return; // Evitar duplicados
   const spinner = document.createElement('div');
   spinner.id = 'loading-spinner';
   spinner.innerHTML = `
@@ -53,7 +63,7 @@ export function hideSpinner() {
 // Manejador de errores de autenticación
 export function handleAuthError(error) {
   let message = 'Error desconocido. Por favor, intenta de nuevo.';
-  
+
   switch (error.code) {
     case 'SESSION_EXPIRED':
       message = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
@@ -71,7 +81,7 @@ export function handleAuthError(error) {
   }
 
   showToast('error', message);
-  
+
   // Si el error está relacionado con la sesión, redirigir al login
   if (['SESSION_EXPIRED', 'INVALID_SESSION', 'UNAUTHORIZED'].includes(error.code)) {
     setTimeout(() => {
