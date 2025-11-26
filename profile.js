@@ -31,7 +31,7 @@ const newPasswordInput = document.getElementById("newPassword");
 const saveProfileBtn = document.getElementById("saveProfileBtn");
 const saveProfileText = document.getElementById("saveProfileText");
 const saveProfileSpinner = document.getElementById("saveProfileSpinner");
-const photoUploadInput = document.getElementById("photoUpload");
+const photoUploadInput = document.getElementById("profilePhotoInput");
 const profilePhotoDisplay = document.getElementById("profilePhotoDisplay");
 const profileDisplayName = document.getElementById("profileDisplayName");
 const profileDisplayEmail = document.getElementById("profileDisplayEmail");
@@ -287,8 +287,9 @@ async function loadUserProfile() {
 
     // Configurar evento de subida de foto
     if (photoUploadInput) {
-      photoUploadInput.addEventListener('change', handlePhotoUpload);
-    }
+          photoUploadInput.addEventListener('change', handlePhotoUpload);
+        }
+  
 
     // Mostrar indicador de contraseña actual
     displayCurrentPassword();
@@ -534,7 +535,7 @@ function showNotification(message, type = "info") {
   }, 5000);
 }
 
-import '../utils/toggle-password.js';
+import 'toggle-password.js';
 
 // Función para simular contraseña actual (solo para mostrar el campo)
 function displayCurrentPassword() {
@@ -704,4 +705,5 @@ async function updateMFAIcon() {
   } catch (e) {}
 }
 document.addEventListener('DOMContentLoaded', updateMFAIcon);
+
 
