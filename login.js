@@ -6,7 +6,7 @@ import { auth, db } from './firebase.js';
 import { saveToken } from './db.js';
 import { showToast } from './ui.js';
 import { initializeAuthGuard as AuthGuard } from 'auth-guard.js';
-import { authRetryHandler, signInWithRetry } from 'auth-retry.js';
+import { authRetryHandler, signInWithRetry } from './auth-retry.js';
 import './toggle-password.js';
 
 // 🔹 MÓDULOS EXTERNOS DE FIREBASE POR CDN = SE IMPORTAN CON URL ABSOLUTA
@@ -99,6 +99,7 @@ if (toggleBtn && passwordInput && passwordIcon) {
     window.togglePasswordVisibility('loginPassword', 'loginPasswordIcon');
   });
 }
+
 
 
 
