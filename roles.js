@@ -4,8 +4,11 @@
  * Archivo principal que coordina la funcionalidad de roles
  */
 
-import { ROLES, ADMIN_EMAILS, PERMISSIONS, FEATURES } from 'roles-config.js';
-import { updateUIBasedOnRole, protectElement, initializeUIProtection } from 'roles-ui.js';
+import { ROLES, ADMIN_EMAILS, PERMISSIONS, FEATURES } from './roles-config.js';
+import { updateUIBasedOnRole, protectElement, initializeUIProtection } from './roles-ui.js';
+
+// Si getCurrentUser NO es global, descomenta esto:
+// import { getCurrentUser } from './auth.js';
 
 class RoleManager {
     constructor() {
@@ -20,15 +23,12 @@ class RoleManager {
      */
     async getCurrentUserRole() {
         try {
+            // Asegúrate de tener getCurrentUser global, o importa arriba
             const user = await getCurrentUser();
             if (!user) return null;
-            
-            // Verificar si es admin por email
             if (this.adminEmails.includes(user.email.toLowerCase())) {
                 return this.roles.ADMIN;
             }
-            
-            // Por defecto es usuario regular
             return this.roles.USER;
         } catch (error) {
             console.error('Error obteniendo rol del usuario:', error);
@@ -88,19 +88,9 @@ class RoleManager {
     async hasPermission(action) {
         const isAdmin = await this.isAdmin();
         const requiredRole = this.permissions[action];
-        
         if (!requiredRole) return false;
-        
-        // Si la acción requiere admin y el usuario es admin
-        if (requiredRole === 'admin') {
-            return isAdmin;
-        }
-        
-        // Si la acción requiere user (cualquier usuario autenticado)
-        if (requiredRole === 'user') {
-            return true; // Ya verificamos que hay usuario autenticado
-        }
-        
+        if (requiredRole === 'admin') return isAdmin;
+        if (requiredRole === 'user') return true;
         return false;
     }
 
@@ -134,5 +124,4 @@ document.addEventListener('DOMContentLoaded', () => {
 // Exportar para uso global
 window.roleManager = roleManager;
 window.canPerformAction = canPerformAction;
-
 window.protectElement = protectElementWrapper;
