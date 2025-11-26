@@ -1,8 +1,9 @@
 // auth-guard.js - Middleware para proteger páginas que requieren autenticación
-import '../utils/error-handler.js'; // Cargar manejo de errores
-import { getCurrentUser } from '../services/auth.js';
+
+import './error-handler.js'; // Cargar manejo de errores desde la raíz
+import { getCurrentUser } from './auth.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { auth } from '../services/firebase.js';
+import { auth } from './firebase.js';
 
 /**
  * Lista de páginas que requieren autenticación
@@ -45,17 +46,17 @@ function isPublicPage() {
  */
 function redirectToLogin() {
   const currentPath = window.location.pathname;
-  
+
   // Si el usuario intenta acceder directamente a páginas protegidas, mostrar advertencia
   if (isProtectedPage()) {
     console.warn('🚫 Acceso denegado: Mostrando advertencia');
     createAccessDeniedOverlay();
     return;
   }
-  
+
   // Para otros casos, redireccionar normalmente
   console.warn('🚫 Acceso denegado: Redirigiendo a login');
-  window.location.href = '/pages/login.html';
+  window.location.href = 'login.html';
 }
 
 /**
@@ -67,7 +68,7 @@ function createAccessDeniedOverlay() {
   if (existingOverlay) {
     existingOverlay.remove();
   }
-  
+
   const overlay = document.createElement('div');
   overlay.id = 'accessDeniedOverlay';
   overlay.innerHTML = `
@@ -86,12 +87,12 @@ function createAccessDeniedOverlay() {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         animation: fadeIn 0.3s ease-in;
       }
-      
+
       @keyframes fadeIn {
         from { opacity: 0; }
         to { opacity: 1; }
       }
-      
+
       .access-denied-card {
         background: white;
         border-radius: 20px;
@@ -101,32 +102,32 @@ function createAccessDeniedOverlay() {
         box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         animation: slideUp 0.3s ease-out;
       }
-      
+
       @keyframes slideUp {
         from { transform: translateY(50px); opacity: 0; }
         to { transform: translateY(0); opacity: 1; }
       }
-      
+
       .warning-icon {
         font-size: 4rem;
         color: #e74c3c;
         margin-bottom: 20px;
       }
-      
+
       .access-title {
         color: #2D1B44;
         font-size: 1.8rem;
         font-weight: 700;
         margin-bottom: 15px;
       }
-      
+
       .access-message {
         color: #666;
         font-size: 1.1rem;
         margin-bottom: 30px;
         line-height: 1.5;
       }
-      
+
       .btn-login {
         background: linear-gradient(135deg, #6f42c1, #9561e2);
         color: white;
@@ -140,12 +141,12 @@ function createAccessDeniedOverlay() {
         box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3);
         margin: 0 10px;
       }
-      
+
       .btn-login:hover {
         transform: translateY(-2px);
         box-shadow: 0 6px 20px rgba(111, 66, 193, 0.4);
       }
-      
+
       .btn-back {
         background: #f8f9fa;
         color: #6c757d;
@@ -158,7 +159,7 @@ function createAccessDeniedOverlay() {
         transition: all 0.3s ease;
         margin: 0 10px;
       }
-      
+
       .btn-back:hover {
         background: #e9ecef;
         border-color: #adb5bd;
@@ -181,16 +182,16 @@ function createAccessDeniedOverlay() {
       </div>
     </div>
   `;
-  
+
   // Funciones para los botones
   window.goToLogin = function() {
-    window.location.href = '/pages/login.html';
+    window.location.href = 'login.html';
   };
-  
+
   window.goBack = function() {
     window.history.length > 1 ? window.history.back() : window.location.href = '/';
   };
-  
+
   document.body.appendChild(overlay);
   console.log('🚫 Mostrando advertencia de acceso denegado');
 }
@@ -200,7 +201,7 @@ function createAccessDeniedOverlay() {
  */
 function redirectToMain() {
   console.log('✅ Usuario ya autenticado, redirigiendo a página principal');
-  window.location.href = '/pages/donationcenter.html';
+  window.location.href = 'donationcenter.html';
 }
 
 /**
@@ -213,7 +214,7 @@ async function initializeAuthGuard() {
   }
 
   console.log('🛡️ Inicializando auth-guard...');
-  
+
   // Esperar a que Firebase esté completamente inicializado
   try {
     // Verificación rápida de autenticación
@@ -221,7 +222,7 @@ async function initializeAuthGuard() {
       const timeout = setTimeout(() => {
         reject(new Error('Timeout esperando autenticación'));
       }, 100); // Reducido a 100ms para mayor velocidad
-      
+
       const unsubscribe = onAuthStateChanged(auth, (user) => {
         clearTimeout(timeout);
         unsubscribe();
@@ -232,7 +233,7 @@ async function initializeAuthGuard() {
     if (isProtectedPage()) {
       if (!user) {
         console.warn(`🔒 Página protegida sin autenticación: ${window.location.pathname}`);
-        window.location.replace('/pages/login.html');
+        window.location.replace('login.html');
         return false;
       }
       console.log(`✅ Acceso autorizado a página protegida: ${window.location.pathname} - Usuario: ${user.email}`);
@@ -242,53 +243,46 @@ async function initializeAuthGuard() {
       document.documentElement.style.opacity = '';
     } else if (isPublicPage() && user) {
       console.log(`ℹ️ Usuario autenticado accediendo a página pública: ${window.location.pathname}`);
-      // No redirigir automáticamente - permitir que usuarios autenticados accedan a páginas públicas
       // Solo redirigir si específicamente están en login
       if (window.location.pathname.includes('login.html')) {
         redirectToMain();
         return false;
       }
     }
-    
+
   } catch (error) {
     console.error('❌ Error en auth-guard:', error);
-    
+
     if (isProtectedPage()) {
       console.warn('🔒 Error verificando autenticación, redirigiendo a login');
-      window.location.replace('/pages/login.html');
+      window.location.replace('login.html');
       return false;
     }
   }
-  
+
   return true;
 }
 
-// Auto-inicializar cuando se carga el módulo - VERIFICACIÓN OPTIMIZADA
-// Sin delays perceptibles para la experiencia del usuario
+// Auto-inicializar cuando se carga el módulo
 const currentPage = window.location.pathname.split('/').pop() || 'index.html';
 const isProtected = PROTECTED_PAGES.some(page => currentPage.includes(page.replace('.html', '')));
 
-// No mostrar ningún loading visible si es página protegida
 if (isProtected) {
   console.log('🔐 Página protegida detectada, verificando autenticación rápidamente...');
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Verificación inmediata sin delays
   initializeAuthGuard();
 });
 
-// También verificar cuando cambia el estado de autenticación
 let authChecked = false;
 
 onAuthStateChanged(auth, (user) => {
   if (!authChecked) {
     authChecked = true;
-    // Primera verificación - sin efectos visuales molestos
-    
+
     if (user) {
       console.log('🔐 Estado de autenticación: Usuario conectado -', user.email);
-      // Usuario autenticado, asegurar que la página sea visible
       if (isProtectedPage()) {
         document.documentElement.style.display = '';
         document.body.style.display = '';
@@ -298,11 +292,10 @@ onAuthStateChanged(auth, (user) => {
       console.log('🔓 Estado de autenticación: Usuario desconectado');
       if (isProtectedPage()) {
         console.warn('🚫 Redirigiendo a login - usuario no autenticado');
-        window.location.replace('/pages/login.html');
+        window.location.replace('login.html');
       }
     }
   } else {
-    // Verificaciones posteriores
     if (user) {
       console.log('🔐 Usuario sigue autenticado');
     } else {
