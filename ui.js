@@ -75,7 +75,8 @@ export function handleAuthError(error) {
   // Si el error está relacionado con la sesión, redirigir al login
   if (['SESSION_EXPIRED', 'INVALID_SESSION', 'UNAUTHORIZED'].includes(error.code)) {
     setTimeout(() => {
-      window.location.href = '/pages/login.html';
+      window.location.href = 'login.html';
     }, 2000);
   }
+
 }
