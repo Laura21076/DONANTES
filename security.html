@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración de Seguridad - DONANTES</title>
+  <link rel="icon" href="../assets/logo.ico" type="image/x-icon">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  
+  <!-- CSS personalizado -->
+  <link rel="stylesheet" href="../styles/styles.css?v=20251124">
+
+  <style>
+    .security-container {
+      max-width: 800px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    .security-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 2rem;
+      border-radius: 15px 15px 0 0;
+      text-align: center;
+    }
+
+    .feature-card {
+      border: none;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      margin-bottom: 1.5rem;
+      border-radius: 10px;
+    }
+
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .admin-badge {
+      background: linear-gradient(45deg, #ff6b6b, #ff8e53);
+      color: white;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .security-tip {
+      border-left: 4px solid #17a2b8;
+      padding: 1rem;
+      background: #f8f9fa;
+      margin: 1rem 0;
+    }
+
+    .code-input {
+      font-family: 'Courier New', monospace;
+      font-size: 1.3rem;
+      text-align: center;
+      letter-spacing: 0.5rem;
+      padding: 1rem;
+    }
+  </style>
+</head>
+  <script src="../js/sw-register.js"></script>
+  <script type="module" src="../js/notifications-init.js"></script>
+
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="../pages/index.html">
+        <i class="fas fa-heart me-2"></i>DONANTES
+      </a>
+      <div class="navbar-nav ms-auto">
+        <a class="nav-link" href="donationcenter.html">
+          <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div style="height: 80px;"></div>
+  <div class="security-container">
+    <!-- Header -->
+    <div class="security-header">
+      <h1><i class="fas fa-shield-alt me-3"></i>Centro de Seguridad</h1>
+      <p class="mb-0">Gestiona la seguridad y configuración de tu cuenta</p>
+    </div>
+
+    <!-- Panel principal -->
+    <div class="bg-white shadow rounded-bottom">
+      <div class="container-fluid p-4">
+        
+        <!-- Información de usuario -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <div class="card feature-card">
+              <div class="card-body text-center">
+                <div id="user-info">
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                  </div>
+                  <p class="mt-2">Cargando información del usuario...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configuraciones de seguridad -->
+        <div class="row">
+          <!-- Autenticación de Dos Factores -->
+          <div class="col-lg-8">
+            <div class="feature-card">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">
+                  <i class="fas fa-mobile-alt text-primary me-2"></i>
+                  Autenticación de Dos Factores (2FA)
+                </h5>
+              </div>
+              <div class="card-body">
+                <div id="2fa-container">
+                  <!-- El contenido se generará dinámicamente -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tips de seguridad -->
+          <div class="col-lg-4">
+            <div class="feature-card">
+              <div class="card-header bg-light">
+                <h6 class="mb-0">
+                  <i class="fas fa-lightbulb text-warning me-2"></i>
+                  Tips de Seguridad
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="security-tip">
+                  <h6><i class="fas fa-key text-info me-2"></i>Contraseñas</h6>
+                  <small>Usa contraseñas únicas y complejas para cada cuenta.</small>
+                </div>
+                
+                <div class="security-tip">
+                  <h6><i class="fas fa-envelope text-success me-2"></i>Email</h6>
+                  <small>Verifica siempre que los emails sean legítimos antes de hacer clic.</small>
+                </div>
+                
+                <div class="security-tip">
+                  <h6><i class="fas fa-shield-alt text-primary me-2"></i>2FA</h6>
+                  <small>La autenticación de dos factores protege tu cuenta incluso si alguien conoce tu contraseña.</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel de administrador -->
+            <div class="feature-card" id="admin-panel" style="display: none;">
+              <div class="card-header" style="background: linear-gradient(45deg, #ff6b6b, #ff8e53); color: white;">
+                <h6 class="mb-0">
+                  <i class="fas fa-crown me-2"></i>
+                  Panel de Administrador
+                </h6>
+              </div>
+              <div class="card-body">
+                <p class="text-muted small mb-3">Funciones administrativas disponibles</p>
+                
+                <div class="d-grid gap-2">
+                  <a href="dashboard.html" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-chart-line me-2"></i>Dashboard Admin
+                  </a>
+                  <button class="btn btn-outline-info btn-sm" onclick="viewSystemLogs()">
+                    <i class="fas fa-file-alt me-2"></i>Ver Logs
+                  </button>
+                  <button class="btn btn-outline-warning btn-sm" onclick="manageUsers()">
+                    <i class="fas fa-users me-2"></i>Gestionar Usuarios
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Otras configuraciones -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="feature-card">
+              <div class="card-header bg-light">
+                <h6 class="mb-0">
+                  <i class="fas fa-cog text-secondary me-2"></i>
+                  Otras Configuraciones
+                </h6>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <button class="btn btn-outline-secondary w-100" onclick="changePassword()">
+                      <i class="fas fa-lock me-2"></i>Cambiar Contraseña
+                    </button>
+                  </div>
+                  <div class="col-md-6 mb-3">
+                    <button class="btn btn-outline-info w-100" onclick="downloadData()">
+                      <i class="fas fa-download me-2"></i>Descargar Mis Datos
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script type="module" src="../js/firebase.js"></script>
+  <script type="module" src="../js/auth.js"></script>
+  <script src="../js/simple-2fa.js"></script>
+  <script src="../js/roles.js"></script>
+
+  <script>
+    // Variables globales
+    let simple2FA;
+    let roleManager;
+    let currentUser = null;
+
+    // Inicialización cuando se carga la página
+    document.addEventListener('DOMContentLoaded', async function() {
+      try {
+        // Esperar a que Firebase esté listo
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Inicializar servicios
+        simple2FA = new Simple2FA();
+        roleManager = new RoleManager();
+        
+        // Cargar información del usuario
+        await loadUserInfo();
+        
+        // Crear interfaz de 2FA
+        simple2FA.createSetupInterface('2fa-container');
+        
+      } catch (error) {
+        console.error('Error inicializando página de seguridad:', error);
+        showErrorMessage('Error cargando la configuración de seguridad');
+      }
+    });
+
+    // Cargar información del usuario
+    async function loadUserInfo() {
+      try {
+        if (typeof getCurrentUser !== 'function') {
+          throw new Error('Función getCurrentUser no disponible');
+        }
+        
+        currentUser = await getCurrentUser();
+        window.currentUser = currentUser; // Para que lo use Simple2FA
+        
+        if (!currentUser) {
+          window.location.href = 'login.html';
+          return;
+        }
+
+        // Verificar si es administrador
+        const isAdmin = await roleManager.isAdmin();
+        
+        // Mostrar información del usuario
+        document.getElementById('user-info').innerHTML = `
+          <div class="d-flex align-items-center justify-content-center">
+            <div class="text-center">
+              <i class="fas fa-user-circle fa-3x text-primary mb-2"></i>
+              <h5 class="mb-1">${currentUser.displayName || 'Usuario'}</h5>
+              <p class="text-muted mb-0">${currentUser.email}</p>
+              ${isAdmin ? '<span class="admin-badge mt-2 d-inline-block"><i class="fas fa-crown me-1"></i>Administrador</span>' : ''}
+            </div>
+          </div>
+        `;
+
+        // Mostrar panel de admin si es necesario
+        if (isAdmin) {
+          document.getElementById('admin-panel').style.display = 'block';
+        }
+
+      } catch (error) {
+        console.error('Error cargando información del usuario:', error);
+        showErrorMessage('Error cargando información del usuario');
+      }
+    }
+
+    // Funciones del panel de administrador
+    function viewSystemLogs() {
+      simple2FA.showNotification('Función de logs del sistema en desarrollo', 'info');
+    }
+
+    function manageUsers() {
+      simple2FA.showNotification('Gestión de usuarios en desarrollo', 'info');
+    }
+
+    // Otras funciones de configuración
+    function changePassword() {
+      if (confirm('¿Quieres cambiar tu contraseña? Serás redirigido a la página de reset.')) {
+        window.location.href = 'reset-password.html';
+      }
+    }
+
+    function downloadData() {
+      simple2FA.showNotification('Función de descarga de datos en desarrollo', 'info');
+    }
+
+    // Mostrar mensaje de error
+    function showErrorMessage(message) {
+      document.getElementById('user-info').innerHTML = `
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>${message}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>

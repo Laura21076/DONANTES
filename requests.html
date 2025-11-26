@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="
+    script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com;
+    style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+    img-src 'self' data: https: blob: firebasestorage.googleapis.com *.firebasestorage.app;
+    connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https: wss: firebasestorage.googleapis.com *.googleapis.com;
+    worker-src 'self' blob:;
+    object-src 'none';
+    base-uri 'self';
+    default-src 'self';">
+  <title>Mis Solicitudes | Donantes</title>
+  <!-- FORCE REFRESH v4.0.3 -->
+  <link rel="icon" href="../assets/logo.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="../assets/logo.ico" type="image/x-icon">
+  
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <!-- Google Fonts - Rubik -->
+  <!-- Precargar fuentes para mejor performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700&family=Moirai+One&display=swap" rel="stylesheet">
+  
+  <!-- Estilos personalizados -->
+  <link rel="stylesheet" href="../styles/styles.css?v=20251124">
+  <link rel="stylesheet" href="../styles/requests.css?v=20251124">
+  <script src="../config/env.js?v=20251124"></script>
+  <script src="../js/sw-register.js"></script>
+  <script type="module" src="../js/notifications-init.js"></script>
+  
+  <!-- Auth Guard - Protección de rutas -->
+  <script type="module" src="../js/auth-guard.js?v=20251124"></script>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg custom-navbar fixed-top">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold text-white navbar-brand-requests" href="donationcenter.html">
+      <i class="fas fa-heart heart-icon"></i> DONANTES
+    </a>
+    
+  </div>
+</nav>
+
+<div style="height: 80px;"></div>
+<div class="container my-5">
+  <!-- TÍTULO PRINCIPAL -->
+  <h2 class="text-center mb-4 page-title">
+    <i class="fas fa-exchange-alt"></i> Solicitudes
+  </h2>
+  
+  <div id="feedbackMessage"></div>
+
+  <!-- TABS -->
+  <ul class="nav nav-tabs mb-4" id="requestTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="sent-tab" data-bs-toggle="tab" data-bs-target="#sent" type="button">
+        <i class="fas fa-paper-plane me-2"></i> Enviadas
+      </button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="received-tab" data-bs-toggle="tab" data-bs-target="#received" type="button">
+        <i class="fas fa-inbox me-2"></i> Recibidas
+      </button>
+    </li>
+  </ul>
+
+  <!-- TAB CONTENT -->
+  <div class="tab-content" id="requestTabsContent">
+    
+
+    <!-- SOLICITUDES ENVIADAS -->
+    <div class="tab-pane fade show active" id="sent" role="tabpanel">
+      <div id="sentRequestsGrid" class="row g-4"></div>
+      <div id="sentEmpty" class="empty-state" style="display: none;">
+        <i class="fas fa-paper-plane fa-4x mb-3 text-purple"></i>
+        <h4>No has enviado solicitudes</h4>
+        <p>Cuando solicites artículos, aparecerán aquí</p>
+      </div>
+    </div>
+
+    <!-- MODAL DETALLES DE RECOGIDA -->
+    <div class="modal fade" id="pickupDetailsModal" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-box-open me-2"></i>Detalles de Recogida
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div id="pickupDetailsContent">
+              <div class="text-center mb-3">
+                <div id="pickupCodeSpinner" class="spinner-border text-purple" style="display:none;"></div>
+                <div id="pickupCodeBox" style="display:none;">
+                  <strong>Código actual de acceso:</strong>
+                  <div id="pickupAccessCode" class="access-code"></div>
+                  <button class="btn btn-sm btn-outline-success mt-2" onclick="copyToClipboard(document.getElementById('pickupAccessCode').textContent)"><i class="fas fa-copy"></i> Copiar código</button>
+                </div>
+              </div>
+              <div id="pickupMap" style="height: 300px; border-radius: 12px; margin-bottom: 1rem;"></div>
+              <div class="mb-2">
+                <strong>Instrucciones para recoger el artículo:</strong>
+                <ol class="mt-2" id="pickupInstructions">
+                  <li>Dirígete al casillero indicado en el mapa.</li>
+                  <li>Verifica tu ubicación en el mapa (círculo azul).</li>
+                  <li>Ingresa el código mostrado en el teclado del casillero.</li>
+                  <li>Recoge tu artículo y cierra la puerta.</li>
+                </ol>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-purple" data-bs-dismiss="modal">
+              <i class="fas fa-times me-2"></i>Cerrar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SOLICITUDES RECIBIDAS -->
+    <div class="tab-pane fade" id="received" role="tabpanel">
+      <div id="receivedRequestsGrid" class="row g-4"></div>
+      <div id="receivedEmpty" class="empty-state" style="display: none;">
+        <i class="fas fa-inbox fa-4x mb-3 text-purple"></i>
+        <h4>No has recibido solicitudes</h4>
+        <p>Las solicitudes para tus artículos aparecerán aquí</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL PARA APROBAR SOLICITUD -->
+<div class="modal fade" id="approveModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-check-circle me-2"></i>Aprobar Solicitud
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="approveRequestId">
+        <div class="mb-3">
+          <label for="lockerId" class="form-label">
+            <i class="fas fa-lock me-2"></i>ID del Casillero (opcional)
+          </label>
+          <input type="text" class="form-control" id="lockerId" placeholder="Ej: A1, B2, C3">
+          <small class="text-muted">Identificador del casillero donde se dejará el artículo</small>
+        </div>
+        <div class="mb-3">
+          <label for="lockerLocation" class="form-label">
+            <i class="fas fa-map-marker-alt me-2"></i>Ubicación del Casillero (opcional)
+          </label>
+          <input type="text" class="form-control" id="lockerLocation" placeholder="Ej: Centro Comunitario, Calle Principal 123">
+          <small class="text-muted">Dirección o referencia del casillero</small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-outline-purple" data-bs-dismiss="modal">
+          <i class="fas fa-times me-2"></i>Cancelar
+        </button>
+        <button type="button" class="btn btn-purple" onclick="approveRequestHandler()">
+          <i class="fas fa-check me-2"></i>Aprobar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="../services/notifications.js?v=20251124"></script>
+<script type="module" src="../js/requests-page.js?v=20251124"></script>
+
+<!-- Toast container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;">
+  <div id="toast" class="toast text-white" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3500">
+    <div class="toast-body"></div>
+  </div>
+</div>
+</body>
+</html>
