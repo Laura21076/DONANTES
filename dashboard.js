@@ -1,3 +1,11 @@
+// admin-dashboard-firebase.js
+
+import { getCurrentUser } from './auth.js';
+import { signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { auth } from './firebase.js';
+// Si deseas importar tu roleManager explícitamente, descomenta la siguiente línea y ajusta el nombre:
+// import { roleManager } from './roles.js';
+
 /**
  * Dashboard de Administrador - DONANTES PWA
  * Funcionalidades específicas para administradores del sistema
@@ -13,7 +21,7 @@ class AdminDashboard {
             completedDonations: 0,
             pendingReports: 0
         };
-        
+
         this.init();
     }
 
@@ -21,7 +29,7 @@ class AdminDashboard {
         try {
             // Verificar autenticación y rol de administrador
             await this.checkAdminAccess();
-            
+
             if (!this.isAdminUser) {
                 // Redirigir a usuario no autorizado
                 window.location.href = 'donationcenter.html';
@@ -30,13 +38,13 @@ class AdminDashboard {
 
             // Cargar datos del dashboard
             await this.loadDashboardData();
-            
+
             // Actualizar UI
             this.updateUI();
-            
+
             // Ocultar loading screen
             this.hideLoadingScreen();
-            
+
         } catch (error) {
             console.error('Error inicializando dashboard de administrador:', error);
             this.hideLoadingScreen();
@@ -52,9 +60,12 @@ class AdminDashboard {
             }
 
             // Verificar si es administrador usando el sistema de roles
+            // Si roleManager está en window, usa window.roleManager
             if (window.roleManager) {
                 this.isAdminUser = await window.roleManager.isAdmin();
             }
+            // Si usas import { roleManager } from './roles.js', entonces sería:
+            // this.isAdminUser = await roleManager.isAdmin();
 
             if (!this.isAdminUser) {
                 this.showAccessDenied();
@@ -108,13 +119,11 @@ class AdminDashboard {
 
     async loadUserStats() {
         try {
-            // Placeholder - en producción se consultaría la base de datos
             this.stats.totalUsers = 156; // Simulated data
-            
+
             // TODO: Implementar consulta real a Firestore
             // const usersSnapshot = await getDocs(collection(db, 'users'));
             // this.stats.totalUsers = usersSnapshot.size;
-            
         } catch (error) {
             console.error('Error cargando estadísticas de usuarios:', error);
         }
@@ -122,13 +131,11 @@ class AdminDashboard {
 
     async loadArticleStats() {
         try {
-            // Placeholder - en producción se consultaría la colección de artículos
             this.stats.totalArticles = 89; // Simulated data
-            
+
             // TODO: Implementar consulta real a Firestore
             // const articlesSnapshot = await getDocs(collection(db, 'articles'));
             // this.stats.totalArticles = articlesSnapshot.size;
-            
         } catch (error) {
             console.error('Error cargando estadísticas de artículos:', error);
         }
@@ -136,9 +143,7 @@ class AdminDashboard {
 
     async loadDonationStats() {
         try {
-            // Placeholder - en producción se consultarían las donaciones completadas
             this.stats.completedDonations = 67; // Simulated data
-            
         } catch (error) {
             console.error('Error cargando estadísticas de donaciones:', error);
         }
@@ -146,9 +151,7 @@ class AdminDashboard {
 
     async loadReportStats() {
         try {
-            // Placeholder - en producción se consultarían los reportes pendientes
             this.stats.pendingReports = 3; // Simulated data
-            
         } catch (error) {
             console.error('Error cargando estadísticas de reportes:', error);
         }
@@ -244,14 +247,14 @@ class AdminDashboard {
         const minTimer = 50;
         const stepTime = Math.abs(Math.floor(duration / range));
         const timer = stepTime < minTimer ? minTimer : stepTime;
-        
+
         let current = start;
         const increment = end > start ? 1 : -1;
-        
+
         const counter = setInterval(() => {
             current += increment;
             element.textContent = current;
-            
+
             if (current === end) {
                 clearInterval(counter);
             }
@@ -279,11 +282,7 @@ class AdminDashboard {
 // Funciones para las acciones del dashboard
 async function viewAllUsers() {
     try {
-        // Placeholder - implementar modal o redirección a página de gestión de usuarios
         alert('Función en desarrollo: Gestión de Usuarios\n\nEsta función permitirá:\n- Ver todos los usuarios registrados\n- Activar/desactivar cuentas\n- Verificar usuarios\n- Ver estadísticas de actividad');
-        
-        // TODO: Implementar ventana modal o página dedicada
-        
     } catch (error) {
         console.error('Error abriendo gestión de usuarios:', error);
     }
@@ -292,7 +291,6 @@ async function viewAllUsers() {
 async function moderateContent() {
     try {
         alert('Función en desarrollo: Moderación de Contenido\n\nEsta función permitirá:\n- Revisar reportes de contenido\n- Aprobar/rechazar artículos\n- Eliminar contenido inapropiado\n- Enviar notificaciones a usuarios');
-        
     } catch (error) {
         console.error('Error abriendo moderación:', error);
     }
@@ -301,7 +299,6 @@ async function moderateContent() {
 async function viewAnalytics() {
     try {
         alert('Función en desarrollo: Analíticas\n\nEsta función mostrará:\n- Estadísticas de uso\n- Gráficos de donaciones por período\n- Usuarios más activos\n- Categorías más populares\n- Reportes de rendimiento');
-        
     } catch (error) {
         console.error('Error abriendo analíticas:', error);
     }
@@ -311,7 +308,7 @@ async function viewAnalytics() {
 async function logout() {
     try {
         if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-            await signOut(firebase.auth);
+            await signOut(auth);
             window.location.href = 'login.html';
         }
     } catch (error) {
@@ -322,7 +319,6 @@ async function logout() {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
-    // Esperar a que Firebase Auth esté inicializado
     setTimeout(() => {
         new AdminDashboard();
     }, 1500);
