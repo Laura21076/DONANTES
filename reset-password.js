@@ -1,6 +1,6 @@
-import { auth } from '../services/firebase.js';
+import { auth } from 'firebase.js';
 import { sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { showToast } from '../utils/ui.js';
+import { showToast } from 'ui.js';
 
 const resetRequestForm = document.getElementById('resetRequestForm');
 
@@ -52,4 +52,5 @@ if (resetRequestForm) {
     }
   });
 }
+
 
