@@ -309,3 +309,4 @@ onAuthStateChanged(auth, (user) => {
 
 const AuthGuard = initializeAuthGuard;
 export { AuthGuard, initializeAuthGuard, isProtectedPage, isPublicPage };
+
