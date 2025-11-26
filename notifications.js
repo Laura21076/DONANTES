@@ -1,5 +1,5 @@
 // Servicio de notificaciones push para DonantesApp
-import { getCurrentUser, getIdToken } from 'auth.js';
+import { getCurrentUser, getIdToken } from './auth.js';
 
 const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
 
@@ -51,12 +51,9 @@ async function requestNotificationPermission() {
   if (Notification.permission === 'granted') {
     return 'granted';
   }
-
   if (Notification.permission === 'default') {
-    const permission = await Notification.requestPermission();
-    return permission;
+    return await Notification.requestPermission();
   }
-
   return Notification.permission;
 }
 
@@ -241,14 +238,11 @@ export async function unsubscribeFromNotifications() {
 
 // ================== AUTO-INIT EN PÁGINAS PRINCIPALES ==================
 
-// Auto-inicializar en páginas principales si el usuario está logueado
 document.addEventListener('DOMContentLoaded', async () => {
   const user = getCurrentUser();
   if (user) {
-    // Esperar un poco para que la página se cargue completamente
     setTimeout(() => {
       initializeNotifications();
     }, 2000);
   }
-
 });
