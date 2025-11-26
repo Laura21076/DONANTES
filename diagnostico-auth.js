@@ -1,9 +1,9 @@
 // Diagnóstico de autenticación y tokens Donantes2025
 // Instrucciones: Incluye este script en cualquier página protegida (ej: donationcenter.html) para ver el estado de autenticación y tokens en consola.
 
-import { auth } from 'firebase.js';
-import { getCurrentUser, getIdToken } from 'auth.js';
-import { getToken } from 'db.js';
+import { auth } from './firebase.js';
+import { getCurrentUser, getIdToken } from './auth.js';
+import { getToken } from './db.js';
 
 window.runAuthDiagnostics = async function() {
   console.group('%c🔎 Diagnóstico de Autenticación Donantes2025', 'color: purple; font-weight: bold;');
@@ -49,4 +49,3 @@ window.runAuthDiagnostics = async function() {
 };
 
 console.info('%cℹ️ Ejecuta runAuthDiagnostics() en la consola para ver el estado de autenticación.', 'color: purple; font-weight: bold;');
-
