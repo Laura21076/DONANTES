@@ -1,0 +1,57 @@
+{
+  "name": "donantes-pwa",
+  "version": "1.0.0",
+  "description": "Donantes PWA - Aplicación para donación de artículos",
+  "main": "pages/index.html",
+  "scripts": {
+    "build": "npm-run-all clean vitebuild copyfiles",
+    "clean": "rimraf dist",
+    "vitebuild": "vite build",
+    "copyfiles": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"& { New-Item -ItemType Directory -Force -Path dist,dist\\assets,dist\\js,dist\\config,dist\\services,dist\\utils,dist\\styles,dist\\pages > $null; if (Test-Path public) { Copy-Item -Recurse -Force -Path public\\* -Destination dist } ; if (Test-Path assets) { Copy-Item -Recurse -Force -Path assets -Destination dist } ; if (Test-Path js) { Copy-Item -Recurse -Force -Path js -Destination dist } ; if (Test-Path config) { Copy-Item -Recurse -Force -Path config -Destination dist } ; if (Test-Path services) { Copy-Item -Recurse -Force -Path services -Destination dist } ; if (Test-Path utils) { Copy-Item -Recurse -Force -Path utils -Destination dist } ; if (Test-Path styles) { Copy-Item -Recurse -Force -Path styles -Destination dist } ; if (Test-Path pages) { Get-ChildItem -Path pages -Filter *.html | ForEach-Object { Copy-Item -Force $_.FullName -Destination dist\\pages } } ; if (Test-Path sw.js) { Copy-Item -Force sw.js dist } }\"",
+    "dev": "http-server -p 5500 -c-1 --cors",
+    "build:docker": "rimraf dist && vite build && mkdir -p dist/public dist/assets dist/js dist/config dist/services dist/utils dist/styles dist/pages && cp -r public/* dist/public/ && cp -r assets dist/ && cp -r js dist/ && cp -r config dist/ && [ -d services ] && cp -r services dist/ || true && [ -d utils ] && cp -r utils dist/ || true && cp -r styles dist/ && cp -r pages/*.html dist/pages/ && cp public/sw.js dist/",
+    "cap:init": "npx cap init 'Donantes' 'com.donantes.app'",
+    "cap:add:ios": "npx cap add ios",
+    "cap:sync": "npx cap sync",
+    "cap:build:android": "npx cap build android",
+    "cap:build:ios": "npx cap build ios",
+    "cap:open:android": "npx cap open android",
+    "cap:open:ios": "npx cap open ios"
+  },
+  "keywords": [
+    "pwa",
+    "donaciones",
+    "mobile",
+    "capacitor"
+  ],
+  "author": "Universidad Tecnológica Santa Catarina",
+  "license": "MIT",
+  "dependencies": {
+    "express-rate-limit": "^8.2.1",
+    "firebase": "^12.5.0"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^6.2.1",
+    "@capacitor/camera": "^6.0.0",
+    "@capacitor/cli": "^6.2.1",
+    "@capacitor/core": "^6.2.1",
+    "@capacitor/geolocation": "^6.0.0",
+    "@capacitor/ios": "^6.2.1",
+    "@capacitor/local-notifications": "^6.1.2",
+    "@capacitor/push-notifications": "^6.0.4",
+    "@capacitor/splash-screen": "^6.0.3",
+    "@capacitor/status-bar": "^6.0.2",
+    "http-server": "^14.1.1",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.4"
+  },
+  "capacitor": {
+    "appId": "com.donantes.app",
+    "appName": "Donantes",
+    "webDir": ".",
+    "server": {
+      "androidScheme": "https"
+    }
+  }
+}
