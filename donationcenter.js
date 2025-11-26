@@ -1,7 +1,7 @@
-import { createArticle, getArticles, updateArticle, deleteArticle } from '../services/articles.js';
-import { getCurrentUser, getIdToken } from '../services/auth.js';
-import { requestArticle as requestArticleService } from '../services/requests.js';
-import { storage } from '../services/firebase.js';
+import { createArticle, getArticles, updateArticle, deleteArticle } from 'articles.js';
+import { getCurrentUser, getIdToken } from 'auth.js';
+import { requestArticle as requestArticleService } from 'requests.js';
+import { storage } from 'firebase.js';
 import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 let currentArticleId = null;
@@ -41,7 +41,7 @@ function escapeHtml(unsafe) {
 document.addEventListener('DOMContentLoaded', async () => {
   try {
     // Esperar a que Firebase determine el usuario autenticado
-    const { getUser } = await import('../services/auth.js');
+    const { getUser } = await import('auth.js');
     let user = await getUser();
     if (!user) {
       console.warn('⚠️ Usuario no autenticado en donation center, redirigiendo...');
@@ -74,13 +74,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ================== CARGAR PERFIL DE USUARIO ==================
 async function loadUserProfile() {
   try {
-    const { getUser } = await import('../services/auth.js');
+    const { getUser } = await import('auth.js');
     const user = await getUser();
     if (!user) return;
 
     // Hacer petición al backend para obtener perfil completo
     const token = await getIdToken();
-    const backendUrl = window.__ENV__?.BACKEND_URL || 'http://localhost:4000';
+    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
     const response = await fetch(`${backendUrl}/api/users/profile`, {
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -225,7 +225,7 @@ function displayArticles(articles) {
   const emptyState = document.getElementById('emptyState');
   let currentUser;
   try {
-    const { getUser } = await import('../services/auth.js');
+    const { getUser } = await import('auth.js');
     currentUser = await getUser();
   } catch (error) {
     console.warn('Error obteniendo usuario actual:', error);
@@ -347,7 +347,7 @@ function displayArticles(articles) {
     // Inicializar temporizadores para artículos visibles
     initializeTimers(visibleArticles);
     
-    console.log(`🎨 Rendered ${visibleArticles.length} articles in DOM`);
+    console.log(`Rendered ${visibleArticles.length} articles in DOM`);
   });
 }
 
@@ -497,7 +497,7 @@ function setupFormHandlers() {
 async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
-  const { getUser } = await import('../services/auth.js');
+  const { getUser } = await import('auth.js');
   const currentUser = await getUser();
   console.log('👤 Current user:', currentUser ? 'AUTHENTICATED' : 'NOT AUTHENTICATED', currentUser?.uid);
 
@@ -573,7 +573,7 @@ async function saveArticle() {
 // ================== VALIDAR PERMISOS ==================
 function validateOwnership(articleId) {
   const article = articlesCache.find(a => a.id === articleId);
-  const { getUser } = require('../services/auth.js');
+  const { getUser } = require('auth.js');
   const currentUser = await getUser();
   
   if (!article || !currentUser) {
@@ -661,7 +661,7 @@ window.editArticle = function(articleId) {
         previewWrap.style.display = 'block';
         previewWrap.style.border = '3px solid #28a745';
         previewWrap.title = 'Imagen actual del artículo';
-        console.log('🖼️ Imagen cargada para edición:', article.imageUrl);
+        console.log('Imagen cargada para edición:', article.imageUrl);
       } else if (previewWrap && previewImg) {
         previewImg.src = '';
         previewWrap.style.display = 'none';
@@ -699,7 +699,7 @@ window.confirmDelete = async function(articleId) {
     return;
   }
 
-  console.log('🗑️ Confirmando eliminación de:', article.title);
+  console.log('Confirmando eliminación de:', article.title);
 
   // Crear modal de confirmación elegante y detallado
   const confirmModal = document.createElement('div');
@@ -781,7 +781,7 @@ window.confirmDelete = async function(articleId) {
         btn.disabled = true;
         btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Eliminando...';
         
-        console.log('🗑️ Eliminando artículo:', articleId);
+        console.log('Eliminando artículo:', articleId);
         await deleteArticle(articleId);
         
         modal.hide();
@@ -790,10 +790,10 @@ window.confirmDelete = async function(articleId) {
         console.log('🔄 Recargando artículos después de eliminar...');
         await loadArticles(true); // Forzar recarga después de eliminar
         
-        console.log('✅ Artículo eliminado y lista actualizada');
+        console.log('Artículo eliminado y lista actualizada');
         
       } catch (error) {
-        console.error('❌ Error al eliminar artículo:', error);
+        console.error('Error al eliminar artículo:', error);
         showMessage('Error al eliminar: ' + error.message, 'danger');
         modal.hide();
       }
@@ -811,7 +811,7 @@ window.confirmDelete = async function(articleId) {
     });
     
   } catch (error) {
-    console.error('❌ Error creando modal de confirmación:', error);
+    console.error('Error creando modal de confirmación:', error);
     showMessage('Error al mostrar confirmación: ' + error.message, 'danger');
     // Limpiar en caso de error
     if (document.body.contains(confirmModal)) {
@@ -822,7 +822,7 @@ window.confirmDelete = async function(articleId) {
 
 // ================== RESETEAR FORMULARIO ==================
 function resetForm() {
-  console.log('🔄 Reseteando formulario para nuevo artículo');
+  console.log('Reseteando formulario para nuevo artículo');
   
   currentArticleId = null;
   
@@ -1121,7 +1121,7 @@ window.openInGoogleMaps = function() {
 function getUserLocation() {
   return new Promise((resolve) => {
     if (!navigator.geolocation) {
-      console.warn('⚠️ Geolocalización no disponible en este dispositivo');
+      console.warn('Geolocalización no disponible en este dispositivo');
       resolve(null);
       return;
     }
@@ -1133,11 +1133,11 @@ function getUserLocation() {
           longitude: position.coords.longitude,
           accuracy: position.coords.accuracy
         };
-        console.log('📍 Ubicación obtenida:', location);
+        console.log('Ubicación obtenida:', location);
         resolve(location);
       },
       (error) => {
-        console.warn('⚠️ Error obteniendo ubicación:', error.message);
+        console.warn('Error obteniendo ubicación:', error.message);
         // No fallar la solicitud por problemas de ubicación
         resolve(null);
       },
@@ -1168,7 +1168,7 @@ window.requestArticle = async function(articleId, articleTitle, donorId) {
     const userLocation = await getUserLocation();
     
     if (userLocation) {
-      console.log('📍 Ubicación del usuario incluida en solicitud:', userLocation);
+      console.log('Ubicación del usuario incluida en solicitud:', userLocation);
     }
 
     // Mostrar modal de confirmación
@@ -1252,7 +1252,7 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'edit':
         const editId = target.getAttribute('data-article-id') || target.closest('[data-article-id]')?.getAttribute('data-article-id');
         if (editId) {
-          console.log('✏️ Editando artículo:', editId);
+          console.log('Editando artículo:', editId);
           editArticle(editId);
         }
         break;
@@ -1260,7 +1260,7 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'delete':
         const deleteId = target.getAttribute('data-article-id') || target.closest('[data-article-id]')?.getAttribute('data-article-id');
         if (deleteId) {
-          console.log('🗑️ Eliminando artículo:', deleteId);
+          console.log('Eliminando artículo:', deleteId);
           deleteArticleConfirm(deleteId);
         }
         break;
@@ -1268,7 +1268,7 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'request':
         const requestId = target.getAttribute('data-article-id') || target.closest('[data-article-id]')?.getAttribute('data-article-id');
         if (requestId) {
-          console.log('📋 Solicitando artículo:', requestId);
+          console.log('Solicitando artículo:', requestId);
           requestArticle(requestId);
         }
         break;
@@ -1276,26 +1276,26 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'copy-code':
         const code = target.getAttribute('data-code') || target.closest('[data-code]')?.getAttribute('data-code');
         if (code) {
-          console.log('📋 Copiando código:', code);
+          console.log('Copiando código:', code);
           copyToClipboard(code);
         }
         break;
         
       case 'open-maps':
-        console.log('🗺️ Abriendo Google Maps');
+        console.log('Abriendo Google Maps');
         openInGoogleMaps();
         break;
         
       case 'confirm':
         const confirmValue = target.getAttribute('data-confirm') === 'true';
-        console.log('✅ Confirmación:', confirmValue);
+        console.log('Confirmación:', confirmValue);
         if (window.resolveConfirm) {
           window.resolveConfirm(confirmValue);
         }
         break;
         
       default:
-        console.log('❓ Acción desconocida:', action);
+        console.log('Acción desconocida:', action);
     }
   });
 });
@@ -1310,11 +1310,11 @@ document.addEventListener('DOMContentLoaded', function() {
     uploadModal.addEventListener('show.bs.modal', function(event) {
       // Si no se está editando (el modal se abre desde el botón +)
       if (!uploadModal.classList.contains('editing-mode')) {
-        console.log('🆕 Abriendo modal para nuevo artículo');
+        console.log('Abriendo modal para nuevo artículo');
         resetForm();
       }
     });
   }
 });
 
-// Cache-busting: 2025-11-20-14:00
+
