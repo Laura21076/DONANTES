@@ -4,8 +4,8 @@
  * Archivo principal que coordina la funcionalidad de roles
  */
 
-import { ROLES, ADMIN_EMAILS, PERMISSIONS, FEATURES } from './roles-config.js';
-import { updateUIBasedOnRole, protectElement, initializeUIProtection } from './roles-ui.js';
+import { ROLES, ADMIN_EMAILS, PERMISSIONS, FEATURES } from 'roles-config.js';
+import { updateUIBasedOnRole, protectElement, initializeUIProtection } from 'roles-ui.js';
 
 class RoleManager {
     constructor() {
@@ -134,4 +134,5 @@ document.addEventListener('DOMContentLoaded', () => {
 // Exportar para uso global
 window.roleManager = roleManager;
 window.canPerformAction = canPerformAction;
+
 window.protectElement = protectElementWrapper;
