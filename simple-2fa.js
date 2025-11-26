@@ -5,7 +5,7 @@
 
 class Simple2FA {
     constructor() {
-        this.baseUrl = (window.__ENV__?.BACKEND_URL || 'http://localhost:4000') + '/api/auth/2fa-simple';
+        this.baseUrl = (window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app') + '/api/auth/2fa-simple';
     }
 
     /**
@@ -389,4 +389,5 @@ class Simple2FA {
 }
 
 // Exportar para uso global
+
 window.Simple2FA = Simple2FA;
