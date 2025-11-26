@@ -16,9 +16,13 @@ export function openDB() {
 
 export async function saveToken(key, value) {
   const db = await openDB();
-  const tx = db.transaction("tokens", "readwrite");
-  tx.objectStore("tokens").put({ key, value });
-  return tx.complete;
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("tokens", "readwrite");
+    const store = tx.objectStore("tokens");
+    const req = store.put({ key, value });
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => reject(req.error);
+  });
 }
 
 export async function getToken(key) {
@@ -26,10 +30,17 @@ export async function getToken(key) {
   return new Promise((resolve) => {
     const req = db.transaction("tokens").objectStore("tokens").get(key);
     req.onsuccess = () => resolve(req.result?.value || null);
+    req.onerror = () => resolve(null);
   });
 }
 
 export async function clearTokens() {
   const db = await openDB();
-  db.transaction("tokens", "readwrite").objectStore("tokens").clear();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction("tokens", "readwrite");
+    const store = tx.objectStore("tokens");
+    const req = store.clear();
+    req.onsuccess = () => resolve(true);
+    req.onerror = () => reject(req.error);
+  });
 }
