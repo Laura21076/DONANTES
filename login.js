@@ -2,12 +2,12 @@
 
 // 🔹 MÓDULOS PROPIOS SIEMPRE CON './'
 import './error-handler.js'; // Manejador global de errores, sólo si exporta efectos globales
-import { auth, db } from './firebase.js';
-import { saveToken } from './db.js';
-import { showToast } from './ui.js';
-import { initializeAuthGuard as AuthGuard } from './auth-guard.js';
-import { authRetryHandler, signInWithRetry } from './auth-retry.js';
-import './toggle-password.js';
+import { auth, db } from 'firebase.js';
+import { saveToken } from 'db.js';
+import { showToast } from 'ui.js';
+import { initializeAuthGuard as AuthGuard } from 'auth-guard.js';
+import { authRetryHandler, signInWithRetry } from 'auth-retry.js';
+import 'toggle-password.js';
 
 // 🔹 MÓDULOS EXTERNOS DE FIREBASE POR CDN = SE IMPORTAN CON URL ABSOLUTA
 import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
@@ -99,4 +99,5 @@ if (toggleBtn && passwordInput && passwordIcon) {
     window.togglePasswordVisibility('loginPassword', 'loginPasswordIcon');
   });
 }
+
 
