@@ -3,7 +3,7 @@
  * Archivo: roles-ui.js
  */
 
-import { ROLES } from './roles-config.js';
+import { ROLES } from 'roles-config.js';
 
 /**
  * Actualiza la UI basada en el rol del usuario
@@ -70,4 +70,5 @@ export function initializeUIProtection(roleManager) {
     setTimeout(() => {
         updateUIBasedOnRole(roleManager);
     }, 1000);
+
 }
