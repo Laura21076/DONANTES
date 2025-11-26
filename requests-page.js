@@ -1,6 +1,6 @@
 import { getMyRequests, getReceivedRequests, approveRequest, rejectRequest, confirmPickup } from '../services/requests.js';
-import { getUser } from '../services/auth.js';
-import { getCurrentLockerCode } from '../services/locker.js';
+import { getUser } from 'auth.js';
+import { getCurrentLockerCode } from 'locker.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   // Verificar autenticación antes de cargar datos
@@ -457,4 +457,5 @@ async function createRequestWithLocation(requestData) {
   // Llamar a la función original de crear solicitud
   await createRequest(requestData);
 }
+
 
