@@ -1,3 +1,4 @@
+import { getCurrentLockerCode } from 'locker.js'; 
 import { createArticle, getArticles, updateArticle, deleteArticle } from 'articles.js';
 import { getCurrentUser, getIdToken } from 'auth.js';
 import { requestArticle as requestArticleService } from 'requests.js';
@@ -895,56 +896,64 @@ function showMessage(text, type) {
 }
 
 // ================== SOLICITAR ARTÍCULO ==================
+
 window.showRequestModal = function(articleId, articleTitle) {
   const message = prompt(`¿Quieres solicitar "${articleTitle}"?\n\nPuedes agregar un mensaje opcional para el donador:`);
-  
   if (message === null) return; // Usuario canceló
-  
-  requestArticleHandler(articleId, message);
+  requestArticleHandler(articleId, message, articleTitle);
 };
 
-async function requestArticleHandler(articleId, message) {
+async function requestArticleHandler(articleId, message, articleTitle) {
   try {
-    const result = await requestArticleService(articleId, message);
-    
-    // Mostrar código de acceso en un modal
-    showAccessCodeModal(result.accessCode, result.requestId);
-    
-    showMessage('¡Solicitud enviada! Guarda tu código de acceso.', 'success');
+    // Realiza la solicitud al backend (puedes ignorar el accessCode del result)
+    await requestArticleService(articleId, message);
+
+    // Obtén el código de la caja fuerte desde Firebase
+    let lockerCode = null;
+    try {
+      lockerCode = await getCurrentLockerCode();
+    } catch (lockerError) {
+      console.warn('No se pudo obtener el código de la caja fuerte:', lockerError);
+    }
+
+    // Muestra sólo ese código en el modal (junto con instrucciones y mapa)
+    showLockerCodeModal(lockerCode);
+
+    showMessage('¡Solicitud enviada! Guarda tu código de la caja fuerte.', 'success');
     await loadArticles();
   } catch (error) {
     showMessage('Error al solicitar: ' + error.message, 'danger');
   }
 }
 
-function showAccessCodeModal(accessCode, requestId) {
+function showLockerCodeModal(lockerCode) {
   const modalHtml = `
-    <div class="modal fade" id="accessCodeModal" tabindex="-1">
+    <div class="modal fade" id="lockerCodeModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
         <div class="modal-content">
           <div class="modal-header bg-purple-light text-white">
             <h5 class="modal-title">
-              <i class="fas fa-check-circle"></i> Solicitud Enviada Exitosamente
+              <i class="fas fa-key"></i> Código de la Caja Fuerte Generado
             </h5>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="row">
-              <!-- Código de Acceso -->
+              <!-- SOLO Código de la Caja Fuerte -->
               <div class="col-md-6">
                 <div class="text-center mb-4">
-                  <h6 class="text-muted mb-2">Tu código de acceso es:</h6>
-                  <div class="access-code-display">
-                    <h1 class="display-3 text-primary fw-bold">${accessCode}</h1>
+                  <h6 class="text-muted mb-2">Tu código para abrir el casillero es:</h6>
+                  <div class="locker-code-display">
+                    <h1 class="display-3 text-success fw-bold">${lockerCode ? lockerCode : "No disponible"}</h1>
                   </div>
-                  <button class="btn btn-outline-primary btn-sm mt-2" data-action="copy-code" data-code="${accessCode}">
+                  <button class="btn btn-outline-primary btn-sm mt-2" data-action="copy-code" data-code="${lockerCode ? lockerCode : ""}">
                     <i class="fas fa-copy"></i> Copiar código
                   </button>
                 </div>
                 
                 <div class="alert alert-info">
                   <i class="fas fa-info-circle"></i> 
-                  <strong>Importante:</strong> Guarda este código. Lo necesitarás para retirar el artículo del casillero una vez que el donador apruebe tu solicitud.
+                  <strong>Importante:</strong> Guarda este código. Lo necesitarás para retirar el artículo del casillero.
                 </div>
               </div>
               
@@ -1006,17 +1015,17 @@ function showAccessCodeModal(accessCode, requestId) {
     </div>
   `;
   
-  // Remover modal anterior si existe
-  const oldModal = document.getElementById('accessCodeModal');
+  // Remueve modal anterior si existe
+  const oldModal = document.getElementById('lockerCodeModal');
   if (oldModal) oldModal.remove();
   
-  // Agregar nuevo modal
+  // Agregar el nuevo modal
   document.body.insertAdjacentHTML('beforeend', modalHtml);
   
-  const modal = new bootstrap.Modal(document.getElementById('accessCodeModal'));
+  const modal = new bootstrap.Modal(document.getElementById('lockerCodeModal'));
   modal.show();
   
-  // Inicializar mapa cuando el modal se muestre completamente
+  // Inicializa el mapa cuando el modal se muestre completamente
   modal._element.addEventListener('shown.bs.modal', function() {
     initializeLockerMap();
   });
@@ -1316,5 +1325,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
 
 
