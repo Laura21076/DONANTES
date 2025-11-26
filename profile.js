@@ -1,11 +1,19 @@
 // Script para gestionar el perfil del usuario
-import { getCurrentUser, getIdToken, subscribeToAuth } from "../services/auth.js";
+
+import { storage } from 'firebase.js';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
+
+
+
+import { getCurrentUser, getIdToken, subscribeToAuth } from "auth.js";
 import { 
   getProfile, 
   updateProfile, 
   updatePassword,
   uploadProfilePhoto
-} from "../services/profile.js";
+} from "profile.js";
 
 console.log("🔄 PROFILE.JS CARGADO - TIMESTAMP:", new Date().toISOString());
 
@@ -27,6 +35,8 @@ const photoUploadInput = document.getElementById("photoUpload");
 const profilePhotoDisplay = document.getElementById("profilePhotoDisplay");
 const profileDisplayName = document.getElementById("profileDisplayName");
 const profileDisplayEmail = document.getElementById("profileDisplayEmail");
+const firestore = getFirestore();
+const auth = getAuth();
 
 // Verificar autenticación usando subscription
 let authInitialized = false;
@@ -442,18 +452,57 @@ uploadPicInput?.addEventListener("change", async (e) => {
       // Mostrar preview
       profileIconImg.src = imageDataUrl;
       
-      // En un caso real, aquí subirías la imagen a Firebase Storage
-      // y obtendrías la URL. Por ahora usaremos el data URL
-      try {
-        // Aquí deberías implementar la subida a Firebase Storage
-        // Por ahora, solo guardamos el data URL (no recomendado para producción)
-        await uploadProfilePhoto(imageDataUrl);
-        showNotification("Foto de perfil actualizada", "success");
-      } catch (error) {
-        console.error("Error al subir foto:", error);
-        showNotification("Error al subir la foto", "error");
-      }
-    };
+      import { storage } from './firebase.js';
+import { getFirestore, doc, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getAuth } from 'firebase/auth';
+
+const firestore = getFirestore();
+const auth = getAuth();
+
+// Subir un archivo de imagen (png, jpg, jpeg, etc) seleccionado por el usuario
+document.getElementById('profilePhotoInput').addEventListener('change', async function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  // Opcional: comprueba tipo o tamaño aquí si quieres limitar archivos
+  if (!file.type.startsWith('image/')) {
+    showNotification("Solo puedes subir imágenes (jpg, png, ...)", "error");
+    return;
+  }
+  if (file.size > 5 * 1024 * 1024) { // 5MB límite
+    showNotification("El archivo es demasiado grande (máx. 5 MB)", "error");
+    return;
+  }
+
+  try {
+    const user = auth.currentUser;
+    if (!user) {
+      showNotification("Debes iniciar sesión", "error");
+      return;
+    }
+
+    // 1. Sube a FIREBASE STORAGE (carpeta por usuario con nombre único por fecha)
+    const photoRef = ref(storage, `profiles/${user.uid}/photo_${Date.now()}`);
+    await uploadBytes(photoRef, file);
+
+    // 2. Obtén la URL de descarga
+    const downloadUrl = await getDownloadURL(photoRef);
+
+    // 3. Guarda la URL en FIRESTORE en el DOC DEL USUARIO
+    await updateDoc(doc(firestore, "users", user.uid), {
+      photoURL: downloadUrl
+    });
+
+    showNotification("Foto de perfil actualizada correctamente", "success");
+    // Si tienes un <img id="profileAvatar"> para PREVIA
+    document.getElementById('profileAvatar').src = downloadUrl;
+
+  } catch (error) {
+    console.error("Error al subir foto:", error);
+    showNotification("Error al subir la foto", "error");
+  }
+});
     
     reader.readAsDataURL(file);
   } catch (error) {
@@ -507,6 +556,24 @@ phoneInput?.addEventListener("input", (e) => {
   e.target.value = e.target.value.replace(/[^0-9()\-\s]/g, "");
 });
 
+// Función PRINCIPAL: subir archivo a Storage y guardar URL en Firestore
+async function uploadProfilePhoto(file) {
+  const user = auth.currentUser;
+  if (!user) throw new Error('Debes iniciar sesión');
+
+  // Crea referencia ("carpeta"/nombre) y sube
+  const photoRef = ref(storage, `profiles/${user.uid}/photo_${Date.now()}.${file.name.split('.').pop()}`);
+  await uploadBytes(photoRef, file);
+  const downloadUrl = await getDownloadURL(photoRef);
+
+  // Guarda la URL pública en Firestore
+  await updateDoc(doc(firestore, "users", user.uid), {
+    photoURL: downloadUrl
+  });
+
+  return { photoURL: downloadUrl };
+}
+
 // Función para manejar la subida de foto de perfil
 async function handlePhotoUpload(event) {
   const file = event.target.files[0];
@@ -514,20 +581,18 @@ async function handlePhotoUpload(event) {
 
   console.log("📸 Archivo seleccionado:", file.name, file.size, "bytes");
 
-  // Validar tipo de archivo
+  // Validaciones
   if (!file.type.startsWith('image/')) {
     alert('Por favor, selecciona una imagen válida');
     return;
   }
-
-  // Validar tamaño (máximo 5MB)
   if (file.size > 5 * 1024 * 1024) {
     alert('La imagen es muy grande. Máximo 5MB permitido');
     return;
   }
 
   try {
-    // Mostrar preview inmediatamente
+    // Preview inmediata
     const reader = new FileReader();
     reader.onload = function(e) {
       const photoDisplay = document.getElementById('profilePhotoDisplay');
@@ -537,16 +602,16 @@ async function handlePhotoUpload(event) {
     };
     reader.readAsDataURL(file);
 
-    console.log("📤 Subiendo foto al servidor...");
+    console.log("📤 Subiendo foto a Firebase Storage...");
     const result = await uploadProfilePhoto(file);
-    
+
     if (result.photoURL) {
       console.log("✅ Foto subida exitosamente:", result.photoURL);
-      
-      // Actualizar navbar inmediatamente
+
+      // Actualiza navbar
       updateNavbarProfile();
-      
-      // Mostrar mensaje de éxito
+
+      // Muestra mensaje de éxito
       const successMessage = document.createElement('div');
       successMessage.className = 'alert alert-success alert-dismissible fade show';
       successMessage.innerHTML = `
@@ -554,12 +619,11 @@ async function handlePhotoUpload(event) {
         Foto de perfil actualizada exitosamente
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       `;
-      
+
       const form = document.getElementById('profileForm');
       if (form) {
         form.parentNode.insertBefore(successMessage, form);
-        
-        // Auto-remove después de 3 segundos
+
         setTimeout(() => {
           if (successMessage.parentNode) {
             successMessage.remove();
@@ -569,14 +633,14 @@ async function handlePhotoUpload(event) {
     }
   } catch (error) {
     console.error("❌ Error al subir foto:", error);
-    
+
     // Restaurar imagen anterior
     const photoDisplay = document.getElementById('profilePhotoDisplay');
     if (photoDisplay) {
       photoDisplay.innerHTML = '<i class="fas fa-user-circle"></i>';
     }
-    
-    // Mostrar mensaje de error
+
+    // Mensaje de error
     const errorMessage = document.createElement('div');
     errorMessage.className = 'alert alert-danger alert-dismissible fade show';
     errorMessage.innerHTML = `
@@ -584,12 +648,11 @@ async function handlePhotoUpload(event) {
       Error al subir la foto: ${error.message || 'Error desconocido'}
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     `;
-    
+
     const form = document.getElementById('profileForm');
     if (form) {
       form.parentNode.insertBefore(errorMessage, form);
-      
-      // Auto-remove después de 5 segundos
+
       setTimeout(() => {
         if (errorMessage.parentNode) {
           errorMessage.remove();
@@ -598,7 +661,6 @@ async function handlePhotoUpload(event) {
     }
   }
 }
-
 // Función para actualizar el navbar con la foto del usuario
 async function updateNavbarProfile() {
   try {
@@ -642,3 +704,4 @@ async function updateMFAIcon() {
   } catch (e) {}
 }
 document.addEventListener('DOMContentLoaded', updateMFAIcon);
+
