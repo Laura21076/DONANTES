@@ -57,9 +57,10 @@ const urlsToCache = [
   "pwa-debug.html",
   
   // Assets - Solo imágenes que existen
-  "/DONANTES/assets/logo.ico",
-  "/DONANTES/assets/logo192.png",
-  "/DONANTES/assets/logo512.png",
+  "assets/logo.ico",
+  "assets/logo192.png",
+  "assets/logo512.png",
+  "assets/S_SDG_inverted_WEB-12.png"
   
   
   // Archivos HTML especiales
@@ -280,4 +281,5 @@ self.addEventListener("notificationclick", event => {
 self.addEventListener("notificationclose", event => {
   console.log("❌ Notificación cerrada:", event.notification.tag);
 });
+
 
