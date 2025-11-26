@@ -1,9 +1,8 @@
-import { getMyRequests, getReceivedRequests, approveRequest, rejectRequest, confirmPickup } from '../services/requests.js';
-import { getUser } from 'auth.js';
-import { getCurrentLockerCode } from 'locker.js';
+import { getMyRequests, getReceivedRequests, approveRequest, rejectRequest, confirmPickup } from './requests.js';
+import { getUser } from './auth.js';
+import { getCurrentLockerCode } from './locker.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Verificar autenticación antes de cargar datos
   try {
     const user = await getUser();
     if (!user) {
@@ -11,11 +10,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.location.href = 'login.html';
       return;
     }
-    
     console.log('✅ Usuario autenticado, cargando solicitudes...');
     await loadSentRequests();
-    
-    // Cargar solicitudes recibidas al cambiar de tab
+
     document.getElementById('received-tab').addEventListener('shown.bs.tab', loadReceivedRequests);
   } catch (error) {
     console.error('❌ Error durante inicialización:', error);
@@ -30,10 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadSentRequests() {
   try {
     const user = await getUser();
-    if (!user) {
-      throw new Error('Usuario no autenticado');
-    }
-    
+    if (!user) throw new Error('Usuario no autenticado');
     const requests = await getMyRequests();
     displaySentRequests(requests);
   } catch (error) {
@@ -82,7 +76,6 @@ function displaySentRequests(requests) {
         }
       }
     } catch (error) {
-      console.warn('Error formateando fecha:', error, req.createdAt);
       date = 'Fecha inválida';
     }
     return `
@@ -133,7 +126,6 @@ window.showPickupDetailsModal = function(lockerLocation, lockerId) {
   document.getElementById('pickupCodeBox').style.display = 'none';
   document.getElementById('pickupCodeSpinner').style.display = 'inline-block';
   document.getElementById('pickupAccessCode').textContent = '';
-  // Mostrar código actual de la caja fuerte
   getCurrentLockerCode().then(code => {
     document.getElementById('pickupCodeSpinner').style.display = 'none';
     document.getElementById('pickupCodeBox').style.display = 'block';
@@ -143,18 +135,15 @@ window.showPickupDetailsModal = function(lockerLocation, lockerId) {
     document.getElementById('pickupCodeBox').style.display = 'block';
     document.getElementById('pickupAccessCode').textContent = 'Error';
   });
-  // Mostrar mapa
   setTimeout(() => {
     renderPickupMap(lockerLocation);
   }, 300);
   modal.show();
 };
 
-// Renderizar mapa de recogida con locker y geolocalización simulada
 function renderPickupMap(lockerLocation) {
   const mapDiv = document.getElementById('pickupMap');
   mapDiv.innerHTML = '';
-  // Usar Leaflet.js para el mapa (CDN)
   if (!window.L) {
     const leafletCss = document.createElement('link');
     leafletCss.rel = 'stylesheet';
@@ -166,10 +155,9 @@ function renderPickupMap(lockerLocation) {
     document.body.appendChild(leafletScript);
     return;
   }
-  // Coordenadas simuladas para el locker (si no hay geocoding, usar punto fijo)
-  let lockerCoords = { lat: 25.7305, lng: -100.309 }; // Ejemplo: UTS
+  let lockerCoords = { lat: 25.7305, lng: -100.309 };
   if (lockerLocation && lockerLocation.toLowerCase().includes('centro')) {
-    lockerCoords = { lat: 25.6866, lng: -100.3161 }; // Ejemplo: Centro Monterrey
+    lockerCoords = { lat: 25.6866, lng: -100.3161 };
   }
   const map = L.map('pickupMap').setView([lockerCoords.lat, lockerCoords.lng], 16);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -177,14 +165,13 @@ function renderPickupMap(lockerLocation) {
   }).addTo(map);
   L.marker([lockerCoords.lat, lockerCoords.lng]).addTo(map)
     .bindPopup('Casillero').openPopup();
-  // Simular geolocalización del usuario
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(pos => {
       const userCoords = [pos.coords.latitude, pos.coords.longitude];
       L.circle(userCoords, { radius: 20, color: 'blue', fillColor: '#30f', fillOpacity: 0.3 }).addTo(map)
         .bindPopup('Tu ubicación').openPopup();
       map.setView(userCoords, 16);
-    }, () => {/* ignorar error */});
+    }, () => {});
   }
 }
 
@@ -192,10 +179,7 @@ function renderPickupMap(lockerLocation) {
 async function loadReceivedRequests() {
   try {
     const user = await getUser();
-    if (!user) {
-      throw new Error('Usuario no autenticado');
-    }
-    
+    if (!user) throw new Error('Usuario no autenticado');
     const requests = await getReceivedRequests();
     displayReceivedRequests(requests);
   } catch (error) {
@@ -212,23 +196,18 @@ async function loadReceivedRequests() {
 function displayReceivedRequests(requests) {
   const grid = document.getElementById('receivedRequestsGrid');
   const empty = document.getElementById('receivedEmpty');
-  
   if (!requests || requests.length === 0) {
     grid.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
-  
   empty.style.display = 'none';
-  
   grid.innerHTML = requests.map(req => {
     const statusInfo = getStatusInfo(req.status);
-    // Manejar diferentes formatos de fecha de Firebase
     let date = 'Fecha no disponible';
     try {
       if (req.createdAt) {
         if (req.createdAt.seconds) {
-          // Timestamp de Firestore
           date = new Date(req.createdAt.seconds * 1000).toLocaleString('es-ES', {
             year: 'numeric',
             month: 'short',
@@ -237,7 +216,6 @@ function displayReceivedRequests(requests) {
             minute: '2-digit'
           });
         } else if (req.createdAt.toDate) {
-          // Timestamp de Firestore con método toDate
           date = req.createdAt.toDate().toLocaleString('es-ES', {
             year: 'numeric',
             month: 'short',
@@ -246,7 +224,6 @@ function displayReceivedRequests(requests) {
             minute: '2-digit'
           });
         } else if (typeof req.createdAt === 'string') {
-          // String de fecha
           const parsedDate = new Date(req.createdAt);
           if (!isNaN(parsedDate.getTime())) {
             date = parsedDate.toLocaleString('es-ES', {
@@ -259,11 +236,9 @@ function displayReceivedRequests(requests) {
           }
         }
       }
-    } catch (error) {
-      console.warn('Error formateando fecha:', error, req.createdAt);
+    } catch {
       date = 'Fecha inválida';
     }
-    
     return `
       <div class="col-md-6 col-lg-4">
         <div class="card request-card h-100" style="border: 1px solid #E8DFF5; background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 12px rgba(110, 73, 163, 0.15);">
@@ -272,15 +247,12 @@ function displayReceivedRequests(requests) {
               <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${req.articleTitle}</h5>
               <span class="badge ${statusInfo.class}" style="${statusInfo.style || ''}">${statusInfo.text}</span>
             </div>
-            
             ${req.message ? `
               <div class="alert alert-info mb-3" style="background: rgba(169, 146, 216, 0.1); border: 1px solid #A992D8; color: #4A3066;">
                 <small><i class="fas fa-comment"></i> <strong>Mensaje:</strong><br>${req.message}</small>
               </div>
             ` : ''}
-            
             <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
-            
             ${req.status === 'pendiente' ? `
               <div class="btn-group w-100 mb-2" role="group">
                 <button class="btn btn-success" onclick="showApproveModal('${req.id}')">
@@ -311,7 +283,6 @@ window.showApproveModal = function(requestId) {
   document.getElementById('approveRequestId').value = requestId;
   document.getElementById('lockerId').value = '';
   document.getElementById('lockerLocation').value = '';
-  
   const modal = new bootstrap.Modal(document.getElementById('approveModal'));
   modal.show();
 };
@@ -320,13 +291,10 @@ window.approveRequestHandler = async function() {
   const requestId = document.getElementById('approveRequestId').value;
   const lockerId = document.getElementById('lockerId').value.trim();
   const lockerLocation = document.getElementById('lockerLocation').value.trim();
-  
   try {
     await approveRequest(requestId, lockerId || null, lockerLocation || null);
-    
     const modal = bootstrap.Modal.getInstance(document.getElementById('approveModal'));
     modal.hide();
-    
     showMessage('Solicitud aprobada. El solicitante ha recibido su código de acceso.', 'success');
     await loadReceivedRequests();
   } catch (error) {
@@ -337,9 +305,7 @@ window.approveRequestHandler = async function() {
 // ================== RECHAZAR SOLICITUD ==================
 window.rejectRequestHandler = async function(requestId) {
   const reason = prompt('¿Por qué rechazas esta solicitud? (opcional)');
-  
-  if (reason === null) return; // Usuario canceló
-  
+  if (reason === null) return;
   try {
     await rejectRequest(requestId, reason);
     showMessage('Solicitud rechazada', 'info');
@@ -351,15 +317,10 @@ window.rejectRequestHandler = async function(requestId) {
 
 // ================== CONFIRMAR RETIRO ==================
 window.confirmPickupHandler = async function(requestId) {
-  if (!confirm('¿Confirmas que el artículo ha sido retirado/entregado?')) {
-    return;
-  }
-  
+  if (!confirm('¿Confirmas que el artículo ha sido retirado/entregado?')) return;
   try {
     await confirmPickup(requestId);
     showMessage('Retiro confirmado. ¡Donación completada!', 'success');
-    
-    // Recargar la pestaña activa
     const activeTab = document.querySelector('.nav-link.active').id;
     if (activeTab === 'sent-tab') {
       await loadSentRequests();
@@ -379,11 +340,8 @@ function getStatusInfo(status) {
     'rechazada': { text: 'Rechazada', class: '' },
     'completada': { text: 'Completada', class: '' }
   };
-  
-  // Asignar estilos inline para mejor contraste
   const result = statuses[status] || { text: status, class: '' };
-  
-  switch(status) {
+  switch (status) {
     case 'pendiente':
       result.class = 'text-white';
       result.style = 'background-color: #A992D8; font-weight: 600;';
@@ -404,7 +362,6 @@ function getStatusInfo(status) {
       result.class = 'text-white';
       result.style = 'background-color: #6c757d; font-weight: 600;';
   }
-  
   return result;
 }
 
@@ -422,7 +379,6 @@ function showMessage(text, type) {
       <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
   `;
-  
   setTimeout(() => {
     messageDiv.innerHTML = '';
   }, 5000);
@@ -431,12 +387,10 @@ function showMessage(text, type) {
 // Geolocalización automática al crear solicitud
 async function getCurrentPositionPromise() {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      return reject(new Error('Geolocalización no soportada'));
-    }
+    if (!navigator.geolocation) return reject(new Error('Geolocalización no soportada'));
     navigator.geolocation.getCurrentPosition(
-      (pos) => resolve(pos.coords),
-      (err) => reject(err),
+      pos => resolve(pos.coords),
+      err => reject(err),
       { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
     );
   });
@@ -451,11 +405,7 @@ async function createRequestWithLocation(requestData) {
       source: 'user-device'
     };
   } catch (e) {
-    // Si falla, continuar sin ubicación
     requestData.location = { source: 'unknown' };
   }
-  // Llamar a la función original de crear solicitud
   await createRequest(requestData);
 }
-
-
