@@ -10,70 +10,63 @@ const FORCE_UPDATE = true; // Fuerza actualizaciones inmediatas
 const urlsToCache = [
   // Páginas HTML - solo archivos que sabemos que existen
   "./",
-  "./pages/index.html",
-  "./pages/login.html", 
-  "./pages/register.html",
-  "./pages/donationcenter.html",
-  "./pages/requests.html",
-  "./pages/reset-password.html",
-  "./pages/auth-required.html",
+  "index.html",
+  "login.html", 
+  "register.html",
+  "donationcenter.html",
+  "requests.html",
+  "reset-password.html",
+  "auth-required.html",
   
   // Estilos CSS
-  "./styles/styles.css",
-  "./styles/index.css",
-  "./styles/donationcenter.css",
-  "./styles/auth.css",
-  "./styles/requests.css",
-  "./styles/two-factor.css",
+  "styles.css",
+  "index.css",
+  "donationcenter.css",
+  "auth.css",
+  "requests.css",
+  "two-factor.css",
   
   // JavaScript - Solo archivos existentes
-  "./js/script.js",
-  "./js/session-manager.js",
-  "./js/login.js",
-  "./js/register.js",
-  "./js/donationcenter.js",
-  "./js/profile.js",
-  "./js/requests-page.js",
-  "./js/reset-password.js",
+  "script.js",
+  "session-manager.js",
+  "login.js",
+  "register.js",
+  "donationcenter.js",
+  "profile.js",
+  "requests-page.js",
+  "reset-password.js",
   
   // JavaScript - Servicios
-  "./services/auth.js",
-  "./services/firebase.js",
-  "./services/db.js",
-  "/services/profile.js",
-  "/services/articles.js",
-  "/services/requests.js",
-  "/services/notifications.js",
+  "auth.js",
+  "firebase.js",
+  "db.js",
+  "profile.js",
+  "articles.js",
+  "requests.js",
+  "notifications.js",
   
   // JavaScript - Utilidades
-  "/utils/ui.js",
+  "ui.js",
   
   // Configuración
-  "/config/env.js",
+  "env.js",
   
   // PWA
-  "/manifest.json",
-  "/sw.js",
-  "/pwa-debug.html",
+  "manifest.json",
+  "sw.js",
+  "pwa-debug.html",
   
   // Assets - Solo imágenes que existen
-  "/assets/logo.ico",
-  "/assets/logo192.png",
-  "/assets/logo512.png",
-  "/assets/logo_blanco.png",
-  "/assets/logo_degradado.png",
-  "/assets/logo_morado.png",
-  "/assets/logo_redondo.png",
-  "/assets/persona_donar.png",
-  "/assets/personas_donar.png",
-  "/assets/caja_donar.png",
-  "/assets/unicornio.jpg",
+  "/DONANTES/assets/logo.ico",
+  "/DONANTES/assets/logo192.png",
+  "/DONANTES/assets/logo512.png",
+  
   
   // Archivos HTML especiales
-  "/verificar-permisos.html",
-  "/test-edit-delete.html",
-  "/reinicio-completo.html",
-  "/clear-cache-force.html",
+  "verificar-permisos.html",
+  "test-edit-delete.html",
+  "reinicio-completo.html",
+  "clear-cache-force.html",
   
   // CDN externas (críticas)
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css",
@@ -118,36 +111,31 @@ self.addEventListener("fetch", event => {
     return;
   }
   
-  // Estrategia Network First para APIs y Firebase
-  if (url.hostname.includes('firebase') || 
-      url.hostname.includes('googleapis.com') ||
-      url.hostname.includes('firebaseio.com') ||
-      url.hostname.includes('firebasestorage.googleapis.com') ||
-      url.pathname.startsWith('/api/') ||
-      url.port === '4000' || url.port === '3001') {
-    
-    event.respondWith(
-      fetch(request, { cache: 'no-cache' })
-        .then(response => {
-          // Si la respuesta es exitosa, cachear selectivamente
-          if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
-            const responseClone = response.clone();
-            caches.open(RUNTIME_CACHE).then(cache => {
-              cache.put(request, responseClone);
-              // Limpiar cache viejo después de 5 minutos
-              setTimeout(() => cache.delete(request), 300000);
-            });
-          }
-          return response;
-        })
-        .catch(() => {
-          // Fallback a caché si la red falla
-          return caches.match(request);
-        })
-    );
-    return;
-  }
-  
+// Estrategia Network First solo para APIs externas relevantes en producción
+if (
+    url.hostname.includes('firebase') || 
+    url.hostname.includes('googleapis.com') ||
+    url.hostname.includes('firebaseio.com') ||
+    url.hostname.includes('firebasestorage.googleapis.com') ||
+    url.origin === 'https://donantes-backend-202152301689.northamerica-south1.run.app' ||
+    url.pathname.startsWith('/api/')
+) {
+  event.respondWith(
+    fetch(request, { cache: 'no-cache' })
+      .then(response => {
+        if (response.ok && response.headers.get('content-type')?.includes('application/json')) {
+          const responseClone = response.clone();
+          caches.open(RUNTIME_CACHE).then(cache => {
+            cache.put(request, responseClone);
+            setTimeout(() => cache.delete(request), 300000);
+          });
+        }
+        return response;
+      })
+      .catch(() => caches.match(request))
+  );
+  return;
+}
   // Estrategia Cache First para recursos estáticos con stale-while-revalidate
   event.respondWith(
     caches.match(request)
@@ -186,7 +174,7 @@ self.addEventListener("fetch", event => {
           .catch(() => {
             // Fallback para páginas HTML no cacheadas
             if (request.headers.get('accept').includes('text/html')) {
-              return caches.match('/pages/index.html');
+              return caches.match('index.html');
             }
           });
       })
@@ -202,8 +190,8 @@ self.addEventListener("push", event => {
   let notificationData = {
     title: "DonantesApp",
     body: "Tienes una nueva notificación",
-    icon: "/assets/icon-192x192.png",
-    badge: "/assets/icon-72x72.png",
+    icon: "assets/icon-192x192.png",
+    badge: "assets/icon-72x72.png",
     vibrate: [100, 50, 100],
     tag: "donantes-notification",
     requireInteraction: false,
@@ -211,12 +199,12 @@ self.addEventListener("push", event => {
       {
         action: "view",
         title: "Ver",
-        icon: "/assets/icon-view.png"
+        icon: "assets/icon-view.png"
       },
       {
         action: "dismiss",
         title: "Descartar",
-        icon: "/assets/icon-dismiss.png"
+        icon: "assets/icon-dismiss.png"
       }
     ]
   };
@@ -261,11 +249,11 @@ self.addEventListener("notificationclick", event => {
   let targetUrl = "/";
   
   if (data.type === "request_approved") {
-    targetUrl = "/pages/requests.html";
+    targetUrl = "requests.html";
   } else if (data.type === "new_request") {
-    targetUrl = "/pages/requests.html";
+    targetUrl = "requests.html";
   } else if (data.articleId) {
-    targetUrl = `/pages/donationcenter.html`;
+    targetUrl = `donationcenter.html`;
   }
 
   // Abrir la aplicación o navegar a la URL
@@ -292,3 +280,4 @@ self.addEventListener("notificationclick", event => {
 self.addEventListener("notificationclose", event => {
   console.log("❌ Notificación cerrada:", event.notification.tag);
 });
+
