@@ -1,6 +1,6 @@
-import { getIdToken } from './auth.js';
+import { getIdToken } from 'auth.js';
 
-const API_URL = 'http://127.0.0.1:4000/api';
+const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
 
 // Solicitar un artículo
 export async function requestArticle(articleId, message = '') {
@@ -155,3 +155,4 @@ export async function confirmPickup(requestId) {
     throw error;
   }
 }
+
