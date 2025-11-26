@@ -5,7 +5,7 @@ import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10
 import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 // Importar manejo de errores
-import '../utils/error-handler.js';
+import 'error-handler.js';
 
 // Cargar variables de entorno desde el objeto window para el frontend
 const getEnvVar = (key) => {
@@ -120,5 +120,6 @@ try {
   
   throw error;
 }
+
 
 export { app, auth, db, storage, analytics };
