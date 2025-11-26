@@ -5,7 +5,7 @@ import './error-handler.js'; // Manejador global de errores, sólo si exporta ef
 import { auth, db } from './firebase.js';
 import { saveToken } from './db.js';
 import { showToast } from './ui.js';
-import { initializeAuthGuard as AuthGuard } from 'auth-guard.js';
+import { initializeAuthGuard as AuthGuard } from './auth-guard.js';
 import { authRetryHandler, signInWithRetry } from './auth-retry.js';
 import './toggle-password.js';
 
@@ -99,6 +99,7 @@ if (toggleBtn && passwordInput && passwordIcon) {
     window.togglePasswordVisibility('loginPassword', 'loginPasswordIcon');
   });
 }
+
 
 
 
