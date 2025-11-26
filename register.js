@@ -1,4 +1,4 @@
-import '../utils/toggle-password.js';
+import 'toggle-password.js';
 
 // Mostrar/ocultar contraseña en registro
 const toggleRegisterPasswordBtn = document.getElementById('toggleRegisterPassword');
@@ -18,10 +18,10 @@ if (toggleConfirmPasswordBtn && confirmPasswordInput && confirmPasswordIcon) {
     window.togglePasswordVisibility('confirmPassword', 'confirmPasswordIcon');
   });
 }
-import { auth, db } from '../services/firebase.js';
+import { auth, db } from 'firebase.js';
 import { createUserWithEmailAndPassword, updateProfile } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { doc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { showToast } from '../utils/ui.js';
+import { showToast } from 'ui.js';
 
 const registerForm = document.getElementById('registerForm');
 
@@ -112,3 +112,4 @@ if (registerForm) {
     }
   });
 }
+
