@@ -3,7 +3,7 @@
 
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('../sw.js')
+  navigator.serviceWorker.register('sw.js')
     .then(registration => console.log('SW registrado:', registration.scope))
     .catch(error => console.log('Error SW:', error));
 }
@@ -14,4 +14,5 @@ import('../js/session-manager.js').then(module => {
   const sessionManager = new SessionManager();
   window.sessionManager = sessionManager;
   console.log('📱 SessionManager cargado en donation center');
+
 });
