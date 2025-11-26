@@ -1,5 +1,5 @@
 // Session Manager - Gestión de sesiones para PWA
-import { getCurrentUser } from 'auth.js';
+import { getCurrentUser } from './auth.js';
 
 class SessionManager {
   constructor() {
@@ -9,7 +9,6 @@ class SessionManager {
       PWA_INSTALLED: 'pwaInstalled',
       DEVICE_INFO: 'deviceInfo'
     };
-    
     this.init();
   }
 
@@ -41,15 +40,11 @@ class SessionManager {
 
   // Manejar instalación de PWA - SIMPLIFICADO
   handlePWAInstall() {
-    // Detectar si la app se está ejecutando como PWA
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
       console.log('🏠 PWA detectada');
       localStorage.setItem(this.STORAGE_KEYS.PWA_INSTALLED, 'true');
-      
-      // PWA simple - no redirecciones automáticas complejas
     }
 
-    // Escuchar eventos de instalación
     window.addEventListener('appinstalled', () => {
       console.log('🎉 PWA instalada exitosamente');
       localStorage.setItem(this.STORAGE_KEYS.PWA_INSTALLED, 'true');
@@ -65,7 +60,7 @@ class SessionManager {
 
       if (currentUser) {
         console.log('✅ Usuario autenticado encontrado - NO redirigiendo automáticamente');
-        
+
         // Solo guardar información de sesión, SIN redirecciones
         const sessionInfo = {
           userId: currentUser.uid,
@@ -74,14 +69,14 @@ class SessionManager {
           lastLogin: now,
           isPWA: true
         };
-        
+
         localStorage.setItem(this.STORAGE_KEYS.USER_SESSION, JSON.stringify(sessionInfo));
         localStorage.setItem(this.STORAGE_KEYS.LAST_VISIT, now);
-        
+
         console.log('💾 Sesión guardada - Usuario puede navegar libremente');
       } else {
         console.log('❌ No hay usuario autenticado - SIN redirecciones automáticas');
-        // NO redirigir automáticamente - dejar que el usuario controle la navegación
+        // NO redirigir automáticamente
       }
     } catch (error) {
       console.error('❌ Error al manejar lanzamiento de PWA:', error);
@@ -93,18 +88,18 @@ class SessionManager {
     try {
       const currentUser = getCurrentUser();
       const sessionInfo = localStorage.getItem(this.STORAGE_KEYS.USER_SESSION);
-      
+
       if (currentUser && sessionInfo) {
         const session = JSON.parse(sessionInfo);
-        
+
         // Actualizar última visita
         session.lastVisit = new Date().toISOString();
         localStorage.setItem(this.STORAGE_KEYS.USER_SESSION, JSON.stringify(session));
-        
+
         console.log('📊 Sesión de usuario activa:', session);
         return session;
       }
-      
+
       return null;
     } catch (error) {
       console.error('❌ Error al verificar sesión:', error);
@@ -123,7 +118,7 @@ class SessionManager {
   clearUserSession() {
     console.log('🧹 Limpiando sesión de usuario...');
     this.clearSession();
-    // NO redirigir automáticamente - dejar que el usuario navegue
+    // No redirigir
   }
 
   // Obtener información del dispositivo
@@ -153,10 +148,9 @@ class SessionManager {
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
       </div>
     `;
-    
+
     document.body.appendChild(message);
-    
-    // Auto-remover después de 5 segundos
+
     setTimeout(() => {
       if (message.parentNode) {
         message.remove();
@@ -168,8 +162,7 @@ class SessionManager {
   onDOMLoaded() {
     console.log('📄 DOM cargado - SessionManager listo');
     this.adaptUIToDevice();
-    
-    // Ejecutar verificaciones adicionales cuando DOM esté listo
+
     try {
       this.checkUserSession();
       this.detectDevice();
@@ -181,7 +174,7 @@ class SessionManager {
   // Método requerido por script.js para inicializar sesión de usuario
   initializeUserSession(user) {
     console.log('👤 Inicializando sesión de usuario:', user?.email);
-    
+
     try {
       if (user) {
         const sessionInfo = {
@@ -191,10 +184,10 @@ class SessionManager {
           lastLogin: new Date().toISOString(),
           isPWA: this.isPWAInstalled()
         };
-        
+
         localStorage.setItem(this.STORAGE_KEYS.USER_SESSION, JSON.stringify(sessionInfo));
         localStorage.setItem(this.STORAGE_KEYS.LAST_VISIT, new Date().toISOString());
-        
+
         console.log('✅ Sesión de usuario inicializada correctamente');
         return sessionInfo;
       } else {
@@ -211,15 +204,13 @@ class SessionManager {
   // Adaptar UI según dispositivo
   adaptUIToDevice() {
     const deviceInfo = this.getDeviceInfo();
-    
+
     if (deviceInfo) {
-      // Agregar clases CSS según el dispositivo
       document.body.classList.add(
         deviceInfo.isMobile ? 'device-mobile' : 'device-desktop',
         deviceInfo.isPWA ? 'app-pwa' : 'app-browser'
       );
 
-      // Ajustar viewport para móviles
       if (deviceInfo.isMobile) {
         const viewport = document.querySelector('meta[name="viewport"]');
         if (viewport) {
@@ -242,5 +233,4 @@ const sessionManager = new SessionManager();
 window.sessionManager = sessionManager;
 
 export default SessionManager;
-
 export { SessionManager };
