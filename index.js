@@ -179,7 +179,7 @@ function initializePWA() {
       try {
         const user = getCurrentUser();
         if (user) {
-          window.location.replace('./pages/donationcenter.html');
+          window.location.replace('donationcenter.html');
         }
       } catch (error) {
         console.log('Info: No hay usuario logueado actualmente');
@@ -219,7 +219,7 @@ function initializeContactForm() {
       };
       
       // Enviar al backend
-      const backendUrl = window.__ENV__?.BACKEND_URL || 'http://localhost:4000';
+      const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
       const response = await fetch(`${backendUrl}/api/contact`, {
         method: 'POST',
         headers: {
@@ -351,7 +351,7 @@ function initializeServiceWorker() {
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
       try {
-        const registration = await navigator.serviceWorker.register('../sw.js');
+        const registration = await navigator.serviceWorker.register('sw.js');
         console.log('✅ Service Worker registrado exitosamente:', registration.scope);
         
         // Detectar actualizaciones del SW
@@ -423,4 +423,5 @@ document.addEventListener('DOMContentLoaded', function() {
   initializeLegacyPWA();
   
   console.log('✅ Scripts de Index cargados correctamente');
+
 });
