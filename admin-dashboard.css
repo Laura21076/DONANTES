@@ -1,0 +1,111 @@
+/**
+ * Dashboard de Administrador - Estilos CSS
+ * Archivo: admin-dashboard.css
+ */
+
+.dashboard-card {
+    background: linear-gradient(135deg, #f8f4ff 0%, #e8dcf4 100%);
+    border: 1px solid #d1a3e0;
+    border-radius: 15px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 6px rgba(169, 146, 216, 0.1);
+}
+
+.dashboard-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(169, 146, 216, 0.2);
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #A992D8 0%, #8B7CB8 100%);
+    color: white;
+    border-radius: 15px;
+    padding: 20px;
+    text-align: center;
+}
+
+.admin-panel {
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+    border-radius: 15px;
+    padding: 20px;
+}
+
+.user-role-badge {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+}
+
+.quick-action-btn {
+    background: linear-gradient(135deg, #A992D8 0%, #B59ED3 100%);
+    border: none;
+    color: white;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 10px;
+    transition: all 0.3s ease;
+}
+
+.quick-action-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(169, 146, 216, 0.3);
+    color: white;
+}
+
+/* Loading screen específico para dashboard */
+#loading-screen {
+    background: linear-gradient(135deg, #A992D8 0%, #8B7CB8 100%);
+}
+
+#loading-screen .spinner-border {
+    border-color: rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+}
+
+#loading-screen h5 {
+    color: white;
+}
+
+/* Animaciones para estadísticas */
+.stat-card h3 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+.stat-card i {
+    opacity: 0.8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stat-card {
+        margin-bottom: 15px;
+    }
+    
+    .quick-action-btn {
+        margin: 5px;
+        padding: 12px;
+    }
+    
+    .dashboard-card {
+        margin-bottom: 20px;
+    }
+    
+    .user-role-badge {
+        position: relative;
+        top: 0;
+        right: 0;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .stat-card h3 {
+        font-size: 2rem;
+    }
+    
+    .quick-action-btn span {
+        font-size: 0.9rem;
+    }
+}

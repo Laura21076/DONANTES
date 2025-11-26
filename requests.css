@@ -1,0 +1,650 @@
+/* OPTIMIZACIONES DE PERFORMANCE */
+/* Usar transformaciones en GPU para mejor rendimiento */
+* {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: auto;
+}
+
+/* Optimizar transiciones */
+.nav-tabs .nav-link,
+.btn,
+.request-card {
+  will-change: transform, box-shadow;
+}
+
+/* Aplicar tipografía Rubik */
+body {
+  font-family: 'Rubik', sans-serif;
+  background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%);
+  min-height: 100vh;
+  color: #2D1B44; /* Color base más oscuro para mejor contraste */
+  font-display: swap; /* Mejorar carga de fuentes */
+}
+
+/* Navbar estilo morado */
+.custom-navbar {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  box-shadow: 0 2px 10px rgba(110, 73, 163, 0.3);
+}
+
+/* Navbar brand específico para requests */
+.navbar-brand-requests {
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: 'Moirai One', cursive;
+  font-size: 1.2rem;
+}
+
+.navbar-brand-requests .heart-icon {
+  color: #A992D8;
+  font-size: 1.2rem;
+  text-shadow: 0 0 8px rgba(169, 146, 216, 0.6);
+  animation: heartbeat 2s ease-in-out infinite alternate;
+  margin-right: 8px;
+}
+
+/* Título de página */
+.page-title {
+  color: #4A3066;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(74, 48, 102, 0.1);
+}
+
+.page-title i {
+  color: #6E49A3;
+}
+
+/* Navbar text con mejor contraste */
+.navbar-brand, .nav-link, .navbar-text {
+  color: #FFFFFF !important;
+  font-weight: 600 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Headings con mejor contraste */
+h1, h2, h3, h4, h5, h6 {
+  color: #2D1B44 !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+}
+
+/* Texto general mejorado */
+p, span, div, label {
+  color: #2D1B44 !important;
+  font-weight: 500;
+  text-shadow: 0 0.5px 1px rgba(255,255,255,0.7);
+}
+
+/* Cards de solicitudes */
+.request-card {
+  transition: all 0.3s ease;
+  border: none;
+  border-radius: 15px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 15px rgba(110, 73, 163, 0.15);
+  overflow: hidden;
+  border: 1px solid rgba(110, 73, 163, 0.1);
+}
+
+.request-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(110, 73, 163, 0.2);
+}
+
+/* Pestañas (tabs) */
+.nav-tabs {
+  border-bottom: 3px solid rgba(110, 73, 163, 0.2);
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  padding: 8px;
+  box-shadow: 0 4px 15px rgba(110, 73, 163, 0.1);
+}
+
+.nav-tabs .nav-link {
+  border: none;
+  color: #2D1B44 !important;
+  font-weight: 700;
+  font-family: 'Moirai One', cursive;
+  font-size: 1.1rem;
+  padding: 15px 25px;
+  margin-right: 8px;
+  border-radius: 15px;
+  transition: all 0.25s ease;
+  background: rgba(255, 255, 255, 0.9);
+  text-shadow: none;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 2px solid rgba(110, 73, 163, 0.2);
+}
+
+/* Hover simplificado - animaciones eliminadas para mejor performance */
+
+.nav-tabs .nav-link:hover {
+  background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%);
+  color: #4A3066 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(110, 73, 163, 0.2);
+  border-color: #A992D8;
+}
+
+.nav-tabs .nav-link.active {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  color: #FFFFFF !important;
+  border: 2px solid #6E49A3;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 15px rgba(110, 73, 163, 0.4);
+  transform: translateY(-2px);
+  font-weight: 800;
+}
+
+/* Badges de estado */
+.status-badge {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 600;
+}
+
+.badge-pending {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeaa7;
+}
+
+.badge-approved {
+  background-color: #d1edff;
+  color: #0c5460;
+  border: 1px solid #9fdfff;
+}
+
+.badge-completed {
+  background-color: #d4edda;
+  color: #155724 !important;
+  border: 1px solid #c3e6cb;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.badge-rejected {
+  background-color: #f8d7da;
+  color: #721c24 !important;
+  border: 1px solid #f5c6cb;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+.badge-pending {
+  background-color: #fff3cd;
+  color: #856404 !important;
+  border: 1px solid #ffeaa7;
+  font-weight: 600;
+  text-shadow: none;
+}
+
+/* Texto en cards con mejor contraste */
+.card-title {
+  color: #2D1B44 !important;
+  font-weight: 700 !important;
+  font-size: 1.3rem;
+}
+
+.card-text {
+  color: #4A3066 !important;
+  font-weight: 500 !important;
+  line-height: 1.5;
+}
+
+/* Text muted mejorado */
+.text-muted {
+  color: #6B6B6B !important;
+  font-weight: 500 !important;
+}
+
+/* Lista items con mejor contraste */
+.list-group-item {
+  background-color: #FFFFFF;
+  color: #2D1B44 !important;
+  border-color: rgba(110, 73, 163, 0.2);
+}
+
+/* Formularios con mejor legibilidad */
+.form-label {
+  color: #2D1B44 !important;
+  font-weight: 600 !important;
+  text-shadow: 0 0.5px 1px rgba(255,255,255,0.7);
+}
+
+.form-control {
+  color: #2D1B44 !important;
+  font-weight: 500;
+  border: 2px solid rgba(110, 73, 163, 0.3);
+}
+
+.form-control::placeholder {
+  color: #8C78BF !important;
+  opacity: 0.8;
+}
+
+/* Código de acceso */
+.access-code {
+  font-family: 'Courier New', monospace;
+  font-size: 1.8rem;
+  font-weight: bold;
+  letter-spacing: 0.3rem;
+  color: #6E49A3;
+  background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%);
+  padding: 15px 20px;
+  border-radius: 10px;
+  text-align: center;
+  border: 2px dashed #A992D8;
+  margin: 10px 0;
+}
+
+/* Botones personalizados mejorados - NUEVA VERSIÓN 4.0.3 */
+.btn-purple {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  border: none;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  border-radius: 15px;
+  padding: 14px 28px;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 15px rgba(110, 73, 163, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  position: relative;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+}
+
+/* Animaciones complejas removidas para mejor performance */
+
+.btn-purple:hover {
+  background: linear-gradient(135deg, #5a3d85 0%, #7a6aa8 100%);
+  color: #FFFFFF !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(110, 73, 163, 0.4);
+}
+
+.btn-purple:active {
+  transform: translateY(-1px) scale(0.98);
+  transition: all 0.1s ease;
+}
+
+.btn-outline-purple {
+  border: 2px solid #6E49A3;
+  color: #2D1B44 !important;
+  background: rgba(255, 255, 255, 0.95);
+  font-weight: 700;
+  border-radius: 15px;
+  padding: 12px 26px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(110, 73, 163, 0.1);
+  letter-spacing: 0.5px;
+}
+
+.btn-outline-purple:hover {
+  color: #FFFFFF !important;
+  background: linear-gradient(135deg, #6E49A3, #8C78BF);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(110, 73, 163, 0.3);
+  border-color: #8C78BF;
+}
+
+/* Botones de acción específicos con efectos premium */
+.btn-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  border: none;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 12px 24px;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 12px rgba(40, 167, 69, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #20c997 0%, #28a745 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+  color: #FFFFFF !important;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #e74c3c 100%);
+  border: none;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 12px 24px;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 12px rgba(220, 53, 69, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-danger:hover {
+  background: linear-gradient(135deg, #e74c3c 0%, #dc3545 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+  color: #FFFFFF !important;
+}
+
+.btn-info {
+  background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+  border: none;
+  color: #FFFFFF !important;
+  font-weight: 700;
+  border-radius: 12px;
+  padding: 12px 24px;
+  transition: all 0.2s ease;
+  box-shadow: 0 3px 12px rgba(23, 162, 184, 0.3);
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.btn-info:hover {
+  background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px rgba(23, 162, 184, 0.4);
+  color: #FFFFFF !important;
+}
+
+/* Botón pequeño mejorado con efectos premium */
+.btn-sm {
+  padding: 10px 20px;
+  font-size: 0.9rem;
+  border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  transition: all 0.2s ease;
+}
+
+.btn-sm:hover {
+  transform: translateY(-1px);
+}
+
+/* Efectos generales para todos los botones - optimizados */
+.btn {
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s ease;
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(110, 73, 163, 0.25);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn:active {
+  transform: scale(0.98);
+  transition: transform 0.1s ease;
+}
+
+/* Botones de navegación mejorados */
+.nav-link {
+  transition: all 0.3s ease;
+  border-radius: 10px !important;
+  margin: 0 5px;
+  font-weight: 600 !important;
+  padding: 12px 20px !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link.active {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%) !important;
+  color: white !important;
+  box-shadow: 0 4px 15px rgba(110, 73, 163, 0.3);
+}
+
+.nav-link:not(.active):hover {
+  background: rgba(110, 73, 163, 0.1) !important;
+  transform: translateY(-2px);
+  color: blacks;
+}
+
+/* Modal personalizado */
+.modal-content {
+  border-radius: 15px;
+  border: none;
+  box-shadow: 0 10px 30px rgba(110, 73, 163, 0.2);
+}
+
+.modal-header {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  color: white;
+  border-radius: 15px 15px 0 0;
+}
+
+.modal-header .btn-close {
+  filter: invert(1);
+}
+
+/* Formularios con mejor contraste */
+.form-control {
+  border: 2px solid #E8DFF5;
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  color: #2D1B44 !important;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.form-control:focus {
+  border-color: #A992D8;
+  box-shadow: 0 0 0 0.2rem rgba(169, 146, 216, 0.25);
+  color: #2D1B44 !important;
+}
+
+.form-control::placeholder {
+  color: #8C78BF !important;
+  opacity: 0.8;
+}
+
+.form-label {
+  font-weight: 600 !important;
+  color: #4A3066 !important;
+  margin-bottom: 8px;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+  font-size: 0.95rem;
+}
+
+/* Texto en cards con mejor contraste */
+.card-title {
+  color: #2D1B44 !important;
+  font-weight: 700;
+}
+
+.card-text {
+  color: #4A3066 !important;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.text-muted {
+  color: #6B6B6B !important;
+  font-weight: 500;
+}
+
+/* Small text mejorado */
+small {
+  color: #5A4A6B !important;
+  font-weight: 500;
+}
+
+/* Estados vacíos */
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 15px;
+  backdrop-filter: blur(10px);
+}
+
+.empty-state i {
+  color: #6E49A3;
+  margin-bottom: 20px;
+}
+
+.empty-state h4 {
+  color: #4a3472;
+  font-weight: 600;
+  margin-bottom: 15px;
+}
+
+.empty-state p {
+  color: #6c757d;
+}
+
+/* Toast personalizado */
+.toast {
+  border-radius: 10px;
+  border: none;
+}
+
+.toast.bg-success {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%) !important;
+}
+
+.toast.bg-danger {
+  background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  
+  .access-code {
+    font-size: 1.4rem;
+    letter-spacing: 0.2rem;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 10px 15px;
+    font-size: 0.9rem;
+  }
+}
+
+/* ===== MEJORAS VISUALES PARA TARJETAS DE SOLICITUD ===== */
+
+/* Tarjetas de solicitud mejoradas con diseño visual */
+.request-card {
+  background: linear-gradient(145deg, #ffffff 0%, #fafafa 100%);
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 6px 25px rgba(110, 73, 163, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 1.5rem;
+}
+
+.request-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 40px rgba(110, 73, 163, 0.2);
+  border: 1px solid rgba(169, 146, 216, 0.3);
+}
+
+/* Encabezado de tarjeta con gradiente morado */
+.request-header {
+  background: linear-gradient(135deg, #8C78BF 0%, #A992D8 100%);
+  padding: 1.2rem;
+  color: white;
+  border-radius: 20px 20px 0 0;
+  position: relative;
+}
+
+.request-header::after {
+  content: '';
+  position: absolute;
+  bottom: -10px;
+  left: 0;
+  right: 0;
+  height: 20px;
+  background: inherit;
+  border-radius: 0 0 50% 50%;
+  transform: scaleX(1.5);
+}
+
+/* Título de solicitud */
+.request-title {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Cuerpo de la tarjeta */
+.request-body {
+  padding: 2rem 1.5rem 1.5rem;
+}
+
+/* Meta información */
+.request-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.meta-item {
+  text-align: center;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #f6f1f9 0%, #e8dff5 100%);
+  border-radius: 12px;
+  border: 1px solid rgba(169, 146, 216, 0.2);
+}
+
+.meta-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--purple-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.3rem;
+}
+
+.meta-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Sección vacía mejorada */
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--purple-primary);
+}
+
+.empty-state i {
+  font-size: 4rem;
+  color: var(--purple-light);
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+}
+
+.empty-state h4 {
+  color: var(--purple-primary);
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.empty-state p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}

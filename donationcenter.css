@@ -1,0 +1,638 @@
+body {
+      font-family: 'Rubik', sans-serif;
+      background-color: #F6F1F9;
+      color: #333;
+    }
+
+    /* ==== PALETA DE COLORES PERSONALIZADA ==== */
+    :root {
+      --purple-primary: #6E49A3;
+      --purple-light: #A992D8;
+      --purple-hover: #8C78BF;
+      --purple-bg: #F6F1F9;
+      --purple-gradient: #E8DFF5;
+    }
+
+    /* Clases de utilidad para colores */
+    .text-purple-primary {
+      color: var(--purple-primary) !important;
+    }
+
+    .text-purple-light {
+      color: var(--purple-light) !important;
+    }
+
+    .bg-purple-primary {
+      background-color: var(--purple-primary) !important;
+    }
+
+    .bg-purple-light {
+      background-color: var(--purple-light) !important;
+    }
+
+    .bg-purple-gradient {
+      background: linear-gradient(135deg, var(--purple-gradient), var(--purple-bg)) !important;
+    }
+
+    /* Botones personalizados */
+    .btn-purple {
+      background-color: var(--purple-light);
+      border: none;
+      color: #ffffff;
+      font-weight: 600;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-purple:hover {
+      background-color: var(--purple-hover);
+      color: #ffffff;
+    }
+
+    /* ==== ARTÍCULOS CON TEMPORIZADORES Y ESTADOS ==== */
+    /* Artículos expirados */
+    .article-expired {
+      opacity: 0.7;
+      filter: grayscale(20%);
+    }
+
+    .article-status-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 15px 15px 0 0;
+    }
+
+    .status-badge {
+      background: #dc3545 !important;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .status-expired {
+      background: linear-gradient(135deg, #dc3545, #c82333) !important;
+      box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+    }
+
+    .status-reserved {
+      background: linear-gradient(135deg, #ffc107, #e0a800) !important;
+      color: #000 !important;
+      box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);
+    }
+
+    /* Artículos reservados */
+    .article-reserved {
+      opacity: 0.8;
+      border: 2px solid #ffc107;
+    }
+
+    /* ==== MODAL DE CÓDIGO DE ACCESO Y MAPA ==== */
+    .access-code-display {
+      background: linear-gradient(135deg, #f8f9fa, #e3f2fd);
+      border: 3px solid var(--purple-light);
+      border-radius: 15px;
+      padding: 20px;
+      margin: 15px 0;
+      box-shadow: 0 4px 15px rgba(110, 73, 163, 0.2);
+    }
+
+    .map-container {
+      border: 2px solid var(--purple-light);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .static-map-container {
+      border: 2px dashed var(--purple-light);
+    }
+
+    .step-icon {
+      width: 50px;
+      height: 50px;
+      background: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .step-icon i {
+      font-size: 1.2rem;
+    }
+
+    /* Temporizador de artículos */
+    .article-timer {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(110, 73, 163, 0.9);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 15px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .timer-text {
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-outline-purple {
+      border: 1.5px solid var(--purple-light);
+      color: var(--purple-primary);
+      background-color: transparent;
+      font-weight: 600;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-outline-purple:hover {
+      background-color: var(--purple-light);
+      color: #ffffff;
+      border-color: var(--purple-light);
+    }
+
+    /* Toast notifications con paleta personalizada */
+    .toast-success {
+      background-color: var(--purple-light) !important;
+      color: #ffffff !important;
+    }
+
+    .toast-error {
+      background-color: var(--purple-primary) !important;
+      color: #ffffff !important;
+    }
+
+    /* Badges personalizados */
+    .badge.bg-purple-primary {
+      background-color: var(--purple-primary) !important;
+      color: #ffffff !important;
+    }
+
+    .badge.bg-purple-light {
+      background-color: var(--purple-light) !important;
+      color: #ffffff !important;
+    }
+
+    .badge.bg-purple-hover {
+      background-color: var(--purple-hover) !important;
+      color: #ffffff !important;
+    }
+
+    /* Border personalizados */
+    .border-purple {
+      border-color: var(--purple-light) !important;
+    }
+
+    .border-purple-primary {
+      border-color: var(--purple-primary) !important;
+    }
+
+
+    /* ==== NAVBAR ==== */
+    .navbar {
+      background-color: #fff;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 12px 20px;
+    }
+    .navbar-brand {
+      color: #6E49A3 !important;
+      font-family: 'Moirai One', cursive !important;
+      font-weight: 700;
+      font-size: 1.4rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .profile-icon {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      border: 2px solid #A992D8;
+      object-fit: cover;
+      cursor: pointer;
+    }
+
+
+    .nav-link {
+  color: #6E49A3 !important;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #8C78BF !important;
+}
+
+.navbar-toggler {
+  border-color: #A992D8;
+}
+
+.navbar-toggler-icon {
+  background-color: transparent;
+  filter: invert(40%) sepia(30%) saturate(400%) hue-rotate(230deg);
+}
+
+.nav-item .btn {
+  font-weight: 600;
+  border-radius: 12px;
+  margin-left: 10px;
+}
+
+.nav-item .btn-outline-primary {
+  border: 1.5px solid #A992D8;
+  color: #6E49A3;
+  background-color: transparent;
+  transition: all 0.3s ease;
+}
+
+.nav-item .btn-outline-primary:hover {
+  background-color: #A992D8;
+  color: #fff;
+}
+
+.nav-item .btn-primary {
+  background-color: #A992D8;
+  border: none;
+  color: #fff;
+  transition: all 0.3s ease;
+}
+
+.nav-item .btn-primary:hover {
+  background-color: #8C78BF;
+}
+
+/* Ajustes responsive */
+@media (max-width: 991px) {
+  .navbar-nav {
+    text-align: center;
+  }
+  .nav-item .btn, .nav-item .btn-outline-primary {
+    width: 100%;
+    margin: 5px 0 0 0;
+  }
+}
+
+
+
+  
+    /* ==== CARDS ==== */
+    .donation-card {
+      border: none;
+      border-radius: 18px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      transition: transform 0.3s ease;
+      background-color: #fff;
+    }
+    .donation-card:hover {
+      transform: scale(1.03);
+    }
+    .donation-card img {
+      border-radius: 18px 18px 0 0;
+      height: 180px;
+      object-fit: cover;
+    }
+    .card-title {
+      color: #6E49A3;
+      font-weight: 600;
+    }
+    .btn-primary {
+      background-color: #A992D8;
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+    .btn-primary:hover {
+      background-color: #8C78BF;
+    }
+
+    /* ==== BOTÓN FLOTANTE ==== */
+    .btn-float {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background-color: #A992D8;
+      color: #fff;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 32px;
+      border: none;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: 0.3s;
+    }
+    .btn-float:hover {
+      background-color: #8C78BF;
+      transform: rotate(90deg);
+    }
+
+    /* ==== MODAL ==== */
+    .modal-content {
+      border-radius: 20px;
+      border: none;
+    }
+    .modal-header {
+      border-bottom: none;
+      background-color: #F6F1F9;
+    }
+    .modal-title {
+      color: #6E49A3;
+      font-weight: 700;
+    }
+    .form-label {
+      font-weight: 600;
+      color: #555;
+    }
+    .form-control {
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+
+
+    .profile-card {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffffcc;
+      border-radius: 20px;
+      box-shadow: 0px 4px 12px rgba(110, 73, 163, 0.2);
+      padding: 30px;
+    }    .profile-pic-container {
+      position: relative;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .profile-pic {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #E5D4F2;
+    }
+
+
+    .form-control, .form-select {
+      border-radius: 12px;
+      border: 1px solid #E5D4F2;
+      box-shadow: none;
+    }
+    
+    .form-control:focus, .form-select:focus {
+      border-color: #A992D8;
+      box-shadow: 0 0 0 0.2rem rgba(169, 146, 216, 0.25);
+    }
+
+    .btn-update {
+      background-color: #A992D8;
+      border: none;
+      color: white;
+      border-radius: 12px;
+      padding: 10px 20px;
+      transition: all 0.3s ease;
+      font-weight: 600;
+    }
+
+    .btn-update:hover {
+      background-color: #8C78BF;
+    }
+
+    .nav-bar {
+      background-color: #E8DFF5;
+      padding: 12px 20px;
+      border-radius: 0 0 20px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-title {
+      font-weight: 600;
+      font-size: 18px;
+      color: #6E49A3;
+      font-family: 'Moirai One', cursive;
+    }
+
+    .logout-btn {
+      background: #A992D8;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .logout-btn:hover {
+      background-color: #8C78BF;
+    }
+
+
+  .profile-icon {
+      font-size: 120px;
+      color: #A992D8;
+      border: 4px solid #E5D4F2;
+      border-radius: 50%;
+      padding: 15px;
+      background-color: white;
+    }
+
+    .edit-icon {
+      position: absolute;
+      bottom: 10px;
+      right: 42%;
+      background-color: #E5D4F2;
+      border-radius: 50%;
+      padding: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .edit-icon:hover {
+      background-color: #A992D8;
+    }
+
+
+.btn-primary {
+  background-color: #A992D8;
+  border: none;
+  font-weight: 600;
+  transition: 0.3s;
+}
+
+.btn-primary:hover {
+  background-color: #8C78BF;
+}
+
+/* ===== ESTILOS ESPECÍFICOS EXTRAÍDOS DEL HTML ===== */
+
+/* EFECTOS HOVER PARA BOTONES DE ARTÍCULOS - v4.0.3 */
+.article-edit-btn:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  background: linear-gradient(135deg, #BBDEFB, #90CAF9) !important;
+  box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4) !important;
+}
+
+.article-delete-btn:hover {
+  transform: translateY(-3px) scale(1.02) !important;
+  background: linear-gradient(135deg, #FFCDD2, #EF9A9A) !important;
+  box-shadow: 0 6px 20px rgba(211, 47, 47, 0.4) !important;
+}
+
+.article-request-btn:hover {
+  transform: translateY(-4px) scale(1.03) !important;
+  box-shadow: 0 10px 30px rgba(169, 146, 216, 0.6) !important;
+}
+
+.article-request-btn:hover .shimmer-effect {
+  left: 100% !important;
+}
+
+.article-request-btn:active {
+  transform: translateY(-1px) scale(0.98) !important;
+  transition: all 0.1s ease !important;
+}
+
+/* Efecto shimmer mejorado */
+.shimmer-effect {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.8s ease;
+  pointer-events: none;
+}
+
+/* Pulse effect para botones de dueño */
+.owner-badge {
+  animation: pulse 2s infinite;
+}
+
+/* Estilos del navbar específicos */
+.donationcenter-navbar {
+  background-color: #E8DFF5;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.donationcenter-navbar .navbar-brand, .donationcenter-brand {
+  color: #6E49A3;
+  font-family: 'Moirai One', cursive;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.donationcenter-navbar .heart-icon {
+  color: #A992D8;
+  font-size: 1.3rem;
+  text-shadow: 0 0 8px rgba(169, 146, 216, 0.6);
+  animation: heartbeat 2s ease-in-out infinite alternate;
+  margin-right: 8px;
+}
+
+.donationcenter-navbar .profile-icon {
+  cursor: pointer;
+}
+
+.donationcenter-navbar .dropdown-menu {
+  border-radius: 12px;
+  border: none;
+}
+
+.donationcenter-navbar .dropdown-item {
+  color: #6E49A3;
+  font-weight: 500;
+}
+
+.donationcenter-navbar .dropdown-item i {
+  color: #6E49A3;
+}
+
+
+.donationcenter-navbar .dropdown-item.logout {
+  font-weight: 500;
+  color: #6E49A3;
+}
+
+.donationcenter-navbar .dropdown-item.logout .heart-icon {
+  color: #8E44AD;
+  font-size: 14px;
+  text-shadow: 0 0 6px rgba(142, 68, 173, 0.5);
+}
+
+/* Estilos del contenido principal */
+.donationcenter-title {
+  color: #4A3066;
+  font-weight: 700;
+  text-shadow: 0 1px 2px rgba(74, 48, 102, 0.1);
+  font-family: 'Moirai One', cursive;
+}
+
+/* Estado vacío */
+.empty-state {
+  display: none;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 15px;
+  padding: 40px;
+  margin: 20px;
+}
+
+.empty-state .empty-icon {
+  color: #6E49A3;
+}
+
+.empty-state .empty-title {
+  color: #4A3066;
+  font-weight: 600;
+}
+
+.empty-state .empty-text {
+  color: #5A4A6B;
+  font-weight: 500;
+}
+
+/* Estilos del formulario del modal */
+.modal-form-label {
+  color: #4A3066;
+  font-weight: 600;
+}
+
+/* Vista previa de imagen en modal */
+.article-image-preview {
+  display: none;
+}
+
+.article-image-preview img {
+  max-height: 200px;
+  object-fit: cover;
+}
+
+/* Toast personalizado para donationcenter */
+.donation-toast {
+  z-index: 1080;
+}
+
+/* Vista previa de imagen en artículos */
+.article-preview-img {
+  max-height: 200px;
+  object-fit: cover;
+}
+

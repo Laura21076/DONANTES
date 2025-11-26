@@ -1,0 +1,11 @@
+/* Estilos específicos para donationcenter-fallback.html */
+
+/* Título principal */
+.fallback-title {
+  color: #6E49A3;
+}
+
+/* Placeholder de imágenes */
+.fallback-img-placeholder {
+  height: 200px;
+}
