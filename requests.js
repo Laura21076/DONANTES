@@ -1,4 +1,4 @@
-import { getIdToken } from 'auth.js';
+import { getIdToken } from './auth.js';
 
 const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
 
@@ -155,4 +155,3 @@ export async function confirmPickup(requestId) {
     throw error;
   }
 }
-
