@@ -3,7 +3,7 @@
  * Archivo: roles-ui.js
  */
 
-import { ROLES } from 'roles-config.js';
+import { ROLES } from './roles-config.js';
 
 /**
  * Actualiza la UI basada en el rol del usuario
@@ -66,9 +66,7 @@ export function protectElement(elementId, permission, roleManager) {
  * Inicializa la protección de UI cuando el DOM está listo
  */
 export function initializeUIProtection(roleManager) {
-    // Esperar a que Firebase Auth esté listo
     setTimeout(() => {
         updateUIBasedOnRole(roleManager);
     }, 1000);
-
 }
