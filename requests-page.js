@@ -1,0 +1,460 @@
+import { getMyRequests, getReceivedRequests, approveRequest, rejectRequest, confirmPickup } from '../services/requests.js';
+import { getUser } from '../services/auth.js';
+import { getCurrentLockerCode } from '../services/locker.js';
+
+document.addEventListener('DOMContentLoaded', async () => {
+  // Verificar autenticación antes de cargar datos
+  try {
+    const user = await getUser();
+    if (!user) {
+      console.warn('⚠️ Usuario no autenticado, redirigiendo a login...');
+      window.location.href = 'login.html';
+      return;
+    }
+    
+    console.log('✅ Usuario autenticado, cargando solicitudes...');
+    await loadSentRequests();
+    
+    // Cargar solicitudes recibidas al cambiar de tab
+    document.getElementById('received-tab').addEventListener('shown.bs.tab', loadReceivedRequests);
+  } catch (error) {
+    console.error('❌ Error durante inicialización:', error);
+    showMessage('Error de autenticación. Redirigiendo...', 'warning');
+    setTimeout(() => {
+      window.location.href = 'login.html';
+    }, 2000);
+  }
+});
+
+// ================== CARGAR SOLICITUDES ENVIADAS ==================
+async function loadSentRequests() {
+  try {
+    const user = await getUser();
+    if (!user) {
+      throw new Error('Usuario no autenticado');
+    }
+    
+    const requests = await getMyRequests();
+    displaySentRequests(requests);
+  } catch (error) {
+    console.error('Error al cargar solicitudes enviadas:', error);
+    if (error.message.includes('token') || error.message.includes('autenticado')) {
+      showMessage('Sesión expirada. Redirigiendo...', 'warning');
+      window.location.replace('login.html');
+    } else {
+      showMessage('Error al cargar solicitudes: ' + error.message, 'danger');
+    }
+  }
+}
+
+function displaySentRequests(requests) {
+  const grid = document.getElementById('sentRequestsGrid');
+  const empty = document.getElementById('sentEmpty');
+  if (!requests || requests.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  grid.innerHTML = requests.map(req => {
+    const statusInfo = getStatusInfo(req.status);
+    let date = 'Fecha no disponible';
+    try {
+      if (req.createdAt) {
+        let parsedDate = null;
+        if (typeof req.createdAt === 'string') {
+          parsedDate = new Date(req.createdAt);
+        } else if (req.createdAt.seconds) {
+          parsedDate = new Date(req.createdAt.seconds * 1000);
+        } else if (typeof req.createdAt.toDate === 'function') {
+          parsedDate = req.createdAt.toDate();
+        } else if (req.createdAt instanceof Date) {
+          parsedDate = req.createdAt;
+        }
+        if (parsedDate && !isNaN(parsedDate.getTime())) {
+          date = parsedDate.toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        }
+      }
+    } catch (error) {
+      console.warn('Error formateando fecha:', error, req.createdAt);
+      date = 'Fecha inválida';
+    }
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="card request-card h-100" style="border: 1px solid #E8DFF5; background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 12px rgba(110, 73, 163, 0.15);">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${req.articleTitle}</h5>
+              <span class="badge ${statusInfo.class}" style="${statusInfo.style || ''}">${statusInfo.text}</span>
+            </div>
+            ${req.message ? `<p class="card-text" style="color: #5A4A6B;"><small><i class="fas fa-comment"></i> ${req.message}</small></p>` : ''}
+            <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
+            ${req.status === 'aprobada' ? `
+              <div class="alert alert-success mb-3">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>Código de acceso:</strong>
+                    <div class="access-code">${req.accessCode}</div>
+                  </div>
+                  <button class="btn btn-sm btn-outline-success" onclick="copyToClipboard('${req.accessCode}')">
+                    <i class="fas fa-copy"></i>
+                  </button>
+                </div>
+                ${req.lockerLocation ? `<p class=\"mb-0 mt-2\"><i class=\"fas fa-map-marker-alt\"></i> ${req.lockerLocation}</p>` : ''}
+                ${req.lockerId ? `<p class=\"mb-0\"><i class=\"fas fa-lock\"></i> Casillero: ${req.lockerId}</p>` : ''}
+              </div>
+              <button class="btn btn-info w-100 mb-2" onclick="showPickupDetailsModal('${req.lockerLocation || ''}', '${req.lockerId || ''}')">
+                <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
+              </button>
+              <button class="btn btn-primary w-100" onclick="confirmPickupHandler('${req.id}')">
+                <i class="fas fa-check"></i> Confirmar Retiro
+              </button>
+            ` : req.status === 'rechazada' && req.rejectionReason ? `
+              <div class="alert alert-danger">
+                <small><i class="fas fa-exclamation-circle"></i> ${req.rejectionReason}</small>
+              </div>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Mostrar modal de detalles de recogida
+window.showPickupDetailsModal = function(lockerLocation, lockerId) {
+  const modal = new bootstrap.Modal(document.getElementById('pickupDetailsModal'));
+  document.getElementById('pickupCodeBox').style.display = 'none';
+  document.getElementById('pickupCodeSpinner').style.display = 'inline-block';
+  document.getElementById('pickupAccessCode').textContent = '';
+  // Mostrar código actual de la caja fuerte
+  getCurrentLockerCode().then(code => {
+    document.getElementById('pickupCodeSpinner').style.display = 'none';
+    document.getElementById('pickupCodeBox').style.display = 'block';
+    document.getElementById('pickupAccessCode').textContent = code;
+  }).catch(() => {
+    document.getElementById('pickupCodeSpinner').style.display = 'none';
+    document.getElementById('pickupCodeBox').style.display = 'block';
+    document.getElementById('pickupAccessCode').textContent = 'Error';
+  });
+  // Mostrar mapa
+  setTimeout(() => {
+    renderPickupMap(lockerLocation);
+  }, 300);
+  modal.show();
+};
+
+// Renderizar mapa de recogida con locker y geolocalización simulada
+function renderPickupMap(lockerLocation) {
+  const mapDiv = document.getElementById('pickupMap');
+  mapDiv.innerHTML = '';
+  // Usar Leaflet.js para el mapa (CDN)
+  if (!window.L) {
+    const leafletCss = document.createElement('link');
+    leafletCss.rel = 'stylesheet';
+    leafletCss.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(leafletCss);
+    const leafletScript = document.createElement('script');
+    leafletScript.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    leafletScript.onload = () => renderPickupMap(lockerLocation);
+    document.body.appendChild(leafletScript);
+    return;
+  }
+  // Coordenadas simuladas para el locker (si no hay geocoding, usar punto fijo)
+  let lockerCoords = { lat: 25.7305, lng: -100.309 }; // Ejemplo: UTS
+  if (lockerLocation && lockerLocation.toLowerCase().includes('centro')) {
+    lockerCoords = { lat: 25.6866, lng: -100.3161 }; // Ejemplo: Centro Monterrey
+  }
+  const map = L.map('pickupMap').setView([lockerCoords.lat, lockerCoords.lng], 16);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+  }).addTo(map);
+  L.marker([lockerCoords.lat, lockerCoords.lng]).addTo(map)
+    .bindPopup('Casillero').openPopup();
+  // Simular geolocalización del usuario
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      const userCoords = [pos.coords.latitude, pos.coords.longitude];
+      L.circle(userCoords, { radius: 20, color: 'blue', fillColor: '#30f', fillOpacity: 0.3 }).addTo(map)
+        .bindPopup('Tu ubicación').openPopup();
+      map.setView(userCoords, 16);
+    }, () => {/* ignorar error */});
+  }
+}
+
+// ================== CARGAR SOLICITUDES RECIBIDAS ==================
+async function loadReceivedRequests() {
+  try {
+    const user = await getUser();
+    if (!user) {
+      throw new Error('Usuario no autenticado');
+    }
+    
+    const requests = await getReceivedRequests();
+    displayReceivedRequests(requests);
+  } catch (error) {
+    console.error('Error al cargar solicitudes recibidas:', error);
+    if (error.message.includes('token') || error.message.includes('autenticado')) {
+      showMessage('Sesión expirada. Redirigiendo...', 'warning');
+      window.location.replace('login.html');
+    } else {
+      showMessage('Error al cargar solicitudes: ' + error.message, 'danger');
+    }
+  }
+}
+
+function displayReceivedRequests(requests) {
+  const grid = document.getElementById('receivedRequestsGrid');
+  const empty = document.getElementById('receivedEmpty');
+  
+  if (!requests || requests.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  
+  empty.style.display = 'none';
+  
+  grid.innerHTML = requests.map(req => {
+    const statusInfo = getStatusInfo(req.status);
+    // Manejar diferentes formatos de fecha de Firebase
+    let date = 'Fecha no disponible';
+    try {
+      if (req.createdAt) {
+        if (req.createdAt.seconds) {
+          // Timestamp de Firestore
+          date = new Date(req.createdAt.seconds * 1000).toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } else if (req.createdAt.toDate) {
+          // Timestamp de Firestore con método toDate
+          date = req.createdAt.toDate().toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } else if (typeof req.createdAt === 'string') {
+          // String de fecha
+          const parsedDate = new Date(req.createdAt);
+          if (!isNaN(parsedDate.getTime())) {
+            date = parsedDate.toLocaleString('es-ES', {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+          }
+        }
+      }
+    } catch (error) {
+      console.warn('Error formateando fecha:', error, req.createdAt);
+      date = 'Fecha inválida';
+    }
+    
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="card request-card h-100" style="border: 1px solid #E8DFF5; background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 12px rgba(110, 73, 163, 0.15);">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${req.articleTitle}</h5>
+              <span class="badge ${statusInfo.class}" style="${statusInfo.style || ''}">${statusInfo.text}</span>
+            </div>
+            
+            ${req.message ? `
+              <div class="alert alert-info mb-3" style="background: rgba(169, 146, 216, 0.1); border: 1px solid #A992D8; color: #4A3066;">
+                <small><i class="fas fa-comment"></i> <strong>Mensaje:</strong><br>${req.message}</small>
+              </div>
+            ` : ''}
+            
+            <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
+            
+            ${req.status === 'pendiente' ? `
+              <div class="btn-group w-100 mb-2" role="group">
+                <button class="btn btn-success" onclick="showApproveModal('${req.id}')">
+                  <i class="fas fa-check"></i> Aprobar
+                </button>
+                <button class="btn btn-danger" onclick="rejectRequestHandler('${req.id}')">
+                  <i class="fas fa-times"></i> Rechazar
+                </button>
+              </div>
+            ` : req.status === 'aprobada' ? `
+              <div class="alert alert-success mb-2">
+                <strong>Código:</strong> <span class="access-code">${req.accessCode}</span>
+                ${req.lockerLocation ? `<p class="mb-0 mt-2"><small>${req.lockerLocation}</small></p>` : ''}
+              </div>
+              <button class="btn btn-primary w-100" onclick="confirmPickupHandler('${req.id}')">
+                <i class="fas fa-check"></i> Marcar como Entregado
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ================== APROBAR SOLICITUD ==================
+window.showApproveModal = function(requestId) {
+  document.getElementById('approveRequestId').value = requestId;
+  document.getElementById('lockerId').value = '';
+  document.getElementById('lockerLocation').value = '';
+  
+  const modal = new bootstrap.Modal(document.getElementById('approveModal'));
+  modal.show();
+};
+
+window.approveRequestHandler = async function() {
+  const requestId = document.getElementById('approveRequestId').value;
+  const lockerId = document.getElementById('lockerId').value.trim();
+  const lockerLocation = document.getElementById('lockerLocation').value.trim();
+  
+  try {
+    await approveRequest(requestId, lockerId || null, lockerLocation || null);
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('approveModal'));
+    modal.hide();
+    
+    showMessage('Solicitud aprobada. El solicitante ha recibido su código de acceso.', 'success');
+    await loadReceivedRequests();
+  } catch (error) {
+    showMessage('Error al aprobar: ' + error.message, 'danger');
+  }
+};
+
+// ================== RECHAZAR SOLICITUD ==================
+window.rejectRequestHandler = async function(requestId) {
+  const reason = prompt('¿Por qué rechazas esta solicitud? (opcional)');
+  
+  if (reason === null) return; // Usuario canceló
+  
+  try {
+    await rejectRequest(requestId, reason);
+    showMessage('Solicitud rechazada', 'info');
+    await loadReceivedRequests();
+  } catch (error) {
+    showMessage('Error al rechazar: ' + error.message, 'danger');
+  }
+};
+
+// ================== CONFIRMAR RETIRO ==================
+window.confirmPickupHandler = async function(requestId) {
+  if (!confirm('¿Confirmas que el artículo ha sido retirado/entregado?')) {
+    return;
+  }
+  
+  try {
+    await confirmPickup(requestId);
+    showMessage('Retiro confirmado. ¡Donación completada!', 'success');
+    
+    // Recargar la pestaña activa
+    const activeTab = document.querySelector('.nav-link.active').id;
+    if (activeTab === 'sent-tab') {
+      await loadSentRequests();
+    } else {
+      await loadReceivedRequests();
+    }
+  } catch (error) {
+    showMessage('Error al confirmar: ' + error.message, 'danger');
+  }
+};
+
+// ================== UTILIDADES ==================
+function getStatusInfo(status) {
+  const statuses = {
+    'pendiente': { text: 'Pendiente', class: '' },
+    'aprobada': { text: 'Aprobada', class: '' },
+    'rechazada': { text: 'Rechazada', class: '' },
+    'completada': { text: 'Completada', class: '' }
+  };
+  
+  // Asignar estilos inline para mejor contraste
+  const result = statuses[status] || { text: status, class: '' };
+  
+  switch(status) {
+    case 'pendiente':
+      result.class = 'text-white';
+      result.style = 'background-color: #A992D8; font-weight: 600;';
+      break;
+    case 'aprobada':
+      result.class = 'text-white';
+      result.style = 'background-color: #6E49A3; font-weight: 600;';
+      break;
+    case 'rechazada':
+      result.class = 'text-white';
+      result.style = 'background-color: #8C78BF; font-weight: 600;';
+      break;
+    case 'completada':
+      result.class = 'text-white';
+      result.style = 'background-color: #4A3066; font-weight: 600;';
+      break;
+    default:
+      result.class = 'text-white';
+      result.style = 'background-color: #6c757d; font-weight: 600;';
+  }
+  
+  return result;
+}
+
+window.copyToClipboard = function(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    showMessage('Código copiado', 'info');
+  });
+};
+
+function showMessage(text, type) {
+  const messageDiv = document.getElementById('feedbackMessage');
+  messageDiv.innerHTML = `
+    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+      ${text}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  `;
+  
+  setTimeout(() => {
+    messageDiv.innerHTML = '';
+  }, 5000);
+}
+
+// Geolocalización automática al crear solicitud
+async function getCurrentPositionPromise() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      return reject(new Error('Geolocalización no soportada'));
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve(pos.coords),
+      (err) => reject(err),
+      { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+    );
+  });
+}
+
+async function createRequestWithLocation(requestData) {
+  try {
+    const coords = await getCurrentPositionPromise();
+    requestData.location = {
+      lat: coords.latitude,
+      lng: coords.longitude,
+      source: 'user-device'
+    };
+  } catch (e) {
+    // Si falla, continuar sin ubicación
+    requestData.location = { source: 'unknown' };
+  }
+  // Llamar a la función original de crear solicitud
+  await createRequest(requestData);
+}
+
