@@ -1,4 +1,4 @@
-// Utilidad para manejar reintentos de autenticación con Firebase
+// AuthRetryHandler.js
 export class AuthRetryHandler {
   constructor() {
     this.maxRetries = 3;
@@ -8,7 +8,6 @@ export class AuthRetryHandler {
 
   async executeWithRetry(authFunction, ...args) {
     let lastError = null;
-    
     for (let attempt = 0; attempt < this.maxRetries; attempt++) {
       try {
         console.log(`🔄 Intento de autenticación ${attempt + 1}/${this.maxRetries}`);
@@ -18,21 +17,19 @@ export class AuthRetryHandler {
       } catch (error) {
         lastError = error;
         console.warn(`❌ Intento ${attempt + 1} fallido:`, error.message);
-        
-        // Si es el error de "too many attempts", esperar menos tiempo
+
+        // Reintentar solo si el error es demasiados intentos
         if (error.code === 'auth/too-many-requests') {
           const delay = Math.min(this.baseDelay * Math.pow(2, attempt), this.maxDelay);
           console.log(`⏱️ Esperando ${delay/1000} segundos antes del siguiente intento...`);
           await this.sleep(delay);
           continue;
         }
-        
-        // Si es otro tipo de error, no reintentar
+        // Si el error no es recuperable, lanza error
         if (this.isNonRetryableError(error)) {
           console.log('❌ Error no recuperable, no reintentando');
           throw error;
         }
-        
         // Esperar antes del siguiente intento
         if (attempt < this.maxRetries - 1) {
           const delay = this.baseDelay * (attempt + 1);
@@ -41,7 +38,6 @@ export class AuthRetryHandler {
         }
       }
     }
-    
     console.error('❌ Todos los intentos de autenticación fallaron');
     throw lastError;
   }
@@ -55,7 +51,6 @@ export class AuthRetryHandler {
       'auth/invalid-credential',
       'auth/email-already-in-use'
     ];
-    
     return nonRetryableErrors.includes(error.code);
   }
 
@@ -63,39 +58,25 @@ export class AuthRetryHandler {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
-  // Método específico para limpiar bloqueos temporales
   async clearAuthBlocks() {
     try {
-      console.log('🧹 Intentando limpiar bloqueos de autenticación...');
-      
-      // Limpiar localStorage relacionado con Firebase
-      const firebaseKeys = [];
-      for (let i = 0; i < localStorage.length; i++) {
+      console.log('🧹 Limpiando posibles bloqueos de autenticación…');
+      // Elimina solo claves relevantes de Firebase auth para evitar conflictos
+      const firebasePrefixes = ['firebase:authUser:', 'firebase:authManager:', 'firebase:authEvent:', 'firebase:auth'];
+      for (let i = localStorage.length - 1; i >= 0; i--) {
         const key = localStorage.key(i);
-        if (key && (key.includes('firebase') || key.includes('auth'))) {
-          firebaseKeys.push(key);
+        if (firebasePrefixes.some(pref => key && key.startsWith(pref))) {
+          localStorage.removeItem(key);
+          console.log(`🗑️ Removido: ${key}`);
         }
       }
-      
-      firebaseKeys.forEach(key => {
-        localStorage.removeItem(key);
-        console.log(`🗑️ Removido: ${key}`);
-      });
-      
-      // Limpiar sessionStorage también
-      const sessionKeys = [];
-      for (let i = 0; i < sessionStorage.length; i++) {
+      for (let i = sessionStorage.length - 1; i >= 0; i--) {
         const key = sessionStorage.key(i);
-        if (key && (key.includes('firebase') || key.includes('auth'))) {
-          sessionKeys.push(key);
+        if (firebasePrefixes.some(pref => key && key.startsWith(pref))) {
+          sessionStorage.removeItem(key);
+          console.log(`🗑️ Removido de session: ${key}`);
         }
       }
-      
-      sessionKeys.forEach(key => {
-        sessionStorage.removeItem(key);
-        console.log(`🗑️ Removido de session: ${key}`);
-      });
-      
       console.log('✅ Bloqueos de autenticación limpiados');
       return true;
     } catch (error) {
@@ -104,7 +85,6 @@ export class AuthRetryHandler {
     }
   }
 
-  // Mostrar mensaje amigable para errores de rate limit
   showRateLimitMessage(error) {
     if (error.code === 'auth/too-many-requests') {
       const message = `
@@ -115,25 +95,20 @@ export class AuthRetryHandler {
           <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
       `;
-      
       const alertContainer = document.getElementById('alert-container') || document.body;
       const tempDiv = document.createElement('div');
       tempDiv.innerHTML = message;
       alertContainer.insertBefore(tempDiv.firstElementChild, alertContainer.firstChild);
-      
       return true;
     }
     return false;
   }
 }
 
-// Instancia global
 export const authRetryHandler = new AuthRetryHandler();
 
-// Función de conveniencia para autenticación con reintentos
 export async function signInWithRetry(auth, email, password) {
   const { signInWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-  
   return authRetryHandler.executeWithRetry(
     signInWithEmailAndPassword,
     auth,
@@ -142,10 +117,8 @@ export async function signInWithRetry(auth, email, password) {
   );
 }
 
-// Función de conveniencia para registro con reintentos
 export async function createUserWithRetry(auth, email, password) {
   const { createUserWithEmailAndPassword } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-  
   return authRetryHandler.executeWithRetry(
     createUserWithEmailAndPassword,
     auth,
