@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- CSP Mejorada: sin 'unsafe-inline', solo permite scripts externos -->
   <meta http-equiv="Content-Security-Policy" content="
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' 'unsafe-hashes' 'wasm-unsafe-eval' 'sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ=' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://maps.googleapis.com https://www.googletagmanager.com chrome-extension:;
+    script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://maps.googleapis.com https://www.googletagmanager.com chrome-extension:;
     style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com;
     font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
     img-src 'self' data: https: blob: firebasestorage.googleapis.com *.firebasestorage.app *.googleapis.com *.gstatic.com;
@@ -16,6 +18,7 @@
     form-action 'self';
     default-src 'self';"
   />
+
   <title>Centro de Donaciones | Donantes</title>
   <link rel="icon" href="assets/logo.ico" type="image/x-icon">
   <link rel="shortcut icon" href="assets/logo.ico" type="image/x-icon">
@@ -42,13 +45,14 @@
   <script src="sw-register.js"></script>
   
   <!-- PWA Manifest -->
-  <link rel="manifest" href= "manifest.json">
+  <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#A992D8">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <script type="module" src="test-notification.js"></script>
-  
+
+  <!-- Módulo de prueba de notificaciones (asegurarse de que el archivo existe o ajusta la ruta) -->
+  <script type="module" src="test-notification.js"></script>
 </head>
 
 <body>
@@ -108,15 +112,12 @@
   <!-- 🔹 CONTENIDO -->
   <div class="container my-5">
     <h2 class="text-center mb-4 donationcenter-title">Artículos publicados</h2>
-    
     <!-- Mensaje de feedback -->
     <div id="feedbackMessage"></div>
-    
     <!-- Grid de artículos -->
     <div id="articlesGrid" class="row g-4">
       <!-- Los artículos se cargarán dinámicamente aquí -->
     </div>
-    
     <!-- Mensaje cuando no hay artículos -->
     <div id="emptyState" class="text-center py-5 empty-state">
       <i class="fas fa-box-open fa-4x mb-3 empty-icon text-purple"></i>
@@ -139,19 +140,16 @@
         <div class="modal-body">
           <form id="uploadForm" class="needs-validation" novalidate>
             <input type="hidden" id="articleId">
-            
             <div class="mb-3">
               <label for="articleName" class="form-label modal-form-label">Nombre del artículo *</label>
               <input type="text" class="form-control" id="articleName" required>
               <div class="invalid-feedback">Por favor, ingresa el nombre del artículo.</div>
             </div>
-            
             <div class="mb-3">
               <label for="articleDescription" class="form-label modal-form-label">Descripción *</label>
               <textarea class="form-control" id="articleDescription" rows="3" required></textarea>
               <div class="invalid-feedback">Agrega una breve descripción.</div>
             </div>
-            
             <div class="mb-3">
               <label for="articleCategory" class="form-label modal-form-label">Categoría</label>
               <select class="form-control" id="articleCategory">
@@ -164,7 +162,6 @@
                 <option value="otros">Otros</option>
               </select>
             </div>
-            
             <div class="mb-3">
               <label for="articleCondition" class="form-label">Condición</label>
               <select class="form-control" id="articleCondition">
@@ -174,7 +171,6 @@
                 <option value="usado">Usado</option>
               </select>
             </div>
-            
             <div class="mb-3">
               <label for="articleImageFile" class="form-label">Imagen del artículo</label>
               <input type="file" class="form-control" id="articleImageFile" accept="image/*">
@@ -184,12 +180,10 @@
                 <img id="articleImagePreviewImg" alt="Vista previa" class="img-fluid rounded border article-preview-img" />
               </div>
             </div>
-            
             <div class="mb-3">
               <label for="articleLocation" class="form-label">Ubicación</label>
               <input type="text" class="form-control" id="articleLocation" placeholder="Ciudad, Estado">
             </div>
-            
             <button type="submit" class="btn btn-purple w-100" id="submitBtn">Publicar artículo</button>
           </form>
         </div>
@@ -216,13 +210,12 @@
     </div>
   </div>
 
+  <!-- Scripts principales (sólo externos, nunca inline) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script type="module" src="notifications.js"></script>
   <script type="module" src="notifications-init.js"></script>
   <script type="module" src="session-manager.js"></script>
   <script type="module" src="donationcenter.js"></script>
-
-  <!-- Script de diagnóstico de autenticación -->
   <script type="module" src="diagnostico-auth.js"></script>
   <script type="module" src="donation-center-init.js"></script>
 
@@ -233,26 +226,21 @@
     </div>
   </div>
 
-  <!-- Botón para probar notificación -->
-<button id="testNotificationBtn" class="btn btn-outline-purple position-fixed" style="bottom: 1rem; right: 1rem; z-index: 9999;">
-  Probar notificación
-</button>
+  <!-- Botón flotante para probar notificación (activado por test-notification.js) -->
+  <button id="testNotificationBtn" class="btn btn-outline-purple position-fixed" style="bottom: 1rem; right: 1rem; z-index: 9999;">
+    Probar notificación
+  </button>
 
-<!-- Google Maps API -->
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A&libraries=places"
-  id="google-maps-script"
-  async
-  defer>
-</script>
+  <!-- Google Maps API (external script, sin inline) -->
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A&libraries=places"
+    id="google-maps-script"
+    async
+    defer>
+  </script>
   
-  <!-- Manejo de Google Maps sin script inline -->
   <script type="module" src="google-maps-handler.js"></script>
   <script type="module" src="auth.js"></script>
 
-  </body>
+</body>
 </html>
-
-
-
-
