@@ -50,9 +50,6 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-
-  <!-- Módulo de prueba de notificaciones (asegurarse de que el archivo existe o ajusta la ruta) -->
-  <script type="module" src="test-notification.js"></script>
 </head>
 
 <body>
@@ -226,10 +223,10 @@
     </div>
   </div>
 
-  <!-- Botón flotante para probar notificación (activado por test-notification.js) -->
-  <button id="testNotificationBtn" class="btn btn-outline-purple position-fixed" style="bottom: 1rem; right: 1rem; z-index: 9999;">
+  <!-- Botón flotante para probar notificación, puedes quitarlo si no usarás notificaciones de prueba -->
+  <!-- <button id="testNotificationBtn" class="btn btn-outline-purple position-fixed" style="bottom: 1rem; right: 1rem; z-index: 9999;">
     Probar notificación
-  </button>
+  </button> -->
 
   <!-- Google Maps API (external script, sin inline) -->
   <script
