@@ -12,6 +12,32 @@ body {
     font-weight: normal;
 }
 
+/* Navbar styles matching donationcenter */
+.donationcenter-navbar {
+    background-color: #E8DFF5;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.donationcenter-brand {
+    color: #6E49A3 !important;
+    font-family: 'Moirai One', cursive !important;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.heart-icon {
+    color: #A992D8 !important;
+    font-size: 1.3rem;
+    text-shadow: 0 0 8px rgba(169, 146, 216, 0.6);
+    animation: heartbeat 2s ease-in-out infinite alternate;
+}
+
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    100% { transform: scale(1.1); }
+}
+
 .security-header {
     background: linear-gradient(135deg, #E8DFF5, #F6F1F9);
     border-bottom: 2px solid #A992D8;
@@ -140,6 +166,40 @@ body {
     padding: 0.75rem 1.5rem;
     transition: all 0.3s ease;
     border: none;
+}
+
+/* btn-purple matching donationcenter styles */
+.btn-purple {
+    background: linear-gradient(90deg, #A992D8, #6E49A3);
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 0.7em 1.5rem;
+    box-shadow: 0 2px 10px rgba(110,73,163,0.09);
+    transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+}
+
+.btn-purple:hover, .btn-purple:focus {
+    background: linear-gradient(90deg, #6E49A3 90%, #A992D8);
+    color: #fff;
+    box-shadow: 0 8px 19px rgba(110,73,163,0.16);
+    transform: translateY(-1.5px) scale(1.01);
+}
+
+.btn-outline-purple {
+    border: 1.6px solid #A992D8;
+    color: #6E49A3;
+    background: transparent;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.btn-outline-purple:hover, .btn-outline-purple:focus {
+    background: #A992D8;
+    color: #fff;
+    border-color: #6E49A3;
 }
 
 .btn-primary-custom {
@@ -398,4 +458,13 @@ body {
 
 .alert-close {
   filter: none;
+}
+
+/* Text utility classes for consistency */
+.text-purple-primary {
+  color: #6E49A3 !important;
+}
+
+.text-purple-light {
+  color: #A992D8 !important;
 }

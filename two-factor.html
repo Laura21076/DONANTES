@@ -4,18 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https: chrome-extension:; 
-        style-src 'self' 'unsafe-inline' https:; 
-        font-src 'self' https:; 
-        img-src 'self' data: https: blob: gs:; 
-        connect-src 'self' http: https: ws: wss: gs: blob:; 
+        script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com chrome-extension:;
+        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: https: blob: firebasestorage.googleapis.com *.firebasestorage.app *.googleapis.com *.gstatic.com;
+        connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https: wss: firebasestorage.googleapis.com *.googleapis.com *.firebasestorage.app;
+        worker-src 'self' blob:;
+        manifest-src 'self';
         object-src 'none';
         base-uri 'self';
-        default-src 'self' https:;"
+        form-action 'self';
+        default-src 'self';"
     />
     <title>Sistema 2FA - DONANTES</title>
-    <link rel="icon" type="image/x-icon" href="../assets/logo.ico">
-    <link rel="shortcut icon" type="image/x-icon" href="../assets/logo.ico">
+    <link rel="icon" type="image/x-icon" href="assets/logo.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="assets/logo.ico">
+    
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     
@@ -28,24 +32,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Moirai+One&family=Rubik:wght@300;400;600;700&display=swap" rel="stylesheet">
     
     <!-- Project Styles -->
-    <!--<link rel="stylesheet" href="styles.css"> -->
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="two-factor.css">
-</head>
     
+    <!-- Environment Config -->
+    <script src="env.js"></script>
     <script src="sw-register.js"></script>
-    <script type="module" src="notifications-init.js"></script>
-    <script type="module" src="auth.js"></script>
-    <script type="module" src="auth-guard.js"></script>
+</head>
     
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-light twofactor-navbar">
+<!-- NAVBAR - Matching donationcenter.html style -->
+<nav class="navbar navbar-expand-lg navbar-light donationcenter-navbar fixed-top" style="z-index: 1030;">
   <div class="container-fluid">
-    <a class="navbar-brand fw-bold" href="donationcenter.html">
-      <i class="fas fa-heart me-2 heart-icon"></i> DONANTES
+    <a class="navbar-brand donationcenter-brand" href="donationcenter.html">
+      <i class="fas fa-heart heart-icon"></i> DONANTES
     </a>
+    <div class="ms-auto d-flex align-items-center gap-3">
+      <a href="donationcenter.html" class="btn btn-purple btn-sm">
+        <i class="fas fa-arrow-left me-1"></i> Volver
+      </a>
+    </div>
+  </div>
+</nav>
 
+<!-- Spacer for fixed navbar -->
+<div style="height: 80px;"></div>
 
 <!-- CONTENIDO PRINCIPAL -->
 <div class="container my-5">
@@ -64,10 +76,12 @@
             <div class="main-card">
               <div class="card-body p-4">
                 <div class="text-center mb-4">
-                  <i class="fas fa-shield-alt" style="color: #A992D8; font-size: 3rem;"></i>
-                  <h2 class="mt-2" style="color: #A992D8;">Autenticación en Dos Pasos</h2>
+                  <i class="fas fa-shield-alt text-purple-light" style="font-size: 3rem;"></i>
+                  <h2 class="mt-2 text-purple-primary">Autenticación en Dos Pasos</h2>
                   <p class="lead">Protege tu cuenta con un código de 6 dígitos enviado a tu correo electrónico.</p>
                 </div>
+                
+                <!-- Estado Actual -->
                 <div id="statusSection" class="status-card">
                   <h5 class="section-header">
                     <i class="fas fa-info-circle"></i> Estado Actual
@@ -76,6 +90,8 @@
                     <i class="fas fa-spinner fa-spin me-2"></i> Verificando estado del sistema 2FA...
                   </div>
                 </div>
+                
+                <!-- Sección de Configuración -->
                 <div id="setupSection" class="status-card section-hidden">
                   <h5 class="section-header">
                     <i class="fas fa-envelope"></i> Configurar 2FA por Email
@@ -88,6 +104,8 @@
                     <i class="fas fa-shield-alt me-2"></i> Enviar Código de Activación
                   </button>
                 </div>
+                
+                <!-- Sección de Verificación -->
                 <div id="qrSection" class="status-card section-hidden">
                   <h5 class="section-header">
                     <i class="fas fa-key"></i> Verifica tu Código
@@ -100,6 +118,54 @@
                     <div class="col-md-4">
                       <button id="verifySetupBtn" class="btn btn-success-custom btn-security w-100">
                         <i class="fas fa-check me-2"></i> Verificar y Activar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Sección de Códigos de Respaldo -->
+                <div id="backupSection" class="status-card section-hidden">
+                  <h5 class="section-header">
+                    <i class="fas fa-key"></i> Códigos de Respaldo
+                  </h5>
+                  <div class="alert alert-warning-custom mb-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Importante:</strong> Guarda estos códigos en un lugar seguro. Cada código solo puede usarse una vez.
+                  </div>
+                  <div id="backupCodes"></div>
+                </div>
+                
+                <!-- Sección para Deshabilitar -->
+                <div id="disableSection" class="status-card section-hidden">
+                  <h5 class="section-header">
+                    <i class="fas fa-lock-open"></i> Deshabilitar 2FA
+                  </h5>
+                  <div class="row align-items-end">
+                    <div class="col-md-8 mb-2 mb-md-0">
+                      <label for="disableCode" class="form-label verification-label">Código de verificación</label>
+                      <input type="text" id="disableCode" class="form-control" placeholder="Ingresa tu código" maxlength="6">
+                    </div>
+                    <div class="col-md-4">
+                      <button id="disableBtn" class="btn btn-danger-custom btn-security w-100">
+                        <i class="fas fa-lock-open me-2"></i> Deshabilitar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Sección para Regenerar Códigos -->
+                <div id="regenerateSection" class="status-card section-hidden">
+                  <h5 class="section-header">
+                    <i class="fas fa-redo"></i> Regenerar Códigos de Respaldo
+                  </h5>
+                  <div class="row align-items-end">
+                    <div class="col-md-8 mb-2 mb-md-0">
+                      <label for="regenerateCode" class="form-label verification-label">Código de verificación</label>
+                      <input type="text" id="regenerateCode" class="form-control" placeholder="Ingresa tu código" maxlength="6">
+                    </div>
+                    <div class="col-md-4">
+                      <button id="regenerateBtn" class="btn btn-info-custom btn-security w-100">
+                        <i class="fas fa-redo me-2"></i> Regenerar
                       </button>
                     </div>
                   </div>
@@ -122,432 +188,11 @@
     </div>
 </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script type="module">
-        import { getCurrentUser, getIdToken } from '../services/auth.js';
-        import { auth } from '../services/firebase.js';
-        import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-        
-        let currentUser = null;
-
-        // Verificar autenticación al cargar la página
-        window.addEventListener('load', async () => {
-            try {
-                // Verificar autenticación con Firebase
-                onAuthStateChanged(auth, async (user) => {
-                    if (user) {
-                        currentUser = user;
-                        console.log('✅ Usuario autenticado:', user.email);
-                        
-                        // Verificar estado de 2FA
-                        await checkTwoFactorStatus();
-                        
-                        // Configurar event listeners
-                        setupEventListeners();
-                    } else {
-                        console.log('❌ Usuario no autenticado, redirigiendo...');
-                        window.location.href = 'login.html';
-                    }
-                });
-            } catch (error) {
-                console.error('Error inicializando página 2FA:', error);
-                showError('Error al cargar la página de configuración');
-            }
-        });
-
-        function setupEventListeners() {
-            document.getElementById('setupBtn').addEventListener('click', setup2FA);
-            document.getElementById('verifySetupBtn').addEventListener('click', verifySetup);
-            document.getElementById('disableBtn').addEventListener('click', disable2FA);
-            document.getElementById('regenerateBtn').addEventListener('click', regenerateBackupCodes);
-        }
-
-        async function checkTwoFactorStatus() {
-            try {
-                const token = await getIdToken();
-                if (!token) {
-                    throw new Error('No se pudo obtener token de autenticación');
-                }
-
-                const response = await fetch('http://localhost:4000/api/auth/2fa/status', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error del servidor: ${response.status}`);
-                }
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    updateUIBasedOnStatus(data.status);
-                } else {
-                    showError('Error al verificar estado de 2FA');
-                }
-            } catch (error) {
-                console.error('Error verificando estado 2FA:', error);
-                showError('Error de conexión al verificar 2FA: ' + error.message);
-            }
-        }
-
-        function updateUIBasedOnStatus(status) {
-            const statusDisplay = document.getElementById('statusDisplay');
-            const setupSection = document.getElementById('setupSection');
-            const disableSection = document.getElementById('disableSection');
-            const regenerateSection = document.getElementById('regenerateSection');
-
-            if (status.enabled) {
-                statusDisplay.className = 'alert alert-success-custom';
-                statusDisplay.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>2FA Activo:</strong> Tu cuenta está protegida con autenticación de dos factores';
-                
-                setupSection.style.display = 'none';
-                disableSection.style.display = 'block';
-                regenerateSection.style.display = 'block';
-            } else {
-                statusDisplay.className = 'alert alert-warning-custom';
-                statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>2FA Desactivado:</strong> Tu cuenta podría estar en riesgo. Se recomienda activar 2FA';
-                
-                setupSection.style.display = 'block';
-                disableSection.style.display = 'none';
-                regenerateSection.style.display = 'none';
-            }
-        }
-
-        async function setup2FA() {
-            try {
-                showLoading('setupBtn', true);
-                
-                const token = await getIdToken();
-                const response = await fetch('http://localhost:4000/api/auth/2fa/setup', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Mostrar QR code
-                    document.getElementById('qrCodeImage').src = data.qrCode;
-                    document.getElementById('qrSection').style.display = 'block';
-                    document.getElementById('setupSection').style.display = 'none';
-                    
-                    showSuccess('Código QR generado. Escanéalo con tu aplicación de autenticación.');
-                } else {
-                    showError(data.error || 'Error al configurar 2FA');
-                }
-            } catch (error) {
-                console.error('Error configurando 2FA:', error);
-                showError('Error de conexión al configurar 2FA');
-            } finally {
-                showLoading('setupBtn', false);
-            }
-        }
-
-        async function verifySetup() {
-            const code = document.getElementById('verificationCode').value.trim();
-            
-            if (!code || code.length !== 6) {
-                showError('Por favor, ingresa un código de 6 dígitos válido');
-                return;
-            }
-
-            try {
-                showLoading('verifySetupBtn', true);
-                
-                const token = await getIdToken();
-                const response = await fetch('http://localhost:4000/api/auth/2fa/verify-setup', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ code })
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    // Mostrar códigos de respaldo
-                    displayBackupCodes(data.backupCodes);
-                    document.getElementById('qrSection').style.display = 'none';
-                    document.getElementById('backupSection').style.display = 'block';
-                    
-                    showSuccess('¡2FA configurado exitosamente! Guarda los códigos de respaldo.');
-                    
-                    // Actualizar estado después de un momento
-                    setTimeout(() => {
-                        checkTwoFactorStatus();
-                    }, 3000);
-                } else {
-                    showError(data.error || 'Código de verificación incorrecto');
-                }
-            } catch (error) {
-                console.error('Error verificando configuración 2FA:', error);
-                showError('Error de conexión al verificar código');
-            } finally {
-                showLoading('verifySetupBtn', false);
-            }
-        }
-
-        async function disable2FA() {
-            const code = document.getElementById('disableCode').value.trim();
-            
-            if (!code) {
-                showError('Por favor, ingresa un código de verificación');
-                return;
-            }
-
-            if (!confirm('¿Estás seguro de que quieres deshabilitar 2FA? Esto reducirá la seguridad de tu cuenta.')) {
-                return;
-            }
-
-            try {
-                showLoading('disableBtn', true);
-                
-                const token = await getIdToken();
-                const response = await fetch('http://localhost:4000/api/auth/2fa/disable', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ code })
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    showSuccess('2FA deshabilitado correctamente');
-                    checkTwoFactorStatus();
-                    document.getElementById('disableCode').value = '';
-                } else {
-                    showError(data.error || 'Error al deshabilitar 2FA');
-                }
-            } catch (error) {
-                console.error('Error deshabilitando 2FA:', error);
-                showError('Error de conexión al deshabilitar 2FA');
-            } finally {
-                showLoading('disableBtn', false);
-            }
-        }
-
-        async function regenerateBackupCodes() {
-            const code = document.getElementById('regenerateCode').value.trim();
-            
-            if (!code || code.length !== 6) {
-                showError('Por favor, ingresa un código de 6 dígitos válido');
-                return;
-            }
-
-            try {
-                showLoading('regenerateBtn', true);
-                
-                const token = await getIdToken();
-                const response = await fetch('http://localhost:4000/api/auth/2fa/regenerate-backup', {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ code })
-                });
-
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayBackupCodes(data.backupCodes);
-                    document.getElementById('backupSection').style.display = 'block';
-                    document.getElementById('regenerateCode').value = '';
-                    showSuccess('Códigos de respaldo regenerados exitosamente');
-                } else {
-                    showError(data.error || 'Error al regenerar códigos');
-                }
-            } catch (error) {
-                console.error('Error regenerando códigos:', error);
-                showError('Error de conexión al regenerar códigos');
-            } finally {
-                showLoading('regenerateBtn', false);
-            }
-        }
-
-        function displayBackupCodes(codes) {
-            const backupCodesDiv = document.getElementById('backupCodes');
-            backupCodesDiv.innerHTML = `
-                <div class="row g-3">
-                    ${codes.map((code, index) => `
-                        <div class="col-md-6">
-                            <div style="
-                                background: linear-gradient(135deg, #FFFFFF, #F6F1F9);
-                                border: 2px solid #A992D8;
-                                border-radius: 8px;
-                                padding: 12px;
-                                text-align: center;
-                                font-family: 'Courier New', monospace;
-                                font-weight: 700;
-                                font-size: 1.1rem;
-                                color: #4A3066;
-                                letter-spacing: 2px;
-                                transition: all 0.3s ease;
-                            " onmouseover="this.style.boxShadow='0 6px 15px rgba(110, 73, 163, 0.25)'; this.style.transform='translateY(-2px)'" onmouseout="this.style.boxShadow='none'; this.style.transform='translateY(0)'">
-                                <span class="backup-code-number">${index + 1}.</span>
-                                <br>
-                                <span class="backup-code-text">${code}</span>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="text-center mt-4">
-                    <button onclick="downloadBackupCodes(${JSON.stringify(codes)})" class="btn btn-outline-purple me-2">
-                        <i class="fas fa-download me-2"></i> Descargar Códigos
-                    </button>
-                    <button onclick="copyAllCodes(${JSON.stringify(codes)})" class="btn btn-outline-purple">
-                        <i class="fas fa-copy me-2"></i> Copiar Todos
-                    </button>
-                </div>
-            `;
-        }
-
-        function downloadBackupCodes(codes) {
-            const content = `╔════════════════════════════════════════════════╗
-║          CÓDIGOS DE RESPALDO - DONANTES        ║
-║             AUTENTICACIÓN DE DOS FACTORES      ║
-╚════════════════════════════════════════════════╝
-
-📅 Generados: ${new Date().toLocaleString('es-ES')}
-👤 Usuario: ${currentUser?.email || 'Usuario'}
-
-🔐 CÓDIGOS DE EMERGENCIA:
-${codes.map((code, index) => `${String(index + 1).padStart(2, '0')}. ${code}`).join('\n')}
-
-⚠️  INSTRUCCIONES IMPORTANTES:
-• Guarda estos códigos en un lugar seguro y privado
-• Cada código solo puede usarse UNA vez
-• Úsalos solo si no puedes acceder a tu aplicación de autenticación
-• Regenera nuevos códigos si crees que están comprometidos
-
-🛡️  Para tu seguridad, DONANTES nunca te pedirá estos códigos por email o teléfono.
-
-═══════════════════════════════════════════════════════════════════
-Sistema de Seguridad DONANTES - ${new Date().getFullYear()}`;
-            
-            const blob = new Blob([content], { type: 'text/plain; charset=utf-8' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `DONANTES_Backup_Codes_${new Date().toISOString().split('T')[0]}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            showSuccess('Códigos de respaldo descargados correctamente');
-        }
-
-        function copyAllCodes(codes) {
-            const text = codes.join('\n');
-            navigator.clipboard.writeText(text).then(() => {
-                showSuccess('Códigos copiados al portapapeles');
-            }).catch(err => {
-                showError('Error al copiar códigos');
-            });
-        }
-
-        function showLoading(buttonId, loading) {
-            const button = document.getElementById(buttonId);
-            if (loading) {
-                button.disabled = true;
-                const icon = button.querySelector('i');
-                if (icon) {
-                    icon.className = 'fas fa-spinner fa-spin';
-                }
-            } else {
-                button.disabled = false;
-                // Restaurar icono original (esto podría mejorarse guardando el estado original)
-                const icon = button.querySelector('i');
-                if (icon && icon.classList.contains('fa-spin')) {
-                    icon.className = 'fas fa-check';
-                }
-            }
-        }
-
-        function showSuccess(message) {
-            showAlert(message, 'success');
-        }
-
-        function showError(message) {
-            showAlert(message, 'error');
-        }
-
-        function showAlert(message, type) {
-            // Remover alertas previas
-            const existingAlert = document.querySelector('.alert-dismissible');
-            if (existingAlert) {
-                existingAlert.remove();
-            }
-
-            const alertDiv = document.createElement('div');
-            const alertClass = type === 'success' ? 'alert-success-custom' : 'alert-danger-custom';
-            const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-            
-            alertDiv.className = `alert ${alertClass} alert-dismissible fade show position-fixed`;
-            alertDiv.style.cssText = `
-                top: 100px; 
-                right: 20px; 
-                z-index: 9999; 
-                max-width: 400px;
-                box-shadow: 0 8px 25px rgba(110, 73, 163, 0.25);
-                border-radius: 12px;
-                border: none;
-            `;
-            
-            alertDiv.innerHTML = `
-                <div class="d-flex align-items-center">
-                    <i class="fas ${iconClass} me-2 alert-icon"></i>
-                    <span class="alert-message">${message}</span>
-                    <button type="button" class="btn-close ms-auto alert-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            `;
-            
-            document.body.appendChild(alertDiv);
-            
-            // Auto-remove after 5 seconds
-            setTimeout(() => {
-                if (alertDiv.parentNode) {
-                    alertDiv.remove();
-                }
-            }, 5000);
-        }
-
-        // Actualizar la función updateUIBasedOnStatus para usar las nuevas clases de alerta
-        function updateUIBasedOnStatus(status) {
-            const statusDisplay = document.getElementById('statusDisplay');
-            const setupSection = document.getElementById('setupSection');
-            const disableSection = document.getElementById('disableSection');
-            const regenerateSection = document.getElementById('regenerateSection');
-
-            if (status.enabled) {
-                statusDisplay.className = 'alert alert-success-custom';
-                statusDisplay.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>2FA Activo:</strong> Tu cuenta está protegida con autenticación de dos factores';
-                
-                setupSection.style.display = 'none';
-                disableSection.style.display = 'block';
-                regenerateSection.style.display = 'block';
-            } else {
-                statusDisplay.className = 'alert alert-warning-custom';
-                statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>2FA Desactivado:</strong> Tu cuenta podría estar en riesgo. Se recomienda activar 2FA';
-                
-                setupSection.style.display = 'block';
-                disableSection.style.display = 'none';
-                regenerateSection.style.display = 'none';
-            }
-        }
-    </script>
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="notifications-init.js"></script>
+<script type="module" src="auth-guard.js"></script>
+<script type="module" src="two-factor-init.js"></script>
 </body>
 </html>
 
