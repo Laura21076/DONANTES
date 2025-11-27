@@ -39,7 +39,7 @@ class AuthGuard {
             </p>
           </div>
           <div class="modal-footer justify-content-center">
-            <button type="button" class="btn btn-primary" onclick="AuthGuard.redirectToLogin()">
+            <button type="button" class="btn btn-primary btn-redirect-login">
               <i class="fas fa-sign-in-alt me-2"></i>
               Iniciar Sesión
             </button>
@@ -49,6 +49,15 @@ class AuthGuard {
     `;
     
     document.body.appendChild(modal);
+    
+    // Attach event listener for login button (CSP compatible)
+    const loginBtn = modal.querySelector('.btn-redirect-login');
+    if (loginBtn) {
+      loginBtn.addEventListener('click', function() {
+        AuthGuard.redirectToLogin();
+      });
+    }
+    
     const bsModal = new bootstrap.Modal(modal);
     bsModal.show();
     

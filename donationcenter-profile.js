@@ -131,5 +131,43 @@ window.togglePasswordVisibility = function(id) {
   }
 };
 
+// Attach event listeners for CSP compatibility
+function attachProfileEventListeners() {
+  // Back to donations button
+  const backBtn = document.querySelector('.btn-back-to-donations');
+  if (backBtn) {
+    backBtn.addEventListener('click', function() {
+      window.location.href = 'donationcenter.html';
+    });
+  }
+
+  // Profile photo overlay click
+  const photoOverlay = document.getElementById('profilePhotoOverlay');
+  const photoUpload = document.getElementById('photoUpload');
+  if (photoOverlay && photoUpload) {
+    photoOverlay.addEventListener('click', function() {
+      photoUpload.click();
+    });
+  }
+
+  // Photo upload change handler
+  if (photoUpload) {
+    photoUpload.addEventListener('change', function(event) {
+      window.handlePhotoUpload(event);
+    });
+  }
+
+  // Toggle password visibility buttons
+  document.querySelectorAll('.btn-toggle-password').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const targetId = this.dataset.target;
+      window.togglePasswordVisibility(targetId);
+    });
+  });
+}
+
 // Inicializar
-document.addEventListener('DOMContentLoaded', cargarPerfil);
+document.addEventListener('DOMContentLoaded', function() {
+  cargarPerfil();
+  attachProfileEventListeners();
+});

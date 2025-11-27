@@ -189,14 +189,14 @@ async function displayArticles(articles) {
               ${
                 isOwner
                 ? `
-                  <button class="btn btn-outline-purple flex-fill shadow-sm" onclick="editArticle('${article.id}')">
+                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button class="btn btn-outline-danger flex-fill shadow-sm" onclick="confirmDelete('${article.id}')">
+                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-article-id="${article.id}">
                     <i class="fas fa-trash"></i>
                   </button>
                 `
-                : `<button class="btn btn-purple flex-fill shadow-sm" onclick="showRequestModal('${article.id}','${escapeHtml(article.title)}')">
+                : `<button class="btn btn-purple flex-fill shadow-sm btn-show-request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
                    <i class="fas fa-heart me-1"></i> Me interesa
                    </button>`
               }
@@ -206,6 +206,9 @@ async function displayArticles(articles) {
       </div>
     `;
   }).join('');
+
+  // Attach event listeners for CSP compatibility
+  attachArticleEventListeners();
 } // <- ESTA LLAVE CIERRA BIEN LA FUNCIÓN displayArticles
 
 function getTimeRemaining(expiresAt) {
@@ -401,4 +404,32 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
     console.error(error);
   }
+}
+
+// Attach event listeners for article buttons (CSP compatible)
+function attachArticleEventListeners() {
+  // "Me interesa" buttons
+  document.querySelectorAll('.btn-show-request').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const articleId = this.dataset.articleId;
+      const articleTitle = this.dataset.articleTitle;
+      window.showRequestModal(articleId, articleTitle);
+    });
+  });
+
+  // Edit buttons
+  document.querySelectorAll('.btn-edit-article').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const articleId = this.dataset.articleId;
+      window.editArticle(articleId);
+    });
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.btn-delete-article').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const articleId = this.dataset.articleId;
+      window.confirmDelete(articleId);
+    });
+  });
 }

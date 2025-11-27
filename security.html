@@ -174,10 +174,10 @@
                   <a href="dashboard.html" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-chart-line me-2"></i>Dashboard Admin
                   </a>
-                  <button class="btn btn-outline-info btn-sm" onclick="viewSystemLogs()">
+                  <button class="btn btn-outline-info btn-sm btn-view-system-logs">
                     <i class="fas fa-file-alt me-2"></i>Ver Logs
                   </button>
-                  <button class="btn btn-outline-warning btn-sm" onclick="manageUsers()">
+                  <button class="btn btn-outline-warning btn-sm btn-manage-users">
                     <i class="fas fa-users me-2"></i>Gestionar Usuarios
                   </button>
                 </div>
@@ -199,12 +199,12 @@
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <button class="btn btn-outline-secondary w-100" onclick="changePassword()">
+                    <button class="btn btn-outline-secondary w-100 btn-change-password">
                       <i class="fas fa-lock me-2"></i>Cambiar Contraseña
                     </button>
                   </div>
                   <div class="col-md-6 mb-3">
-                    <button class="btn btn-outline-info w-100" onclick="downloadData()">
+                    <button class="btn btn-outline-info w-100 btn-download-data">
                       <i class="fas fa-download me-2"></i>Descargar Mis Datos
                     </button>
                   </div>
@@ -247,11 +247,49 @@
         // Crear interfaz de 2FA
         simple2FA.createSetupInterface('2fa-container');
         
+        // Attach event listeners for buttons (CSP compatible)
+        attachSecurityEventListeners();
+        
       } catch (error) {
         console.error('Error inicializando página de seguridad:', error);
         showErrorMessage('Error cargando la configuración de seguridad');
       }
     });
+
+    // Attach event listeners for security page buttons (CSP compatible)
+    function attachSecurityEventListeners() {
+      // View system logs button
+      const viewLogsBtn = document.querySelector('.btn-view-system-logs');
+      if (viewLogsBtn) {
+        viewLogsBtn.addEventListener('click', function() {
+          viewSystemLogs();
+        });
+      }
+
+      // Manage users button
+      const manageUsersBtn = document.querySelector('.btn-manage-users');
+      if (manageUsersBtn) {
+        manageUsersBtn.addEventListener('click', function() {
+          manageUsers();
+        });
+      }
+
+      // Change password button
+      const changePasswordBtn = document.querySelector('.btn-change-password');
+      if (changePasswordBtn) {
+        changePasswordBtn.addEventListener('click', function() {
+          changePassword();
+        });
+      }
+
+      // Download data button
+      const downloadDataBtn = document.querySelector('.btn-download-data');
+      if (downloadDataBtn) {
+        downloadDataBtn.addEventListener('click', function() {
+          downloadData();
+        });
+      }
+    }
 
     // Cargar información del usuario
     async function loadUserInfo() {
