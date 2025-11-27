@@ -1,17 +1,11 @@
 // login.js
 
-// 🔹 MÓDULOS PROPIOS SIEMPRE CON './'
-import './error-handler.js'; // Manejador global de errores, sólo si exporta efectos globales
-import { auth, db } from './firebase.js';
+import './error-handler.js';
+import { auth } from './firebase.js';
 import { saveToken } from './db.js';
 import { showToast } from './ui.js';
-import { initializeAuthGuard as AuthGuard } from './auth-guard.js';
-import { authRetryHandler, signInWithRetry } from './auth-retry.js';
+import { signInWithRetry, authRetryHandler } from './auth-retry.js';
 import './toggle-password.js';
-
-// 🔹 MÓDULOS EXTERNOS DE FIREBASE POR CDN = SE IMPORTAN CON URL ABSOLUTA
-import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // --- MANEJO DEL LOGIN ---
 const loginForm = document.getElementById('loginForm');
@@ -36,9 +30,13 @@ if (loginForm) {
       if (spinner) spinner.classList.remove('d-none');
       submitBtn.querySelector('span').textContent = 'Entrando...';
 
-      // Login con Firebase Auth usando tu retry handler
+      // Login con Firebase Auth usando retry handler
       const userCredential = await signInWithRetry(auth, email, password);
       const user = userCredential.user;
+
+      // (Diagnóstico) Muestra usuario activo en consola
+      console.log('🔥 Usuario autenticado:', user?.email, user?.uid);
+      console.log('🔥 auth.currentUser luego de signin:', auth.currentUser);
 
       // Obtener idToken para el backend
       const idToken = await user.getIdToken();
@@ -62,11 +60,18 @@ if (loginForm) {
       await saveToken('access', data.accessToken);
       await saveToken('refresh', data.refreshToken);
 
-      // Redirige al dashboard u otra página protegida
-      window.location.replace('donationcenter.html');
+      // Diagnóstico: ¿tokens guardados y user aún presente?
+      console.log('🟢 accessToken después de guardar:', localStorage.getItem('access') || sessionStorage.getItem('access'));
+      console.log('🟢 auth.currentUser antes de redirect:', auth.currentUser);
+
+      // Breve delay para asegurar persistencia
+      setTimeout(() => {
+        window.location.replace('donationcenter.html');
+      }, 150); // 150ms para dejar a onAuthStateChanged establecer user
 
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
+
       if (authRetryHandler && authRetryHandler.showRateLimitMessage?.(error)) {
         // El mensaje de rate limit ya fue mostrado
       } else {
@@ -90,7 +95,7 @@ if (loginForm) {
   });
 }
 
-// Mostrar/ocultar contraseña:
+// Mostrar/ocultar contraseña (sin cambios; depende de tu toggle-password.js):
 const toggleBtn = document.getElementById('toggleLoginPassword');
 const passwordInput = document.getElementById('loginPassword');
 const passwordIcon = document.getElementById('loginPasswordIcon');
@@ -99,8 +104,3 @@ if (toggleBtn && passwordInput && passwordIcon) {
     window.togglePasswordVisibility('loginPassword', 'loginPasswordIcon');
   });
 }
-
-
-
-
-
