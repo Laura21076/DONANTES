@@ -1,9 +1,21 @@
+/**
+ * donationcenter.js
+ * 
+ * MEJORAS IMPLEMENTADAS EN LA SUBIDA DE IMÁGENES:
+ * 1. Log claro "[UPLOAD_OK]" tras cada subida exitosa de imagen
+ * 2. Verificación de existencia del archivo después de subir (getMetadata)
+ * 3. Si hay error en la subida, NO se intenta guardar el artículo en DB
+ * 4. Si falla guardar el artículo, se elimina la imagen huérfana
+ * 5. Mensajes de error claros y específicos para cada tipo de fallo
+ */
+
 import { getCurrentLockerCode } from './locker.js';
 import { createArticle, getArticles, updateArticle, deleteArticle } from './articles.js';
 import { getCurrentUser, getIdToken } from './auth.js';
 import { requestArticle as requestArticleService } from './requests.js';
 import { storage } from './firebase.js';
-import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+// MEJORA: Agregamos deleteObject y getMetadata para verificación y limpieza de imágenes huérfanas
+import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 let currentArticleId = null;
 let articlesCache = [];
@@ -166,9 +178,9 @@ async function displayArticles(articles) {
     return `
       <div class="col-md-6 col-lg-4">
         <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
-          <div class="position-relative">
+          <div class="position-relative article-image-container">
             ${article.imageUrl
-              ? `<img src="${article.imageUrl}" class="card-img-top" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">`
+              ? `<img src="${article.imageUrl}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;" data-article-id="${article.id}">`
               : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
                   <i class="fas fa-image fa-3x text-purple-light mb-2"></i>
                   <span style="color:#8C78BF;">Sin imagen</span>
@@ -197,6 +209,14 @@ async function displayArticles(articles) {
                   </button>
                 `
                 : `<button class="btn btn-purple flex-fill shadow-sm" data-action="request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
+                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-article-id="${article.id}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                `
+                : `<button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
                    <i class="fas fa-heart me-1"></i> Me interesa
                    </button>`
               }
@@ -206,7 +226,76 @@ async function displayArticles(articles) {
       </div>
     `;
   }).join('');
+  
+  // Attach event listeners using event delegation
+  attachArticleEventListeners();
 } // <- ESTA LLAVE CIERRA BIEN LA FUNCIÓN displayArticles
+
+// Event delegation for article buttons
+function attachArticleEventListeners() {
+  const grid = document.getElementById('articlesGrid');
+  if (!grid) return;
+  
+  // Remove existing listeners to avoid duplicates
+  grid.removeEventListener('click', handleArticleClick);
+  grid.addEventListener('click', handleArticleClick);
+}
+
+function handleArticleClick(event) {
+  const target = event.target.closest('button');
+  if (!target) return;
+  
+  const articleId = target.dataset.articleId;
+  const articleTitle = target.dataset.articleTitle;
+  
+  if (target.classList.contains('btn-edit-article')) {
+    event.preventDefault();
+    editArticle(articleId);
+  } else if (target.classList.contains('btn-delete-article')) {
+    event.preventDefault();
+    confirmDelete(articleId);
+  } else if (target.classList.contains('btn-request-article')) {
+    event.preventDefault();
+    // Add visual feedback
+    target.classList.add('btn-loading');
+    target.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Procesando...';
+    showRequestModal(articleId, articleTitle);
+    // Reset button after a short delay
+    setTimeout(() => {
+      target.classList.remove('btn-loading');
+      target.innerHTML = '<i class="fas fa-heart me-1"></i> Me interesa';
+    }, 500);
+  }
+}
+
+// Add error handler for article images (CORS fallback)
+// More targeted approach - only on articles container
+function setupImageErrorHandlers() {
+  const grid = document.getElementById('articlesGrid');
+  if (grid) {
+    grid.addEventListener('error', function(event) {
+      if (event.target.tagName === 'IMG' && event.target.classList.contains('article-image')) {
+        handleImageError(event.target);
+      }
+    }, true);
+  }
+}
+
+function handleImageError(img) {
+  const container = img.closest('.article-image-container');
+  if (container) {
+    container.innerHTML = `
+      <div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
+        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+        <span style="color:#8C78BF;">Error al cargar imagen</span>
+        <small class="text-muted mt-1">Verifica tu conexión o configuración CORS</small>
+      </div>
+    `;
+  }
+}
+
+// Initialize image error handlers on page load
+document.addEventListener('DOMContentLoaded', setupImageErrorHandlers);
 
 function getTimeRemaining(expiresAt) {
   if (!expiresAt) return 'Sin límite';
@@ -270,6 +359,27 @@ function setupFormHandlers() {
   });
 }
 
+/**
+ * MEJORA: Función para eliminar imagen huérfana si falla guardar el artículo
+ * Esto evita imágenes sin artículo asociado en Storage
+ */
+async function eliminarImagenHuerfana(fileRef) {
+  try {
+    await deleteObject(fileRef);
+    console.log('[CLEANUP_OK] Imagen huérfana eliminada:', fileRef.fullPath);
+  } catch (cleanupError) {
+    // Si no se puede eliminar, solo logueamos el error (no crítico)
+    console.warn('[CLEANUP_WARN] No se pudo eliminar imagen huérfana:', cleanupError.message);
+  }
+}
+
+/**
+ * MEJORA: Función saveArticle con manejo robusto de subida de imágenes
+ * - Logs claros con "[UPLOAD_OK]" tras subida exitosa
+ * - Verificación de existencia del archivo
+ * - Error específico si falla la subida (no intenta guardar artículo con link roto)
+ * - Limpieza de imágenes huérfanas si falla guardar el artículo
+ */
 async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
@@ -281,6 +391,14 @@ async function saveArticle() {
     condition: document.getElementById('articleCondition').value,
     location: document.getElementById('articleLocation').value.trim() || null
   };
+  
+  // Variable para trackear la referencia de la imagen subida (para limpieza si falla)
+  let uploadedFileRef = null;
+  // Flag para indicar si hubo error de subida (evita guardar artículo con link roto)
+  let uploadFailed = false;
+  // Flag para indicar si hubo error al guardar en DB
+  let dbSaveFailed = false;
+  
   try {
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
@@ -289,39 +407,94 @@ async function saveArticle() {
     let imageUrl = urlInput.value.trim() || null;
     const file = fileInput.files?.[0] || null;
 
+    // MEJORA: Subida de imagen con verificación y logs claros
     if (file && user?.uid) {
       const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
       const path = `articles/${user.uid}/${Date.now()}_${safeName}`;
       const fileRef = ref(storage, path);
-      await uploadBytes(fileRef, file);
-      imageUrl = await getDownloadURL(fileRef);
+      
+      console.log('[UPLOAD_START] Iniciando subida de imagen:', path);
+      
+      try {
+        // Subir archivo a Firebase Storage
+        await uploadBytes(fileRef, file);
+        console.log('[UPLOAD_OK] Imagen subida exitosamente:', path);
+        
+        // MEJORA: Verificar que el archivo existe después de subir
+        try {
+          const metadata = await getMetadata(fileRef);
+          console.log('[UPLOAD_VERIFY] Archivo verificado, tamaño:', metadata.size, 'bytes');
+        } catch (verifyError) {
+          // Si no podemos verificar la existencia, lanzar error
+          console.error('[UPLOAD_VERIFY_FAIL] No se pudo verificar la existencia del archivo');
+          throw new Error('Error verificando la imagen subida. Intente nuevamente.');
+        }
+        
+        // Obtener la URL de descarga
+        imageUrl = await getDownloadURL(fileRef);
+        console.log('[UPLOAD_URL_OK] URL de descarga obtenida correctamente');
+        
+        // Guardar referencia para posible limpieza posterior
+        uploadedFileRef = fileRef;
+        
+      } catch (uploadError) {
+        // MEJORA: Error específico en subida de imagen - NO intentar guardar artículo
+        console.error('[UPLOAD_ERROR] Error al subir imagen:', uploadError.message);
+        showMessage('Error al subir la imagen: ' + (uploadError?.message || 'Error desconocido'), 'danger');
+        // Marcar que la subida falló para no continuar con el guardado
+        uploadFailed = true;
+      }
     }
 
-    const articleData = { ...baseData, imageUrl };
+    // MEJORA: Solo intentar guardar si la subida de imagen fue exitosa (o no hubo imagen)
+    if (!uploadFailed) {
+      const articleData = { ...baseData, imageUrl };
 
-    if (currentArticleId) {
-      await updateArticle(currentArticleId, articleData);
-      showMessage('Artículo actualizado exitosamente', 'success');
-    } else {
-      await createArticle(articleData);
-      showMessage('Artículo publicado exitosamente', 'success');
+      // MEJORA: Intentar guardar artículo con manejo de error y limpieza de imagen huérfana
+      try {
+        if (currentArticleId) {
+          await updateArticle(currentArticleId, articleData);
+          showMessage('Artículo actualizado exitosamente', 'success');
+          console.log('[ARTICLE_UPDATE_OK] Artículo actualizado:', currentArticleId);
+        } else {
+          await createArticle(articleData);
+          showMessage('Artículo publicado exitosamente', 'success');
+          console.log('[ARTICLE_CREATE_OK] Artículo creado exitosamente');
+        }
+      } catch (dbError) {
+        // MEJORA: Si falla guardar en Firestore, eliminar imagen huérfana
+        console.error('[ARTICLE_SAVE_ERROR] Error al guardar artículo en DB:', dbError.message);
+        dbSaveFailed = true;
+        
+        if (uploadedFileRef) {
+          console.log('[CLEANUP_START] Eliminando imagen huérfana debido a fallo en DB...');
+          await eliminarImagenHuerfana(uploadedFileRef);
+        }
+        
+        // Mostrar error claro al usuario - NO devolver datos inconsistentes
+        showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error de base de datos'), 'danger');
+      }
+
+      // Solo cerrar modal y recargar si todo fue exitoso
+      if (!dbSaveFailed) {
+        const modalElement = document.getElementById('uploadModal');
+        const modal = window.bootstrap?.Modal.getInstance
+          ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
+          : null;
+        if (modal && modalElement.contains(document.activeElement)) {
+          document.activeElement.blur();
+        }
+        if (modal) modal.hide();
+
+        await loadArticles(true);
+        currentArticleId = null; // Reset after save
+      }
     }
-
-    const modalElement = document.getElementById('uploadModal');
-    const modal = window.bootstrap?.Modal.getInstance
-      ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
-      : null;
-    if (modal && modalElement.contains(document.activeElement)) {
-      document.activeElement.blur();
-    }
-    if (modal) modal.hide();
-
-    await loadArticles(true);
-    currentArticleId = null; // Reset after save
   } catch (error) {
     showMessage('Error: ' + (error?.message || error), 'danger');
-    console.error(error);
+    console.error('[GENERAL_ERROR]', error);
   } finally {
+    // MEJORA: La limpieza de UI siempre se ejecuta, independientemente del resultado
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
       submitBtn.disabled = false;
@@ -330,7 +503,7 @@ async function saveArticle() {
   }
 }
 
-window.editArticle = function(articleId) {
+function editArticle(articleId) {
   currentArticleId = articleId;
   const article = articlesCache.find(a => a.id === articleId);
   if (!article) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
@@ -370,9 +543,11 @@ window.editArticle = function(articleId) {
       if (firstInput) firstInput.focus();
     }, 400);
   }
-};
+}
+// Expose to window for backward compatibility
+window.editArticle = editArticle;
 
-window.confirmDelete = async function(articleId) {
+async function confirmDelete(articleId) {
   const article = articlesCache.find(a => a.id === articleId);
   if (!article) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
   if (!confirm(`¿Estás seguro de eliminar el artículo "${article.title}"?`)) return;
@@ -384,13 +559,17 @@ window.confirmDelete = async function(articleId) {
     showMessage('Error al eliminar: ' + (error?.message || error), 'danger');
     console.error(error);
   }
-};
+}
+// Expose to window for backward compatibility
+window.confirmDelete = confirmDelete;
 
-window.showRequestModal = function(articleId, articleTitle) {
+function showRequestModal(articleId, articleTitle) {
   const message = prompt(`¿Quieres solicitar "${articleTitle}"?\nPuedes agregar un mensaje opcional para el donador:`);
   if (message === null) return;
   requestArticleHandler(articleId, message, articleTitle);
-};
+}
+// Expose to window for backward compatibility
+window.showRequestModal = showRequestModal;
 
 async function requestArticleHandler(articleId, message, articleTitle) {
   try {

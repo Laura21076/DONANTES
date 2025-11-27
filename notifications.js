@@ -12,6 +12,11 @@ const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.a
  */
 async function waitForServiceWorkerActive(registration) {
   // Si ya hay un service worker activo, retornarlo
+ * @param {ServiceWorkerRegistration} registration
+ * @returns {Promise<ServiceWorkerRegistration>}
+ */
+async function waitForServiceWorkerActive(registration) {
+  // Si ya hay un SW activo, retornamos inmediatamente
   if (registration.active) {
     return registration;
   }
@@ -55,6 +60,30 @@ async function waitForServiceWorkerActive(registration) {
     }
 
     navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+  // Esperar a que el SW esté activo
+  return new Promise((resolve, reject) => {
+    const sw = registration.installing || registration.waiting;
+    
+    if (!sw) {
+      reject(new Error('No hay Service Worker instalándose o esperando'));
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      reject(new Error('Timeout esperando activación del Service Worker'));
+    }, 10000); // 10 segundos timeout - más razonable para UX
+
+    sw.addEventListener('statechange', function handler() {
+      if (sw.state === 'activated') {
+        clearTimeout(timeout);
+        sw.removeEventListener('statechange', handler);
+        resolve(registration);
+      } else if (sw.state === 'redundant') {
+        clearTimeout(timeout);
+        sw.removeEventListener('statechange', handler);
+        reject(new Error('Service Worker se volvió redundante'));
+      }
+    });
   });
 }
 
@@ -71,8 +100,22 @@ export async function initializeNotifications() {
     // Registrar service worker si no está registrado
     let registration = await navigator.serviceWorker.getRegistration();
     if (!registration) {
-      registration = await navigator.serviceWorker.register('sw.js');
-      console.log('✅ Service Worker registrado');
+      try {
+        registration = await navigator.serviceWorker.register('sw.js');
+        console.log('✅ Service Worker registrado');
+      } catch (swError) {
+        console.error('❌ Error al registrar Service Worker:', swError);
+        return false;
+      }
+    }
+
+    // IMPORTANTE: Esperar a que el Service Worker esté activo antes de suscribirse
+    try {
+      registration = await waitForServiceWorkerActive(registration);
+      console.log('✅ Service Worker activo y listo');
+    } catch (activeError) {
+      console.error('❌ Error esperando activación del Service Worker:', activeError);
+      return false;
     }
 
     // Esperar a que el Service Worker esté activo antes de continuar
@@ -86,7 +129,7 @@ export async function initializeNotifications() {
       return false;
     }
 
-    // Suscribirse a push notifications
+    // Suscribirse a push notifications (ahora el SW está activo)
     const subscription = await subscribeToPush(registration);
     if (subscription) {
       // Enviar suscripción al servidor
@@ -146,6 +189,9 @@ async function sendSubscriptionToServer(subscription) {
       throw new Error('Token no disponible');
     }
 
+    // Convert PushSubscription to a plain object for JSON serialization
+    const subscriptionData = subscription.toJSON ? subscription.toJSON() : subscription;
+
     const response = await fetch(`${API_URL}/notifications/subscribe`, {
       method: 'POST',
       headers: {
@@ -153,13 +199,15 @@ async function sendSubscriptionToServer(subscription) {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        subscription: subscription,
+        subscription: subscriptionData,
         userId: user.uid
       })
     });
 
     if (!response.ok) {
-      throw new Error('Error al enviar suscripción al servidor');
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('⚠️ Respuesta del servidor:', response.status, errorData);
+      throw new Error(errorData.error || 'Error al enviar suscripción al servidor');
     }
 
     console.log('✅ Suscripción enviada al servidor');
