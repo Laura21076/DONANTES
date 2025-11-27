@@ -233,14 +233,18 @@
     </div>
   </div>
 
-  <!-- Google Maps API -->
-  <script async defer 
-                  <button id="testNotificationBtn" class="btn btn-outline-purple position-fixed" style="bottom: 1rem; right: 1rem; z-index: 9999;">
-                    Probar notificación
-                  </button>
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A&libraries=places"
-    id="google-maps-script">
-  </script>
+  <!-- Botón para probar notificación -->
+<button id="testNotificationBtn" class="btn btn-outline-purple position-fixed" style="bottom: 1rem; right: 1rem; z-index: 9999;">
+  Probar notificación
+</button>
+
+<!-- Google Maps API -->
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A&libraries=places"
+  id="google-maps-script"
+  async
+  defer>
+</script>
   
   <!-- Manejo de Google Maps sin script inline -->
   <script type="module" src="google-maps-handler.js"></script>
@@ -248,6 +252,7 @@
 
   </body>
 </html>
+
 
 
 
