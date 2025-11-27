@@ -174,10 +174,10 @@
                   <a href="dashboard.html" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-chart-line me-2"></i>Dashboard Admin
                   </a>
-                  <button class="btn btn-outline-info btn-sm" onclick="viewSystemLogs()">
+                  <button class="btn btn-outline-info btn-sm" id="viewLogsBtn">
                     <i class="fas fa-file-alt me-2"></i>Ver Logs
                   </button>
-                  <button class="btn btn-outline-warning btn-sm" onclick="manageUsers()">
+                  <button class="btn btn-outline-warning btn-sm" id="manageUsersBtn">
                     <i class="fas fa-users me-2"></i>Gestionar Usuarios
                   </button>
                 </div>
@@ -199,12 +199,12 @@
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <button class="btn btn-outline-secondary w-100" onclick="changePassword()">
+                    <button class="btn btn-outline-secondary w-100" id="changePasswordBtn">
                       <i class="fas fa-lock me-2"></i>Cambiar Contraseña
                     </button>
                   </div>
                   <div class="col-md-6 mb-3">
-                    <button class="btn btn-outline-info w-100" onclick="downloadData()">
+                    <button class="btn btn-outline-info w-100" id="downloadDataBtn">
                       <i class="fas fa-download me-2"></i>Descargar Mis Datos
                     </button>
                   </div>
@@ -224,105 +224,7 @@
   <script src="simple-2fa.js"></script>
   <script src="roles.js"></script>
   <script type="module" src="auth-guard.js"></script>
-
-  <script>
-    // Variables globales
-    let simple2FA;
-    let roleManager;
-    let currentUser = null;
-
-    // Inicialización cuando se carga la página
-    document.addEventListener('DOMContentLoaded', async function() {
-      try {
-        // Esperar a que Firebase esté listo
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Inicializar servicios
-        simple2FA = new Simple2FA();
-        roleManager = new RoleManager();
-        
-        // Cargar información del usuario
-        await loadUserInfo();
-        
-        // Crear interfaz de 2FA
-        simple2FA.createSetupInterface('2fa-container');
-        
-      } catch (error) {
-        console.error('Error inicializando página de seguridad:', error);
-        showErrorMessage('Error cargando la configuración de seguridad');
-      }
-    });
-
-    // Cargar información del usuario
-    async function loadUserInfo() {
-      try {
-        if (typeof getCurrentUser !== 'function') {
-          throw new Error('Función getCurrentUser no disponible');
-        }
-        
-        currentUser = await getCurrentUser();
-        window.currentUser = currentUser; // Para que lo use Simple2FA
-        
-        if (!currentUser) {
-          window.location.href = 'login.html';
-          return;
-        }
-
-        // Verificar si es administrador
-        const isAdmin = await roleManager.isAdmin();
-        
-        // Mostrar información del usuario
-        document.getElementById('user-info').innerHTML = `
-          <div class="d-flex align-items-center justify-content-center">
-            <div class="text-center">
-              <i class="fas fa-user-circle fa-3x text-primary mb-2"></i>
-              <h5 class="mb-1">${currentUser.displayName || 'Usuario'}</h5>
-              <p class="text-muted mb-0">${currentUser.email}</p>
-              ${isAdmin ? '<span class="admin-badge mt-2 d-inline-block"><i class="fas fa-crown me-1"></i>Administrador</span>' : ''}
-            </div>
-          </div>
-        `;
-
-        // Mostrar panel de admin si es necesario
-        if (isAdmin) {
-          document.getElementById('admin-panel').style.display = 'block';
-        }
-
-      } catch (error) {
-        console.error('Error cargando información del usuario:', error);
-        showErrorMessage('Error cargando información del usuario');
-      }
-    }
-
-    // Funciones del panel de administrador
-    function viewSystemLogs() {
-      simple2FA.showNotification('Función de logs del sistema en desarrollo', 'info');
-    }
-
-    function manageUsers() {
-      simple2FA.showNotification('Gestión de usuarios en desarrollo', 'info');
-    }
-
-    // Otras funciones de configuración
-    function changePassword() {
-      if (confirm('¿Quieres cambiar tu contraseña? Serás redirigido a la página de reset.')) {
-        window.location.href = 'reset-password.html';
-      }
-    }
-
-    function downloadData() {
-      simple2FA.showNotification('Función de descarga de datos en desarrollo', 'info');
-    }
-
-    // Mostrar mensaje de error
-    function showErrorMessage(message) {
-      document.getElementById('user-info').innerHTML = `
-        <div class="alert alert-danger">
-          <i class="fas fa-exclamation-triangle me-2"></i>${message}
-        </div>
-      `;
-    }
-  </script>
+  <script src="security-page.js"></script>
 </body>
 
 </html>

@@ -5,6 +5,39 @@ const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.a
 
 // ================== INICIALIZACIÓN DE NOTIFICACIONES ==================
 
+/**
+ * Espera a que el Service Worker esté activo
+ * @param {ServiceWorkerRegistration} registration 
+ * @returns {Promise<ServiceWorkerRegistration>}
+ */
+async function waitForServiceWorkerActive(registration) {
+  // Si ya hay un service worker activo, retornarlo
+  if (registration.active) {
+    return registration;
+  }
+
+  // Si hay uno instalándose o esperando, esperar a que esté activo
+  const sw = registration.installing || registration.waiting;
+  if (sw) {
+    return new Promise((resolve) => {
+      sw.addEventListener('statechange', function onStateChange() {
+        if (sw.state === 'activated') {
+          sw.removeEventListener('statechange', onStateChange);
+          resolve(registration);
+        }
+      });
+    });
+  }
+
+  // Fallback: esperar al evento controllerchange
+  return new Promise((resolve) => {
+    navigator.serviceWorker.addEventListener('controllerchange', function onControllerChange() {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      resolve(registration);
+    });
+  });
+}
+
 export async function initializeNotifications() {
   try {
     console.log('🔔 Inicializando notificaciones push...');
@@ -21,6 +54,10 @@ export async function initializeNotifications() {
       registration = await navigator.serviceWorker.register('sw.js');
       console.log('✅ Service Worker registrado');
     }
+
+    // Esperar a que el Service Worker esté activo antes de continuar
+    registration = await waitForServiceWorkerActive(registration);
+    console.log('✅ Service Worker activo');
 
     // Solicitar permiso para notificaciones
     const permission = await requestNotificationPermission();

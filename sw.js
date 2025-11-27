@@ -76,12 +76,32 @@ const urlsToCache = [
   "https://fonts.gstatic.com/s/moiraione/v11/2sDcZGJYm4e-k2eP_9twI4J-oeFbJF.woff2"
 ];
 
-// Instalar y cachear los recursos
+// Instalar y cachear los recursos con manejo de errores individual
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log("Archivos cacheados correctamente");
-      return cache.addAll(urlsToCache);
+    caches.open(CACHE_NAME).then(async cache => {
+      console.log("Cacheando archivos...");
+      // Cachear cada URL individualmente para evitar que una falla detenga todo el proceso
+      const cachePromises = urlsToCache.map(async url => {
+        try {
+          const response = await fetch(url, { cache: 'reload' });
+          if (response.ok) {
+            await cache.put(url, response);
+            return { url, status: 'cached' };
+          } else {
+            console.warn(`⚠️ No se pudo cachear (HTTP ${response.status}): ${url}`);
+            return { url, status: 'failed', reason: `HTTP ${response.status}` };
+          }
+        } catch (error) {
+          console.warn(`⚠️ Error al cachear ${url}:`, error.message);
+          return { url, status: 'failed', reason: error.message };
+        }
+      });
+      
+      const results = await Promise.all(cachePromises);
+      const cached = results.filter(r => r.status === 'cached').length;
+      const failed = results.filter(r => r.status === 'failed').length;
+      console.log(`✅ Archivos cacheados: ${cached}/${urlsToCache.length} (${failed} fallaron)`);
     })
   );
   if (FORCE_UPDATE) {

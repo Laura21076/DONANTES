@@ -95,17 +95,17 @@ function displaySentRequests(requests) {
                     <strong>Código de acceso:</strong>
                     <div class="access-code">${req.accessCode}</div>
                   </div>
-                  <button class="btn btn-sm btn-outline-success" onclick="copyToClipboard('${req.accessCode}')">
+                  <button class="btn btn-sm btn-outline-success" data-action="copy-code" data-code="${req.accessCode}">
                     <i class="fas fa-copy"></i>
                   </button>
                 </div>
                 ${req.lockerLocation ? `<p class=\"mb-0 mt-2\"><i class=\"fas fa-map-marker-alt\"></i> ${req.lockerLocation}</p>` : ''}
                 ${req.lockerId ? `<p class=\"mb-0\"><i class=\"fas fa-lock\"></i> Casillero: ${req.lockerId}</p>` : ''}
               </div>
-              <button class="btn btn-info w-100 mb-2" onclick="showPickupDetailsModal('${req.lockerLocation || ''}', '${req.lockerId || ''}')">
+              <button class="btn btn-info w-100 mb-2" data-action="show-pickup-details" data-locker-location="${req.lockerLocation || ''}" data-locker-id="${req.lockerId || ''}">
                 <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
               </button>
-              <button class="btn btn-primary w-100" onclick="confirmPickupHandler('${req.id}')">
+              <button class="btn btn-primary w-100" data-action="confirm-pickup" data-request-id="${req.id}">
                 <i class="fas fa-check"></i> Confirmar Retiro
               </button>
             ` : req.status === 'rechazada' && req.rejectionReason ? `
@@ -255,10 +255,10 @@ function displayReceivedRequests(requests) {
             <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
             ${req.status === 'pendiente' ? `
               <div class="btn-group w-100 mb-2" role="group">
-                <button class="btn btn-success" onclick="showApproveModal('${req.id}')">
+                <button class="btn btn-success" data-action="show-approve-modal" data-request-id="${req.id}">
                   <i class="fas fa-check"></i> Aprobar
                 </button>
-                <button class="btn btn-danger" onclick="rejectRequestHandler('${req.id}')">
+                <button class="btn btn-danger" data-action="reject-request" data-request-id="${req.id}">
                   <i class="fas fa-times"></i> Rechazar
                 </button>
               </div>
@@ -267,7 +267,7 @@ function displayReceivedRequests(requests) {
                 <strong>Código:</strong> <span class="access-code">${req.accessCode}</span>
                 ${req.lockerLocation ? `<p class="mb-0 mt-2"><small>${req.lockerLocation}</small></p>` : ''}
               </div>
-              <button class="btn btn-primary w-100" onclick="confirmPickupHandler('${req.id}')">
+              <button class="btn btn-primary w-100" data-action="confirm-pickup" data-request-id="${req.id}">
                 <i class="fas fa-check"></i> Marcar como Entregado
               </button>
             ` : ''}
@@ -408,4 +408,57 @@ async function createRequestWithLocation(requestData) {
     requestData.location = { source: 'unknown' };
   }
   await createRequest(requestData);
+}
+
+// ================== EVENT DELEGATION PARA BOTONES ==================
+// Usar delegación de eventos para evitar inline event handlers (CSP compliance)
+document.addEventListener('DOMContentLoaded', () => {
+  // Delegación para solicitudes enviadas
+  const sentGrid = document.getElementById('sentRequestsGrid');
+  if (sentGrid) {
+    sentGrid.addEventListener('click', handleRequestAction);
+  }
+
+  // Delegación para solicitudes recibidas
+  const receivedGrid = document.getElementById('receivedRequestsGrid');
+  if (receivedGrid) {
+    receivedGrid.addEventListener('click', handleRequestAction);
+  }
+
+  // Delegación para el modal de aprobación
+  const approveModalBtn = document.getElementById('approveModalBtn');
+  if (approveModalBtn) {
+    approveModalBtn.addEventListener('click', () => {
+      window.approveRequestHandler();
+    });
+  }
+});
+
+function handleRequestAction(event) {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+
+  const action = button.dataset.action;
+  const requestId = button.dataset.requestId;
+  const code = button.dataset.code;
+  const lockerLocation = button.dataset.lockerLocation;
+  const lockerId = button.dataset.lockerId;
+
+  switch (action) {
+    case 'copy-code':
+      window.copyToClipboard(code);
+      break;
+    case 'show-pickup-details':
+      window.showPickupDetailsModal(lockerLocation, lockerId);
+      break;
+    case 'confirm-pickup':
+      window.confirmPickupHandler(requestId);
+      break;
+    case 'show-approve-modal':
+      window.showApproveModal(requestId);
+      break;
+    case 'reject-request':
+      window.rejectRequestHandler(requestId);
+      break;
+  }
 }
