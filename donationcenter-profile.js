@@ -161,6 +161,7 @@ function setupEventListeners() {
   }
   
   // MEJORA: Event listener para el overlay de foto (antes: onclick inline)
+  // Requiere ambos elementos: overlay y input
   const photoOverlay = document.getElementById('profilePhotoOverlay');
   const photoUploadInput = document.getElementById('photoUpload');
   if (photoOverlay && photoUploadInput) {
@@ -170,6 +171,7 @@ function setupEventListeners() {
   }
   
   // MEJORA: Event listener para subida de foto (antes: onchange inline)
+  // Solo requiere el input, independiente del overlay
   if (photoUploadInput) {
     photoUploadInput.addEventListener('change', handlePhotoUpload);
   }

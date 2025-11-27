@@ -386,6 +386,10 @@ async function saveArticle() {
   
   // Variable para trackear la referencia de la imagen subida (para limpieza si falla)
   let uploadedFileRef = null;
+  // Flag para indicar si hubo error de subida (evita guardar artículo con link roto)
+  let uploadFailed = false;
+  // Flag para indicar si hubo error al guardar en DB
+  let dbSaveFailed = false;
   
   try {
     const submitBtn = document.getElementById('submitBtn');
@@ -429,53 +433,60 @@ async function saveArticle() {
         // MEJORA: Error específico en subida de imagen - NO intentar guardar artículo
         console.error('[UPLOAD_ERROR] Error al subir imagen:', uploadError.message);
         showMessage('Error al subir la imagen: ' + (uploadError?.message || 'Error desconocido'), 'danger');
-        // No lanzamos el error general, simplemente retornamos para no guardar artículo con link roto
-        return;
+        // Marcar que la subida falló para no continuar con el guardado
+        uploadFailed = true;
       }
     }
 
-    const articleData = { ...baseData, imageUrl };
+    // MEJORA: Solo intentar guardar si la subida de imagen fue exitosa (o no hubo imagen)
+    if (!uploadFailed) {
+      const articleData = { ...baseData, imageUrl };
 
-    // MEJORA: Intentar guardar artículo con manejo de error y limpieza de imagen huérfana
-    try {
-      if (currentArticleId) {
-        await updateArticle(currentArticleId, articleData);
-        showMessage('Artículo actualizado exitosamente', 'success');
-        console.log('[ARTICLE_UPDATE_OK] Artículo actualizado:', currentArticleId);
-      } else {
-        await createArticle(articleData);
-        showMessage('Artículo publicado exitosamente', 'success');
-        console.log('[ARTICLE_CREATE_OK] Artículo creado exitosamente');
+      // MEJORA: Intentar guardar artículo con manejo de error y limpieza de imagen huérfana
+      try {
+        if (currentArticleId) {
+          await updateArticle(currentArticleId, articleData);
+          showMessage('Artículo actualizado exitosamente', 'success');
+          console.log('[ARTICLE_UPDATE_OK] Artículo actualizado:', currentArticleId);
+        } else {
+          await createArticle(articleData);
+          showMessage('Artículo publicado exitosamente', 'success');
+          console.log('[ARTICLE_CREATE_OK] Artículo creado exitosamente');
+        }
+      } catch (dbError) {
+        // MEJORA: Si falla guardar en Firestore, eliminar imagen huérfana
+        console.error('[ARTICLE_SAVE_ERROR] Error al guardar artículo en DB:', dbError.message);
+        dbSaveFailed = true;
+        
+        if (uploadedFileRef) {
+          console.log('[CLEANUP_START] Eliminando imagen huérfana debido a fallo en DB...');
+          await eliminarImagenHuerfana(uploadedFileRef);
+        }
+        
+        // Mostrar error claro al usuario - NO devolver datos inconsistentes
+        showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error de base de datos'), 'danger');
       }
-    } catch (dbError) {
-      // MEJORA: Si falla guardar en Firestore, eliminar imagen huérfana
-      console.error('[ARTICLE_SAVE_ERROR] Error al guardar artículo en DB:', dbError.message);
-      
-      if (uploadedFileRef) {
-        console.log('[CLEANUP_START] Eliminando imagen huérfana debido a fallo en DB...');
-        await eliminarImagenHuerfana(uploadedFileRef);
+
+      // Solo cerrar modal y recargar si todo fue exitoso
+      if (!dbSaveFailed) {
+        const modalElement = document.getElementById('uploadModal');
+        const modal = window.bootstrap?.Modal.getInstance
+          ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
+          : null;
+        if (modal && modalElement.contains(document.activeElement)) {
+          document.activeElement.blur();
+        }
+        if (modal) modal.hide();
+
+        await loadArticles(true);
+        currentArticleId = null; // Reset after save
       }
-      
-      // Mostrar error claro al usuario - NO devolver datos inconsistentes
-      showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error de base de datos'), 'danger');
-      return;
     }
-
-    const modalElement = document.getElementById('uploadModal');
-    const modal = window.bootstrap?.Modal.getInstance
-      ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
-      : null;
-    if (modal && modalElement.contains(document.activeElement)) {
-      document.activeElement.blur();
-    }
-    if (modal) modal.hide();
-
-    await loadArticles(true);
-    currentArticleId = null; // Reset after save
   } catch (error) {
     showMessage('Error: ' + (error?.message || error), 'danger');
     console.error('[GENERAL_ERROR]', error);
   } finally {
+    // MEJORA: La limpieza de UI siempre se ejecuta, independientemente del resultado
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
       submitBtn.disabled = false;
