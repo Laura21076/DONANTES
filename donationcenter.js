@@ -263,11 +263,12 @@ function setupFormHandlers() {
   });
 }
 
+
+
 async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
-  const { getCurrentUser } = await import('./auth.js');
-  let user = await getCurrentUser();
+  const user = await getCurrentUser(); // <---- user aquí, NO currentUser
   const baseData = {
     title: document.getElementById('articleName').value.trim(),
     description: document.getElementById('articleDescription').value.trim(),
@@ -283,9 +284,9 @@ async function saveArticle() {
     let imageUrl = urlInput.value.trim() || null;
     const file = fileInput.files?.[0] || null;
 
-    if (file && currentUser?.uid) {
+    if (file && user?.uid) { // <---- aquí el fix
       const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-      const path = `articles/${currentUser.uid}/${Date.now()}_${safeName}`;
+      const path = `articles/${user.uid}/${Date.now()}_${safeName}`;
       const fileRef = ref(storage, path);
       await uploadBytes(fileRef, file);
       imageUrl = await getDownloadURL(fileRef);
@@ -305,7 +306,6 @@ async function saveArticle() {
     const modal = window.bootstrap?.Modal.getInstance
       ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
       : null;
-    // ⬇️ Mejora de accesibilidad: Quita foco antes de esconder el modal
     if (modal && modalElement.contains(document.activeElement)) {
       document.activeElement.blur();
     }
@@ -397,6 +397,7 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     console.error(error);
   }
 }
+
 
 
 
