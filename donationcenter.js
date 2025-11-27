@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 async function loadUserProfile() {
   try {
     const { getCurrentUser } = await import('./auth.js');
-    const user = await getCurrentUser();
+    let user = await getCurrentUser();
     if (!user) return;
     const token = await getIdToken();
     const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
@@ -267,7 +267,7 @@ async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
   const { getCurrentUser } = await import('./auth.js');
-  const currentUser = await getCurrentUser();
+  let user = await getCurrentUser();
   const baseData = {
     title: document.getElementById('articleName').value.trim(),
     description: document.getElementById('articleDescription').value.trim(),
@@ -397,5 +397,6 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     console.error(error);
   }
 }
+
 
 
