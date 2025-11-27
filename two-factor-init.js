@@ -285,6 +285,9 @@ function displayBackupCodes(codes) {
   const backupCodesDiv = document.getElementById('backupCodes');
   if (!backupCodesDiv || !Array.isArray(codes)) return;
   
+  // Store codes reference for use by button handlers
+  backupCodesDiv.dataset.codes = JSON.stringify(codes);
+  
   backupCodesDiv.innerHTML = `
     <div class="row g-3">
       ${codes.map((code, index) => `
@@ -306,15 +309,22 @@ function displayBackupCodes(codes) {
     </div>
   `;
   
-  // Añadir event listeners para los nuevos botones
-  const downloadBtn = document.getElementById('downloadBackupCodesBtn');
-  const copyBtn = document.getElementById('copyAllCodesBtn');
+  // Use event delegation on the container to avoid memory leaks
+  backupCodesDiv.addEventListener('click', handleBackupCodeAction);
+}
+
+// Handler for backup code actions using event delegation
+function handleBackupCodeAction(event) {
+  const target = event.target.closest('button');
+  if (!target) return;
   
-  if (downloadBtn) {
-    downloadBtn.addEventListener('click', () => downloadBackupCodes(codes));
-  }
-  if (copyBtn) {
-    copyBtn.addEventListener('click', () => copyAllCodes(codes));
+  const container = document.getElementById('backupCodes');
+  const codes = container?.dataset.codes ? JSON.parse(container.dataset.codes) : [];
+  
+  if (target.id === 'downloadBackupCodesBtn') {
+    downloadBackupCodes(codes);
+  } else if (target.id === 'copyAllCodesBtn') {
+    copyAllCodes(codes);
   }
 }
 

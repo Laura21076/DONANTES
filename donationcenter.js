@@ -249,12 +249,16 @@ function handleArticleClick(event) {
 }
 
 // Add error handler for article images (CORS fallback)
+// More targeted approach - only on articles container
 function setupImageErrorHandlers() {
-  document.addEventListener('error', function(event) {
-    if (event.target.tagName === 'IMG' && event.target.classList.contains('article-image')) {
-      handleImageError(event.target);
-    }
-  }, true);
+  const grid = document.getElementById('articlesGrid');
+  if (grid) {
+    grid.addEventListener('error', function(event) {
+      if (event.target.tagName === 'IMG' && event.target.classList.contains('article-image')) {
+        handleImageError(event.target);
+      }
+    }, true);
+  }
 }
 
 function handleImageError(img) {

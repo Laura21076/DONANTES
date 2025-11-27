@@ -27,7 +27,7 @@ async function waitForServiceWorkerActive(registration) {
 
     const timeout = setTimeout(() => {
       reject(new Error('Timeout esperando activación del Service Worker'));
-    }, 30000); // 30 segundos timeout
+    }, 10000); // 10 segundos timeout - más razonable para UX
 
     sw.addEventListener('statechange', function handler() {
       if (sw.state === 'activated') {
