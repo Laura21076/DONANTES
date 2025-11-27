@@ -67,10 +67,10 @@
     }
   </style>
 </head>
+<body>
   <script src="sw-register.js"></script>
   <script type="module" src="notifications-init.js"></script>
 
-<body>
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
     <div class="container">
@@ -174,14 +174,6 @@
                   <a href="dashboard.html" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-chart-line me-2"></i>Dashboard Admin
                   </a>
-                  <button class="btn btn-outline-info btn-sm btn-view-system-logs">
-                    <i class="fas fa-file-alt me-2"></i>Ver Logs
-                  </button>
-                  <button class="btn btn-outline-warning btn-sm btn-manage-users">
-                  <button class="btn btn-outline-info btn-sm" id="viewLogsBtn">
-                    <i class="fas fa-file-alt me-2"></i>Ver Logs
-                  </button>
-                  <button class="btn btn-outline-warning btn-sm" id="manageUsersBtn">
                   <button class="btn btn-outline-info btn-sm" data-action="view-logs">
                     <i class="fas fa-file-alt me-2"></i>Ver Logs
                   </button>
@@ -207,15 +199,11 @@
               <div class="card-body">
                 <div class="row">
                   <div class="col-md-6 mb-3">
-                    <button class="btn btn-outline-secondary w-100 btn-change-password">
-                    <button class="btn btn-outline-secondary w-100" id="changePasswordBtn">
                     <button class="btn btn-outline-secondary w-100" data-action="change-password">
                       <i class="fas fa-lock me-2"></i>Cambiar Contraseña
                     </button>
                   </div>
                   <div class="col-md-6 mb-3">
-                    <button class="btn btn-outline-info w-100 btn-download-data">
-                    <button class="btn btn-outline-info w-100" id="downloadDataBtn">
                     <button class="btn btn-outline-info w-100" data-action="download-data">
                       <i class="fas fa-download me-2"></i>Descargar Mis Datos
                     </button>
@@ -236,144 +224,6 @@
   <script src="simple-2fa.js"></script>
   <script src="roles.js"></script>
   <script type="module" src="auth-guard.js"></script>
-
-  <script>
-    // Variables globales
-    let simple2FA;
-    let roleManager;
-    let currentUser = null;
-
-    // Inicialización cuando se carga la página
-    document.addEventListener('DOMContentLoaded', async function() {
-      try {
-        // Esperar a que Firebase esté listo
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        
-        // Inicializar servicios
-        simple2FA = new Simple2FA();
-        roleManager = new RoleManager();
-        
-        // Cargar información del usuario
-        await loadUserInfo();
-        
-        // Crear interfaz de 2FA
-        simple2FA.createSetupInterface('2fa-container');
-        
-        // Attach event listeners for buttons (CSP compatible)
-        attachSecurityEventListeners();
-        
-      } catch (error) {
-        console.error('Error inicializando página de seguridad:', error);
-        showErrorMessage('Error cargando la configuración de seguridad');
-      }
-    });
-
-    // Attach event listeners for security page buttons (CSP compatible)
-    function attachSecurityEventListeners() {
-      // View system logs button
-      const viewLogsBtn = document.querySelector('.btn-view-system-logs');
-      if (viewLogsBtn) {
-        viewLogsBtn.addEventListener('click', function() {
-          viewSystemLogs();
-        });
-      }
-
-      // Manage users button
-      const manageUsersBtn = document.querySelector('.btn-manage-users');
-      if (manageUsersBtn) {
-        manageUsersBtn.addEventListener('click', function() {
-          manageUsers();
-        });
-      }
-
-      // Change password button
-      const changePasswordBtn = document.querySelector('.btn-change-password');
-      if (changePasswordBtn) {
-        changePasswordBtn.addEventListener('click', function() {
-          changePassword();
-        });
-      }
-
-      // Download data button
-      const downloadDataBtn = document.querySelector('.btn-download-data');
-      if (downloadDataBtn) {
-        downloadDataBtn.addEventListener('click', function() {
-          downloadData();
-        });
-      }
-    }
-
-    // Cargar información del usuario
-    async function loadUserInfo() {
-      try {
-        if (typeof getCurrentUser !== 'function') {
-          throw new Error('Función getCurrentUser no disponible');
-        }
-        
-        currentUser = await getCurrentUser();
-        window.currentUser = currentUser; // Para que lo use Simple2FA
-        
-        if (!currentUser) {
-          window.location.href = 'login.html';
-          return;
-        }
-
-        // Verificar si es administrador
-        const isAdmin = await roleManager.isAdmin();
-        
-        // Mostrar información del usuario
-        document.getElementById('user-info').innerHTML = `
-          <div class="d-flex align-items-center justify-content-center">
-            <div class="text-center">
-              <i class="fas fa-user-circle fa-3x text-primary mb-2"></i>
-              <h5 class="mb-1">${currentUser.displayName || 'Usuario'}</h5>
-              <p class="text-muted mb-0">${currentUser.email}</p>
-              ${isAdmin ? '<span class="admin-badge mt-2 d-inline-block"><i class="fas fa-crown me-1"></i>Administrador</span>' : ''}
-            </div>
-          </div>
-        `;
-
-        // Mostrar panel de admin si es necesario
-        if (isAdmin) {
-          document.getElementById('admin-panel').style.display = 'block';
-        }
-
-      } catch (error) {
-        console.error('Error cargando información del usuario:', error);
-        showErrorMessage('Error cargando información del usuario');
-      }
-    }
-
-    // Funciones del panel de administrador
-    function viewSystemLogs() {
-      simple2FA.showNotification('Función de logs del sistema en desarrollo', 'info');
-    }
-
-    function manageUsers() {
-      simple2FA.showNotification('Gestión de usuarios en desarrollo', 'info');
-    }
-
-    // Otras funciones de configuración
-    function changePassword() {
-      if (confirm('¿Quieres cambiar tu contraseña? Serás redirigido a la página de reset.')) {
-        window.location.href = 'reset-password.html';
-      }
-    }
-
-    function downloadData() {
-      simple2FA.showNotification('Función de descarga de datos en desarrollo', 'info');
-    }
-
-    // Mostrar mensaje de error
-    function showErrorMessage(message) {
-      document.getElementById('user-info').innerHTML = `
-        <div class="alert alert-danger">
-          <i class="fas fa-exclamation-triangle me-2"></i>${message}
-        </div>
-      `;
-    }
-  </script>
-  <script src="security-page.js"></script>
   <script src="security-init.js"></script>
 </body>
 
