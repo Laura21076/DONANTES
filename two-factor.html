@@ -378,8 +378,8 @@
 
         function displayBackupCodes(codes) {
             const backupCodesDiv = document.getElementById('backupCodes');
-            // Store codes for event handlers
-            window._backupCodes = codes;
+            // Use closure to capture codes instead of global variable
+            const storedCodes = [...codes];
             backupCodesDiv.innerHTML = `
                 <div class="row g-3">
                     ${codes.map((code, index) => `
@@ -418,14 +418,14 @@
             const downloadBtn = backupCodesDiv.querySelector('.btn-download-backup-codes');
             if (downloadBtn) {
                 downloadBtn.addEventListener('click', function() {
-                    downloadBackupCodes(window._backupCodes);
+                    downloadBackupCodes(storedCodes);
                 });
             }
             
             const copyAllBtn = backupCodesDiv.querySelector('.btn-copy-all-codes');
             if (copyAllBtn) {
                 copyAllBtn.addEventListener('click', function() {
-                    copyAllCodes(window._backupCodes);
+                    copyAllCodes(storedCodes);
                 });
             }
             

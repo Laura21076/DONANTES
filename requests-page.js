@@ -34,7 +34,9 @@ function attachStaticEventListeners() {
   if (copyPickupCodeBtn) {
     copyPickupCodeBtn.addEventListener('click', function() {
       const code = document.getElementById('pickupAccessCode').textContent;
-      window.copyToClipboard(code);
+      if (typeof window.copyToClipboard === 'function') {
+        window.copyToClipboard(code);
+      }
     });
   }
 
@@ -42,7 +44,9 @@ function attachStaticEventListeners() {
   const approveHandlerBtn = document.querySelector('.btn-approve-handler');
   if (approveHandlerBtn) {
     approveHandlerBtn.addEventListener('click', function() {
-      window.approveRequestHandler();
+      if (typeof window.approveRequestHandler === 'function') {
+        window.approveRequestHandler();
+      }
     });
   }
 }
@@ -153,7 +157,9 @@ function attachSentRequestEventListeners() {
   document.querySelectorAll('#sentRequestsGrid .btn-copy-code').forEach(btn => {
     btn.addEventListener('click', function() {
       const code = this.dataset.code;
-      window.copyToClipboard(code);
+      if (typeof window.copyToClipboard === 'function') {
+        window.copyToClipboard(code);
+      }
     });
   });
 
@@ -162,7 +168,9 @@ function attachSentRequestEventListeners() {
     btn.addEventListener('click', function() {
       const lockerLocation = this.dataset.lockerLocation;
       const lockerId = this.dataset.lockerId;
-      window.showPickupDetailsModal(lockerLocation, lockerId);
+      if (typeof window.showPickupDetailsModal === 'function') {
+        window.showPickupDetailsModal(lockerLocation, lockerId);
+      }
     });
   });
 
@@ -170,7 +178,9 @@ function attachSentRequestEventListeners() {
   document.querySelectorAll('#sentRequestsGrid .btn-confirm-pickup').forEach(btn => {
     btn.addEventListener('click', function() {
       const requestId = this.dataset.requestId;
-      window.confirmPickupHandler(requestId);
+      if (typeof window.confirmPickupHandler === 'function') {
+        window.confirmPickupHandler(requestId);
+      }
     });
   });
 }
@@ -342,7 +352,9 @@ function attachReceivedRequestEventListeners() {
   document.querySelectorAll('#receivedRequestsGrid .btn-approve-request').forEach(btn => {
     btn.addEventListener('click', function() {
       const requestId = this.dataset.requestId;
-      window.showApproveModal(requestId);
+      if (typeof window.showApproveModal === 'function') {
+        window.showApproveModal(requestId);
+      }
     });
   });
 
@@ -350,7 +362,9 @@ function attachReceivedRequestEventListeners() {
   document.querySelectorAll('#receivedRequestsGrid .btn-reject-request').forEach(btn => {
     btn.addEventListener('click', function() {
       const requestId = this.dataset.requestId;
-      window.rejectRequestHandler(requestId);
+      if (typeof window.rejectRequestHandler === 'function') {
+        window.rejectRequestHandler(requestId);
+      }
     });
   });
 
@@ -358,7 +372,9 @@ function attachReceivedRequestEventListeners() {
   document.querySelectorAll('#receivedRequestsGrid .btn-confirm-pickup-received').forEach(btn => {
     btn.addEventListener('click', function() {
       const requestId = this.dataset.requestId;
-      window.confirmPickupHandler(requestId);
+      if (typeof window.confirmPickupHandler === 'function') {
+        window.confirmPickupHandler(requestId);
+      }
     });
   });
 }

@@ -413,7 +413,9 @@ function attachArticleEventListeners() {
     btn.addEventListener('click', function() {
       const articleId = this.dataset.articleId;
       const articleTitle = this.dataset.articleTitle;
-      window.showRequestModal(articleId, articleTitle);
+      if (typeof window.showRequestModal === 'function') {
+        window.showRequestModal(articleId, articleTitle);
+      }
     });
   });
 
@@ -421,7 +423,9 @@ function attachArticleEventListeners() {
   document.querySelectorAll('.btn-edit-article').forEach(btn => {
     btn.addEventListener('click', function() {
       const articleId = this.dataset.articleId;
-      window.editArticle(articleId);
+      if (typeof window.editArticle === 'function') {
+        window.editArticle(articleId);
+      }
     });
   });
 
@@ -429,7 +433,9 @@ function attachArticleEventListeners() {
   document.querySelectorAll('.btn-delete-article').forEach(btn => {
     btn.addEventListener('click', function() {
       const articleId = this.dataset.articleId;
-      window.confirmDelete(articleId);
+      if (typeof window.confirmDelete === 'function') {
+        window.confirmDelete(articleId);
+      }
     });
   });
 }
