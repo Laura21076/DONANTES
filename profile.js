@@ -1,10 +1,38 @@
 import { auth } from './firebase.js';
+import { getToken } from './db.js';
 
 // 1. Obtener el token actual de usuario autenticado
+// Primero intenta obtenerlo del storage (IndexedDB), luego de Firebase Auth
 async function getAuthToken() {
-  const user = auth.currentUser;
-  if (!user) throw new Error('Usuario no autenticado');
-  return user.getIdToken();
+  // Intentar obtener token del almacenamiento (IndexedDB)
+  let token = await getToken('access');
+  
+  // Si no hay token en storage, intentar obtenerlo de Firebase Auth
+  if (!token) {
+    const user = auth.currentUser;
+    if (user) {
+      token = await user.getIdToken();
+    }
+  }
+  
+  // Si aún no hay token, redirigir a login
+  if (!token) {
+    console.warn('No se encontró token de autenticación, redirigiendo a login');
+    window.location.href = 'login.html';
+    throw new Error('Usuario no autenticado');
+  }
+  
+  return token;
+}
+
+// Función auxiliar para manejar respuestas con token inválido
+async function handleResponse(resp) {
+  if (resp.status === 401 || resp.status === 403) {
+    console.warn('Token inválido o expirado, redirigiendo a login');
+    window.location.href = 'login.html';
+    throw new Error('Sesión expirada o inválida');
+  }
+  return resp;
 }
 
 // 2. Obtener perfil de usuario (GET)
@@ -17,6 +45,10 @@ export async function getProfile() {
       'Content-Type': 'application/json'
     }
   });
+  
+  // Manejar token inválido/expirado
+  await handleResponse(resp);
+  
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
     throw new Error(error?.error || 'No se pudo obtener el perfil');
@@ -35,6 +67,10 @@ export async function updateProfile(data) {
     },
     body: JSON.stringify(data)
   });
+  
+  // Manejar token inválido/expirado
+  await handleResponse(resp);
+  
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
     throw new Error(error?.error || 'No se pudo actualizar el perfil');
@@ -53,6 +89,10 @@ export async function updatePassword(newPassword) {
     },
     body: JSON.stringify({ newPassword })
   });
+  
+  // Manejar token inválido/expirado
+  await handleResponse(resp);
+  
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
     throw new Error(error?.error || 'No se pudo actualizar la contraseña');
@@ -74,6 +114,10 @@ export async function uploadProfilePhoto(file) {
     },
     body: formData
   });
+  
+  // Manejar token inválido/expirado
+  await handleResponse(resp);
+  
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
     throw new Error(error?.error || 'No se pudo subir la foto de perfil');

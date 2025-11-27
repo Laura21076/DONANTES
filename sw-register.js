@@ -28,38 +28,36 @@ if ('serviceWorker' in navigator) {
       } else if (registration.active) {
         console.log('ServiceWorker activo y listo');
       }
-    } catch (error) {
-      console.log('Error al registrar el ServiceWorker:', error);
-    }
+
+      // Manejar actualizaciones del Service Worker
+      registration.addEventListener('updatefound', function() {
+        const newWorker = registration.installing;
+        console.log('Nueva versión del Service Worker encontrada');
         
-        // Manejar actualizaciones del Service Worker
-        registration.addEventListener('updatefound', function() {
-          const newWorker = registration.installing;
-          console.log('Nueva versión del Service Worker encontrada');
-          
-          if (newWorker) {
-            newWorker.addEventListener('statechange', function() {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('Nueva versión del Service Worker instalada');
-              }
-            });
-          }
-        });
-      })
-      .catch(function(error) {
-        console.error('Error al registrar el ServiceWorker:', error);
-        // Intentar limpiar cache y reintentar una vez
-        if (error.message && error.message.includes('Failed')) {
-          console.log('Intentando limpiar cache y reintentar...');
-          caches.keys().then(function(names) {
-            return Promise.all(names.map(function(name) {
-              return caches.delete(name);
-            }));
-          }).catch(function(cacheError) {
-            console.error('Error limpiando cache:', cacheError);
+        if (newWorker) {
+          newWorker.addEventListener('statechange', function() {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('Nueva versión del Service Worker instalada');
+            }
           });
         }
       });
+
+    } catch (error) {
+      console.error('Error al registrar el ServiceWorker:', error);
+      // Intentar limpiar cache y reintentar una vez
+      if (error.message && error.message.includes('Failed')) {
+        console.log('Intentando limpiar cache y reintentar...');
+        try {
+          const names = await caches.keys();
+          await Promise.all(names.map(function(name) {
+            return caches.delete(name);
+          }));
+        } catch (cacheError) {
+          console.error('Error limpiando cache:', cacheError);
+        }
+      }
+    }
   });
   
   // Manejar cambios en el controlador del Service Worker
