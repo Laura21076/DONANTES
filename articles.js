@@ -1,3 +1,5 @@
+// articles.js
+
 import { getIdToken } from './auth.js';
 
 const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
@@ -34,12 +36,18 @@ export async function createArticle(articleData) {
   }
 }
 
-// Obtener todos los artículos (con filtros opcionales)
+// Obtener todos los artículos (con filtros opcionales) - ¡Corregido: ahora incluye el token!
 export async function getArticles(filters = {}) {
   try {
     console.log('Fetching articles with filters:', filters);
+    const token = await getIdToken(); // <--- AHORA SE PIDE EL TOKEN
+
     const params = new URLSearchParams(filters);
-    const response = await fetch(`${API_URL}/articles?${params}`);
+    const response = await fetch(`${API_URL}/articles?${params}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -83,7 +91,13 @@ export async function getMyArticles() {
 // Obtener un artículo específico
 export async function getArticleById(id) {
   try {
-    const response = await fetch(`${API_URL}/articles/${id}`);
+    const token = await getIdToken(); // <--- Para mayor protección/agregarlo si backend requiere
+
+    const response = await fetch(`${API_URL}/articles/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
 
     if (!response.ok) {
       const error = await response.json();
@@ -148,4 +162,3 @@ export async function deleteArticle(id) {
     throw error;
   }
 }
-
