@@ -1,5 +1,3 @@
-// donation-center.js
-
 import { getCurrentLockerCode } from './locker.js';
 import { createArticle, getArticles, updateArticle, deleteArticle } from './articles.js';
 import { getCurrentUser, getIdToken } from './auth.js';
@@ -153,62 +151,62 @@ async function displayArticles(articles) {
   if (emptyState) emptyState.style.display = 'none';
 
   grid.innerHTML = visibleArticles.map(article => {
-  const isOwner = currentUser && currentUser.uid === article.uid;
-  const estado = (article.status === 'expirado')
-    ? `<span class="badge status-badge status-expired position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Expirado</span>`
-    : (article.status === 'reservado')
-    ? `<span class="badge status-badge status-reserved position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Reservado</span>`
-    : `<span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>`;
+    const isOwner = currentUser && currentUser.uid === article.uid;
+    const estado = (article.status === 'expirado')
+      ? `<span class="badge status-badge status-expired position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Expirado</span>`
+      : (article.status === 'reservado')
+      ? `<span class="badge status-badge status-reserved position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Reservado</span>`
+      : `<span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>`;
 
-  const timer = article.expiresAt
-    ? `<span class="article-timer position-absolute top-0 start-0 mt-2 ms-2">
-          <i class="fa-regular fa-clock me-1"></i> ${getTimeRemaining(article.expiresAt)}
-        </span>` : "";
+    const timer = article.expiresAt
+      ? `<span class="article-timer position-absolute top-0 start-0 mt-2 ms-2">
+            <i class="fa-regular fa-clock me-1"></i> ${getTimeRemaining(article.expiresAt)}
+          </span>` : "";
 
-  return `
-    <div class="col-md-6 col-lg-4">
-      <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
-        <div class="position-relative">
-          ${article.imageUrl
-            ? `<img src="${article.imageUrl}" class="card-img-top" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">`
-            : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
-                <i class="fas fa-image fa-3x text-purple-light mb-2"></i>
-                <span style="color:#8C78BF;">Sin imagen</span>
-               </div>`
-          }
-          ${estado}
-          ${timer}
-        </div>
-        <div class="card-body d-flex flex-column px-4 pb-4" style="background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%); border-radius: 0 0 20px 20px;">
-          <h5 class="card-title text-purple-primary mb-2 fw-bold">${escapeHtml(article.title)}</h5>
-          <p class="card-text mb-2" style="color:#5A4A6B;">${escapeHtml(article.description)}</p>
-          <div class="mb-2">
-            <span class="badge bg-purple-light me-2 px-3 py-1">${escapeHtml(article.category || "General")}</span>
-            <span class="badge bg-purple-primary px-3 py-1">${escapeHtml(article.condition || "Bueno")}</span>
-          </div>
-          <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
-          <div class="mt-auto d-flex gap-2">
-            ${
-              isOwner
-              ? `
-                <button class="btn btn-outline-purple flex-fill shadow-sm" onclick="editArticle('${article.id}')">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn btn-outline-danger flex-fill shadow-sm" onclick="confirmDelete('${article.id}')">
-                  <i class="fas fa-trash"></i>
-                </button>
-              `
-              : `<button class="btn btn-purple flex-fill shadow-sm" onclick="showRequestModal('${article.id}','${escapeHtml(article.title)}')">
-                 <i class="fas fa-heart me-1"></i> Me interesa
-                 </button>`
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
+          <div class="position-relative">
+            ${article.imageUrl
+              ? `<img src="${article.imageUrl}" class="card-img-top" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">`
+              : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
+                  <i class="fas fa-image fa-3x text-purple-light mb-2"></i>
+                  <span style="color:#8C78BF;">Sin imagen</span>
+                 </div>`
             }
+            ${estado}
+            ${timer}
+          </div>
+          <div class="card-body d-flex flex-column px-4 pb-4" style="background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%); border-radius: 0 0 20px 20px;">
+            <h5 class="card-title text-purple-primary mb-2 fw-bold">${escapeHtml(article.title)}</h5>
+            <p class="card-text mb-2" style="color:#5A4A6B;">${escapeHtml(article.description)}</p>
+            <div class="mb-2">
+              <span class="badge bg-purple-light me-2 px-3 py-1">${escapeHtml(article.category || "General")}</span>
+              <span class="badge bg-purple-primary px-3 py-1">${escapeHtml(article.condition || "Bueno")}</span>
+            </div>
+            <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
+            <div class="mt-auto d-flex gap-2">
+              ${
+                isOwner
+                ? `
+                  <button class="btn btn-outline-purple flex-fill shadow-sm" onclick="editArticle('${article.id}')">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger flex-fill shadow-sm" onclick="confirmDelete('${article.id}')">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                `
+                : `<button class="btn btn-purple flex-fill shadow-sm" onclick="showRequestModal('${article.id}','${escapeHtml(article.title)}')">
+                   <i class="fas fa-heart me-1"></i> Me interesa
+                   </button>`
+              }
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  `;
-}).join('');
-
+    `;
+  }).join('');
+} // <- ESTA LLAVE CIERRA BIEN LA FUNCIÓN displayArticles
 
 function getTimeRemaining(expiresAt) {
   if (!expiresAt) return 'Sin límite';
@@ -272,12 +270,10 @@ function setupFormHandlers() {
   });
 }
 
-
-
 async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
-  const user = await getCurrentUser(); // <---- user aquí, NO currentUser
+  const user = await getCurrentUser();
   const baseData = {
     title: document.getElementById('articleName').value.trim(),
     description: document.getElementById('articleDescription').value.trim(),
@@ -293,7 +289,7 @@ async function saveArticle() {
     let imageUrl = urlInput.value.trim() || null;
     const file = fileInput.files?.[0] || null;
 
-    if (file && user?.uid) { // <---- aquí el fix
+    if (file && user?.uid) {
       const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
       const path = `articles/${user.uid}/${Date.now()}_${safeName}`;
       const fileRef = ref(storage, path);
@@ -406,8 +402,3 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     console.error(error);
   }
 }
-
-
-
-
-
