@@ -247,26 +247,44 @@ async function handleProfileSubmit(e) {
   }
 }
 
-/**
- * MEJORA: Inicialización con verificación de estado de autenticación
- * Se usa onAuthStateChanged para esperar a que Firebase Auth esté listo
- * antes de intentar cargar el perfil
- */
+// Inicializar
 document.addEventListener('DOMContentLoaded', () => {
-  // Configurar event listeners inmediatamente
-  setupEventListeners();
-  
-  // MEJORA: Usar onAuthStateChanged para esperar confirmación de autenticación
-  // Esto evita errores de consola cuando el usuario no está autenticado
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      // Usuario autenticado, cargar perfil
-      console.log('Usuario autenticado, cargando perfil...');
-      cargarPerfil();
-    } else {
-      // No hay usuario autenticado, mostrar feedback visual sin error de consola
-      console.log('No hay usuario autenticado');
-      mostrarEstadoNoAutenticado();
-    }
-  });
+  cargarPerfil();
+
+  // Event listeners for buttons (CSP compliance - no inline event handlers)
+  const backBtn = document.getElementById('backToDonationsBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'donationcenter.html';
+    });
+  }
+
+  const photoOverlay = document.getElementById('profilePhotoOverlay');
+  if (photoOverlay) {
+    photoOverlay.addEventListener('click', () => {
+      const photoInput = document.getElementById('photoUpload');
+      if (photoInput) photoInput.click();
+    });
+  }
+
+  const photoUpload = document.getElementById('photoUpload');
+  if (photoUpload) {
+    photoUpload.addEventListener('change', (event) => {
+      window.handlePhotoUpload(event);
+    });
+  }
+
+  const toggleCurrentPasswordBtn = document.getElementById('toggleCurrentPassword');
+  if (toggleCurrentPasswordBtn) {
+    toggleCurrentPasswordBtn.addEventListener('click', () => {
+      window.togglePasswordVisibility('currentPassword');
+    });
+  }
+
+  const toggleNewPasswordBtn = document.getElementById('toggleNewPassword');
+  if (toggleNewPasswordBtn) {
+    toggleNewPasswordBtn.addEventListener('click', () => {
+      window.togglePasswordVisibility('newPassword');
+    });
+  }
 });

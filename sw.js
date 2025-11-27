@@ -77,6 +77,28 @@ const optionalExternalResources = [
 self.addEventListener("install", event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(async cache => {
+      console.log("Cacheando archivos...");
+      // Cachear cada URL individualmente para evitar que una falla detenga todo el proceso
+      const cachePromises = urlsToCache.map(async url => {
+        try {
+          const response = await fetch(url, { cache: 'no-cache' });
+          if (response.ok) {
+            await cache.put(url, response);
+            return { url, status: 'cached' };
+          } else {
+            console.warn(`⚠️ No se pudo cachear (HTTP ${response.status}): ${url}`);
+            return { url, status: 'failed', reason: `HTTP ${response.status}` };
+          }
+        } catch (error) {
+          console.warn(`⚠️ Error al cachear ${url}:`, error.message);
+          return { url, status: 'failed', reason: error.message };
+        }
+      });
+      
+      const results = await Promise.all(cachePromises);
+      const cached = results.filter(r => r.status === 'cached').length;
+      const failed = results.filter(r => r.status === 'failed').length;
+      console.log(`✅ Archivos cacheados: ${cached}/${urlsToCache.length} (${failed} fallaron)`);
       console.log("Iniciando cacheo de archivos...");
       
       // Cachear cada URL individualmente para que un fallo no detenga los demás

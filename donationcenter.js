@@ -201,6 +201,14 @@ async function displayArticles(articles) {
               ${
                 isOwner
                 ? `
+                  <button class="btn btn-outline-purple flex-fill shadow-sm" data-action="edit" data-article-id="${article.id}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger flex-fill shadow-sm" data-action="delete" data-article-id="${article.id}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                `
+                : `<button class="btn btn-purple flex-fill shadow-sm" data-action="request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
                   <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
                     <i class="fas fa-edit"></i>
                   </button>
@@ -573,3 +581,31 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     console.error(error);
   }
 }
+
+// ================== EVENT DELEGATION PARA BOTONES DE ARTÍCULOS ==================
+// Usar delegación de eventos para evitar inline event handlers (CSP compliance)
+document.addEventListener('DOMContentLoaded', () => {
+  const articlesGrid = document.getElementById('articlesGrid');
+  if (articlesGrid) {
+    articlesGrid.addEventListener('click', (event) => {
+      const button = event.target.closest('button[data-action]');
+      if (!button) return;
+
+      const action = button.dataset.action;
+      const articleId = button.dataset.articleId;
+      const articleTitle = button.dataset.articleTitle;
+
+      switch (action) {
+        case 'edit':
+          window.editArticle(articleId);
+          break;
+        case 'delete':
+          window.confirmDelete(articleId);
+          break;
+        case 'request':
+          window.showRequestModal(articleId, articleTitle);
+          break;
+      }
+    });
+  }
+});

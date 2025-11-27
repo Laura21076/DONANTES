@@ -7,6 +7,11 @@ const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.a
 
 /**
  * Espera a que el Service Worker esté activo
+ * @param {ServiceWorkerRegistration} registration 
+ * @returns {Promise<ServiceWorkerRegistration>}
+ */
+async function waitForServiceWorkerActive(registration) {
+  // Si ya hay un service worker activo, retornarlo
  * @param {ServiceWorkerRegistration} registration
  * @returns {Promise<ServiceWorkerRegistration>}
  */
@@ -16,6 +21,45 @@ async function waitForServiceWorkerActive(registration) {
     return registration;
   }
 
+  // Si hay uno instalándose o esperando, esperar a que esté activo
+  const sw = registration.installing || registration.waiting;
+  if (sw) {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        sw.removeEventListener('statechange', onStateChange);
+        reject(new Error('Timeout esperando activación del Service Worker'));
+      }, 10000); // 10 segundos timeout
+
+      function onStateChange() {
+        if (sw.state === 'activated') {
+          clearTimeout(timeout);
+          sw.removeEventListener('statechange', onStateChange);
+          resolve(registration);
+        } else if (sw.state === 'redundant') {
+          clearTimeout(timeout);
+          sw.removeEventListener('statechange', onStateChange);
+          reject(new Error('Service Worker se volvió redundante'));
+        }
+      }
+
+      sw.addEventListener('statechange', onStateChange);
+    });
+  }
+
+  // Fallback: esperar al evento controllerchange con timeout
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      reject(new Error('Timeout esperando controllerchange del Service Worker'));
+    }, 10000); // 10 segundos timeout
+
+    function onControllerChange() {
+      clearTimeout(timeout);
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      resolve(registration);
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
   // Esperar a que el SW esté activo
   return new Promise((resolve, reject) => {
     const sw = registration.installing || registration.waiting;
@@ -73,6 +117,10 @@ export async function initializeNotifications() {
       console.error('❌ Error esperando activación del Service Worker:', activeError);
       return false;
     }
+
+    // Esperar a que el Service Worker esté activo antes de continuar
+    registration = await waitForServiceWorkerActive(registration);
+    console.log('✅ Service Worker activo');
 
     // Solicitar permiso para notificaciones
     const permission = await requestNotificationPermission();
