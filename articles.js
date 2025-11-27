@@ -1,6 +1,6 @@
 import { getIdToken } from './auth.js';
 
-const API_URL = 'http://127.0.0.1:4000/api';
+const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
 
 // Crear un nuevo artículo
 export async function createArticle(articleData) {
@@ -148,3 +148,4 @@ export async function deleteArticle(id) {
     throw error;
   }
 }
+
