@@ -24,8 +24,8 @@ function escapeHtml(unsafe) {
 // ================== CARGAR ARTÍCULOS AL INICIAR ==================
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const { getUser } = await import('./auth.js');
-    let user = await getUser();
+    const { getCurrentUser } = await import('./auth.js');
+    let user = await getCurrentUser();
     if (!user) {
       window.location.replace('login.html');
       return;
@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ================== CARGAR PERFIL DE USUARIO ==================
 async function loadUserProfile() {
   try {
-    const { getUser } = await import('./auth.js');
-    const user = await getUser();
+    const { getCurrentUser } = await import('./auth.js');
+    const user = await getCurrentUser();
     if (!user) return;
     const token = await getIdToken();
     const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
@@ -128,8 +128,8 @@ async function displayArticles(articles) {
   const emptyState = document.getElementById('emptyState');
   let currentUser;
   try {
-    const { getUser } = await import('./auth.js');
-    currentUser = await getUser();
+    const { getCurrentUser } = await import('./auth.js');
+    currentUser = await getCurrentUser();
   } catch {
     currentUser = null;
   }
@@ -266,8 +266,8 @@ function setupFormHandlers() {
 async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
-  const { getUser } = await import('./auth.js');
-  const currentUser = await getUser();
+  const { getCurrentUser } = await import('./auth.js');
+  const currentUser = await getCurrentUser();
   const baseData = {
     title: document.getElementById('articleName').value.trim(),
     description: document.getElementById('articleDescription').value.trim(),
