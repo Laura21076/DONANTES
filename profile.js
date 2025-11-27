@@ -18,8 +18,9 @@ async function getAuthToken() {
   // Si aún no hay token, redirigir a login
   if (!token) {
     console.warn('No se encontró token de autenticación, redirigiendo a login');
-    window.location.href = 'login.html';
-    throw new Error('Usuario no autenticado');
+    window.location.replace('login.html');
+    // Retornar null para indicar que no hay token (la redirección ya está en curso)
+    return null;
   }
   
   return token;
@@ -29,8 +30,9 @@ async function getAuthToken() {
 async function handleResponse(resp) {
   if (resp.status === 401 || resp.status === 403) {
     console.warn('Token inválido o expirado, redirigiendo a login');
-    window.location.href = 'login.html';
-    throw new Error('Sesión expirada o inválida');
+    window.location.replace('login.html');
+    // Retornar null para indicar error de autenticación
+    return null;
   }
   return resp;
 }
@@ -38,6 +40,8 @@ async function handleResponse(resp) {
 // 2. Obtener perfil de usuario (GET)
 export async function getProfile() {
   const token = await getAuthToken();
+  if (!token) return null; // Redirección en curso
+  
   const resp = await fetch('https://donantes-backend-202152301689.northamerica-south1.run.app/api/users/profile', {
     method: 'GET',
     headers: {
@@ -47,7 +51,8 @@ export async function getProfile() {
   });
   
   // Manejar token inválido/expirado
-  await handleResponse(resp);
+  const validatedResp = await handleResponse(resp);
+  if (!validatedResp) return null; // Redirección en curso
   
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
@@ -59,6 +64,8 @@ export async function getProfile() {
 // 3. Actualizar perfil de usuario (PUT)
 export async function updateProfile(data) {
   const token = await getAuthToken();
+  if (!token) return null; // Redirección en curso
+  
   const resp = await fetch('https://donantes-backend-202152301689.northamerica-south1.run.app/api/users/profile', {
     method: 'PUT',
     headers: {
@@ -69,7 +76,8 @@ export async function updateProfile(data) {
   });
   
   // Manejar token inválido/expirado
-  await handleResponse(resp);
+  const validatedResp = await handleResponse(resp);
+  if (!validatedResp) return null; // Redirección en curso
   
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
@@ -81,6 +89,8 @@ export async function updateProfile(data) {
 // 4. Cambiar contraseña de usuario (POST)
 export async function updatePassword(newPassword) {
   const token = await getAuthToken();
+  if (!token) return null; // Redirección en curso
+  
   const resp = await fetch('https://donantes-backend-202152301689.northamerica-south1.run.app/api/users/password', {
     method: 'POST',
     headers: {
@@ -91,7 +101,8 @@ export async function updatePassword(newPassword) {
   });
   
   // Manejar token inválido/expirado
-  await handleResponse(resp);
+  const validatedResp = await handleResponse(resp);
+  if (!validatedResp) return null; // Redirección en curso
   
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
@@ -103,6 +114,8 @@ export async function updatePassword(newPassword) {
 // 5. Subir foto de perfil (POST multipart/form-data)
 export async function uploadProfilePhoto(file) {
   const token = await getAuthToken();
+  if (!token) return null; // Redirección en curso
+  
   const formData = new FormData();
   formData.append('photo', file);
 
@@ -116,7 +129,8 @@ export async function uploadProfilePhoto(file) {
   });
   
   // Manejar token inválido/expirado
-  await handleResponse(resp);
+  const validatedResp = await handleResponse(resp);
+  if (!validatedResp) return null; // Redirección en curso
   
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
