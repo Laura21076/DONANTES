@@ -36,3 +36,8 @@
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
+
+/* PWA mode styles for auth-required page */
+.pwa-mode .auth-header {
+  padding-top: 3rem;
+}
