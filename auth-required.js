@@ -20,11 +20,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Detect if accessed from installed PWA
     if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone) {
         document.body.classList.add('pwa-mode');
-
-        // Add additional style for PWA
-        const style = document.createElement('style');
-        style.textContent = '.pwa-mode .auth-header { padding-top: 3rem; }';
-        document.head.appendChild(style);
     }
 
     // URL parameters for customization
