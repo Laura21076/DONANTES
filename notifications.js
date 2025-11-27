@@ -146,7 +146,8 @@ async function subscribeToPush(registration) {
 
 async function sendSubscriptionToServer(subscription) {
   try {
-    const user = getCurrentUser();
+    // FIX: Await getCurrentUser() ya que retorna una Promise
+    const user = await getCurrentUser();
     if (!user) {
       throw new Error('Usuario no autenticado');
     }
@@ -343,7 +344,8 @@ export async function unsubscribeFromNotifications() {
 // ================== AUTO-INIT EN PÁGINAS PRINCIPALES ==================
 
 document.addEventListener('DOMContentLoaded', async () => {
-  const user = getCurrentUser();
+  // FIX: Await getCurrentUser() ya que retorna una Promise
+  const user = await getCurrentUser();
   if (user) {
     setTimeout(() => {
       initializeNotifications();

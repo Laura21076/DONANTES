@@ -696,29 +696,6 @@ async function requestArticleHandler(articleId, message, articleTitle) {
   }
 }
 
-// Attach event listeners for article buttons using event delegation (CSP compatible)
-function attachArticleEventListeners() {
-  const grid = document.getElementById('articlesGrid');
-  if (!grid) return;
-  
-  // Use event delegation on the grid instead of individual button listeners
-  grid.addEventListener('click', function(event) {
-    const target = event.target.closest('button');
-    if (!target) return;
-    
-    const articleId = target.dataset.articleId;
-    const articleTitle = target.dataset.articleTitle;
-    
-    if (target.classList.contains('btn-edit-article')) {
-      event.preventDefault();
-      editArticle(articleId);
-    } else if (target.classList.contains('btn-delete-article')) {
-      event.preventDefault();
-      confirmDelete(articleId);
-    } else if (target.classList.contains('btn-request-article')) {
-      event.preventDefault();
-      showRequestModal(articleId, articleTitle);
-    }
-  });
-}
+// FIX: Se eliminó la función duplicada attachArticleEventListeners() que estaba aquí.
+// La definición correcta con delegation está arriba en las líneas 257-291 junto con handleArticleClick().
 // End of file
