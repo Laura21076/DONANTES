@@ -1,6 +1,6 @@
 // donation-center.js
 
-import { getCurrentLockerCode } from './locker.js'; 
+import { getCurrentLockerCode } from './locker.js';
 import { createArticle, getArticles, updateArticle, deleteArticle } from './articles.js';
 import { getCurrentUser, getIdToken } from './auth.js';
 import { requestArticle as requestArticleService } from './requests.js';
@@ -305,6 +305,10 @@ async function saveArticle() {
     const modal = window.bootstrap?.Modal.getInstance
       ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
       : null;
+    // ⬇️ Mejora de accesibilidad: Quita foco antes de esconder el modal
+    if (modal && modalElement.contains(document.activeElement)) {
+      document.activeElement.blur();
+    }
     if (modal) modal.hide();
 
     await loadArticles(true);
@@ -353,7 +357,14 @@ window.editArticle = function(articleId) {
   const modal = window.bootstrap?.Modal.getInstance
     ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
     : null;
-  if (modal) modal.show();
+  // ⬇️ Mejora de accesibilidad: enfoca el campo principal al abrir el modal
+  if (modal) {
+    modal.show();
+    setTimeout(() => {
+      const firstInput = modalElement.querySelector('input, textarea, select');
+      if (firstInput) firstInput.focus();
+    }, 400);
+  }
 };
 
 window.confirmDelete = async function(articleId) {
