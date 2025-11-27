@@ -99,34 +99,46 @@ function displaySentRequests(requests) {
     } catch (error) {
       date = 'Fecha inválida';
     }
-    // Escape special characters in strings for data attributes
-    const escapedAccessCode = (req.accessCode || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-    const escapedLockerLocation = (req.lockerLocation || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
-    const escapedLockerId = (req.lockerId || '').replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+    // Escape special characters in strings for data attributes (full HTML entity escaping)
+    const escapeHtmlAttr = (str) => {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\n/g, '&#10;')
+        .replace(/\r/g, '&#13;');
+    };
+    
+    const escapedAccessCode = escapeHtmlAttr(req.accessCode);
+    const escapedLockerLocation = escapeHtmlAttr(req.lockerLocation);
+    const escapedLockerId = escapeHtmlAttr(req.lockerId);
     
     return `
       <div class="col-md-6 col-lg-4">
         <div class="card request-card h-100" style="border: 1px solid #E8DFF5; background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 12px rgba(110, 73, 163, 0.15);">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-3">
-              <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${req.articleTitle}</h5>
+              <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${escapeHtmlAttr(req.articleTitle)}</h5>
               <span class="badge ${statusInfo.class}" style="${statusInfo.style || ''}">${statusInfo.text}</span>
             </div>
-            ${req.message ? `<p class="card-text" style="color: #5A4A6B;"><small><i class="fas fa-comment"></i> ${req.message}</small></p>` : ''}
+            ${req.message ? `<p class="card-text" style="color: #5A4A6B;"><small><i class="fas fa-comment"></i> ${escapeHtmlAttr(req.message)}</small></p>` : ''}
             <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
             ${req.status === 'aprobada' ? `
               <div class="alert alert-success mb-3">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
                     <strong>Código de acceso:</strong>
-                    <div class="access-code">${req.accessCode}</div>
+                    <div class="access-code">${escapeHtmlAttr(req.accessCode)}</div>
                   </div>
                   <button class="btn btn-sm btn-outline-success btn-copy-code" data-code="${escapedAccessCode}">
                     <i class="fas fa-copy"></i>
                   </button>
                 </div>
-                ${req.lockerLocation ? `<p class=\"mb-0 mt-2\"><i class=\"fas fa-map-marker-alt\"></i> ${req.lockerLocation}</p>` : ''}
-                ${req.lockerId ? `<p class=\"mb-0\"><i class=\"fas fa-lock\"></i> Casillero: ${req.lockerId}</p>` : ''}
+                ${req.lockerLocation ? `<p class=\"mb-0 mt-2\"><i class=\"fas fa-map-marker-alt\"></i> ${escapeHtmlAttr(req.lockerLocation)}</p>` : ''}
+                ${req.lockerId ? `<p class=\"mb-0\"><i class=\"fas fa-lock\"></i> Casillero: ${escapeHtmlAttr(req.lockerId)}</p>` : ''}
               </div>
               <button class="btn btn-info w-100 mb-2 btn-pickup-details" data-locker-location="${escapedLockerLocation}" data-locker-id="${escapedLockerId}">
                 <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
@@ -136,7 +148,7 @@ function displaySentRequests(requests) {
               </button>
             ` : req.status === 'rechazada' && req.rejectionReason ? `
               <div class="alert alert-danger">
-                <small><i class="fas fa-exclamation-circle"></i> ${req.rejectionReason}</small>
+                <small><i class="fas fa-exclamation-circle"></i> ${escapeHtmlAttr(req.rejectionReason)}</small>
               </div>
             ` : ''}
           </div>
@@ -150,13 +162,13 @@ function displaySentRequests(requests) {
 }
 
 // Attach event listeners for sent requests grid
+let sentRequestsListenerAttached = false;
 function attachSentRequestsListeners() {
   const grid = document.getElementById('sentRequestsGrid');
-  if (!grid) return;
+  if (!grid || sentRequestsListenerAttached) return;
   
-  // Remove existing listener to avoid duplicates
-  grid.removeEventListener('click', handleSentRequestsClick);
   grid.addEventListener('click', handleSentRequestsClick);
+  sentRequestsListenerAttached = true;
 }
 
 // Handle click events for sent requests
@@ -339,13 +351,13 @@ function displayReceivedRequests(requests) {
 }
 
 // Attach event listeners for received requests grid
+let receivedRequestsListenerAttached = false;
 function attachReceivedRequestsListeners() {
   const grid = document.getElementById('receivedRequestsGrid');
-  if (!grid) return;
+  if (!grid || receivedRequestsListenerAttached) return;
   
-  // Remove existing listener to avoid duplicates
-  grid.removeEventListener('click', handleReceivedRequestsClick);
   grid.addEventListener('click', handleReceivedRequestsClick);
+  receivedRequestsListenerAttached = true;
 }
 
 // Handle click events for received requests

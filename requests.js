@@ -18,13 +18,18 @@ export async function requestArticle(articleId, message = '') {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'Error desconocido' }));
+      let errorData = { error: 'Error desconocido' };
+      try {
+        errorData = await response.json();
+      } catch (parseError) {
+        console.warn('Error al parsear respuesta de error:', parseError);
+      }
       
       // Provide clear error messages based on status code
       if (response.status === 404) {
         throw new Error('El artículo ya no está disponible o fue eliminado.');
       } else if (response.status === 400) {
-        throw new Error(error.error || 'No se puede solicitar este artículo. Puede que ya esté reservado o ya hayas enviado una solicitud.');
+        throw new Error(errorData.error || 'No se puede solicitar este artículo. Puede que ya esté reservado o ya hayas enviado una solicitud.');
       } else if (response.status === 401) {
         throw new Error('Tu sesión ha expirado. Por favor inicia sesión nuevamente.');
       } else if (response.status === 403) {
@@ -32,7 +37,7 @@ export async function requestArticle(articleId, message = '') {
       } else if (response.status === 409) {
         throw new Error('Ya has solicitado este artículo anteriormente.');
       } else {
-        throw new Error(error.error || 'Error al solicitar artículo. Intenta de nuevo más tarde.');
+        throw new Error(errorData.error || 'Error al solicitar artículo. Intenta de nuevo más tarde.');
       }
     }
 

@@ -84,7 +84,7 @@ self.addEventListener("install", event => {
         try {
           const response = await fetch(url);
           if (response.ok) {
-            await cache.put(url, response);
+            await cache.put(url, response.clone());
             return { url, success: true };
           } else {
             console.warn(`⚠️ No se pudo cachear (status ${response.status}): ${url}`);
@@ -101,7 +101,7 @@ self.addEventListener("install", event => {
         try {
           const response = await fetch(url);
           if (response.ok) {
-            await cache.put(url, response);
+            await cache.put(url, response.clone());
             return { url, success: true, optional: true };
           } else {
             console.warn(`⚠️ Recurso externo opcional no disponible (status ${response.status}): ${url}`);
