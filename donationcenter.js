@@ -2,7 +2,7 @@
 
 import { getCurrentLockerCode } from './locker.js';
 import { createArticle, getArticles, updateArticle, deleteArticle } from './articles.js';
-import { getUser, getIdToken } from './auth.js';
+import { getCurrentUser, getIdToken } from './auth.js';
 import { requestArticle as requestArticleService } from './requests.js';
 import { storage } from './firebase.js';
 import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
@@ -397,4 +397,5 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     console.error(error);
   }
 }
+
 
