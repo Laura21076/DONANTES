@@ -193,7 +193,7 @@ async function sendSubscriptionToServer(subscription) {
         errorData = { rawResponse: errorText };
       }
       
-      console.error('❌ [NOTIFICATIONS] Error del servidor (HTTP', response.status + ')');
+      console.error(`❌ [NOTIFICATIONS] Error del servidor (HTTP ${response.status})`);
       console.error('❌ [NOTIFICATIONS] Respuesta completa:', errorData);
       console.error('❌ [NOTIFICATIONS] Datos enviados que causaron el error:', requestBody);
       

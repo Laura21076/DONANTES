@@ -12,6 +12,34 @@ const PLACEHOLDER_IMAGE = 'assets/placeholder.png';
 // Firebase Storage bucket
 const FIREBASE_STORAGE_BUCKET = 'donantes-400ba.appspot.com';
 
+// Valid Firebase Storage URL prefixes
+const FIREBASE_STORAGE_PREFIX = 'https://firebasestorage.googleapis.com/';
+const FIREBASE_STORAGE_APP_PREFIX = '.firebasestorage.app/';
+
+/**
+ * Validates if a URL is a legitimate Firebase Storage URL
+ * Uses strict URL parsing to prevent URL manipulation attacks
+ * 
+ * @param {string} url - URL to validate
+ * @returns {boolean}
+ */
+function isValidFirebaseStorageUrl(url) {
+  if (!url || typeof url !== 'string') return false;
+  
+  try {
+    const parsed = new URL(url);
+    // Only allow https protocol
+    if (parsed.protocol !== 'https:') return false;
+    
+    // Check if hostname is exactly firebasestorage.googleapis.com
+    // or ends with .firebasestorage.app
+    return parsed.hostname === 'firebasestorage.googleapis.com' ||
+           parsed.hostname.endsWith('.firebasestorage.app');
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Construye una URL correcta para Firebase Storage
  * Aplica encodeURIComponent a cada parte del path
@@ -22,14 +50,20 @@ const FIREBASE_STORAGE_BUCKET = 'donantes-400ba.appspot.com';
 export function buildFirebaseStorageUrl(path) {
   if (!path) return PLACEHOLDER_IMAGE;
   
-  // Si ya es una URL completa de Firebase Storage, la retornamos
-  if (path.startsWith('https://firebasestorage.googleapis.com')) {
+  // Si ya es una URL completa de Firebase Storage, validamos y la retornamos
+  if (path.startsWith('https://')) {
+    // Validate it's actually a Firebase Storage URL
+    if (isValidFirebaseStorageUrl(path)) {
+      return path;
+    }
+    // Return as-is for other https URLs (trusted external images)
     return path;
   }
   
-  // Si es una URL de cualquier otro tipo, la retornamos como está
-  if (path.startsWith('http://') || path.startsWith('https://')) {
-    return path;
+  // Si es http, rechazamos por seguridad
+  if (path.startsWith('http://')) {
+    console.warn('[IMAGE_UTILS] Rejected insecure http URL:', path);
+    return PLACEHOLDER_IMAGE;
   }
   
   // Codificar cada parte del path
@@ -42,15 +76,13 @@ export function buildFirebaseStorageUrl(path) {
 }
 
 /**
- * Verifica si una URL es de Firebase Storage
+ * Verifica si una URL es de Firebase Storage usando validación estricta
  * 
  * @param {string} url - URL a verificar
  * @returns {boolean}
  */
 export function isFirebaseStorageUrl(url) {
-  if (!url) return false;
-  return url.includes('firebasestorage.googleapis.com') || 
-         url.includes('.firebasestorage.app');
+  return isValidFirebaseStorageUrl(url);
 }
 
 /**
