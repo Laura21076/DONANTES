@@ -44,53 +44,36 @@
           <input type="text" class="form-control" id="firstName" required>
           <div class="invalid-feedback">Por favor, ingresa tu nombre.</div>
         </div>
-
         <div class="col-md-6">
           <label for="lastName" class="form-label">Apellido</label>
           <input type="text" class="form-control" id="lastName" required>
           <div class="invalid-feedback">Por favor, ingresa tu apellido.</div>
         </div>
-
         <div class="col-12">
           <label for="registerEmail" class="form-label">Correo electrónico</label>
           <input type="email" class="form-control" id="registerEmail" required>
           <div class="invalid-feedback">Ingresa un correo válido.</div>
         </div>
-
-          <label for="registerPassword" class="form-label">Contraseña</label>
-          <input type="password" class="form-control" id="registerPassword" required minlength="6">
-          <div class="invalid-feedback">Mínimo 6 caracteres.</div>
-        </div>
-
-        <div class="col-md-6">
-          <label for="confirmPassword" class="form-label">Confirmar contraseña</label>
-          <input type="password" class="form-control" id="confirmPassword" required>
-          <div class="invalid-feedback">Las contraseñas deben coincidir.</div>
-        </div>
-
-        <div class="col-12">
         <div class="col-md-6">
           <label for="registerPassword" class="form-label">Contraseña</label>
           <div class="input-group">
             <input type="password" class="form-control" id="registerPassword" required minlength="6">
-            <button type="button" class="btn btn-outline-secondary" id="toggleRegisterPassword" tabindex="-1" onclick="togglePasswordVisibility('registerPassword','registerPasswordIcon')">
+            <button type="button" class="btn btn-outline-secondary" id="toggleRegisterPassword" tabindex="-1" type="button">
               <i class="fas fa-eye" id="registerPasswordIcon"></i>
             </button>
           </div>
           <div class="invalid-feedback">Mínimo 6 caracteres.</div>
         </div>
-
         <div class="col-md-6">
           <label for="confirmPassword" class="form-label">Confirmar contraseña</label>
           <div class="input-group">
             <input type="password" class="form-control" id="confirmPassword" required>
-            <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword" tabindex="-1" onclick="togglePasswordVisibility('confirmPassword','confirmPasswordIcon')">
+            <button type="button" class="btn btn-outline-secondary" id="toggleConfirmPassword" tabindex="-1" type="button">
               <i class="fas fa-eye" id="confirmPasswordIcon"></i>
             </button>
           </div>
           <div class="invalid-feedback">Las contraseñas deben coincidir.</div>
         </div>
-
         <div class="col-12">
           <div class="form-check mt-2">
             <input class="form-check-input" type="checkbox" id="termsCheck" required>
@@ -100,15 +83,12 @@
             <div class="invalid-feedback">Debes aceptar los términos antes de continuar.</div>
           </div>
         </div>
-
         <div class="col-12 mt-3">
           <button class="btn btn-purple w-100" type="submit">Registrarse</button>
         </div>
-
         <div class="col-12 text-center mt-3">
           <p>¿Ya tienes cuenta? <a href="login.html" class="link">Inicia sesión aquí</a></p>
         </div>
-
         <div class="col-12 text-center mt-2">
           <a href="index.html" class="btn btn-outline-purple btn-sm">← Volver al inicio</a>
         </div>
@@ -116,12 +96,9 @@
     </div>
   </section>
 
- <script type="module" src="register.js"></script>
- <script type="module" src="auth.js"></script>
- <script type="module" src="auth-guard.js"></script>
+  <script type="module" src="register.js"></script>
+  <script type="module" src="auth.js"></script>
+  <script type="module" src="auth-guard.js"></script>
 
 </body>
 </html>
-
-
-
