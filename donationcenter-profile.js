@@ -1,20 +1,62 @@
-import { getProfile, updateProfile, updatePassword, uploadProfilePhoto } from './profile.js';
+/**
+ * donationcenter-profile.js
+ * 
+ * MEJORAS IMPLEMENTADAS:
+ * 1. Se verifica autenticación de Firebase antes de cargar el perfil
+ * 2. Se eliminaron event handlers inline (onclick, onchange) del HTML
+ * 3. Todos los event listeners se manejan en este archivo JS externo
+ * 4. Se muestra feedback visual cuando el usuario no está autenticado
+ */
 
-// Mostrar Toast
+import { getProfile, updateProfile, updatePassword, uploadProfilePhoto } from './profile.js';
+import { auth } from './firebase.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+// Mostrar Toast - función para mostrar mensajes al usuario
 function showToast(message, type = "success") {
   const toast = document.getElementById('toast');
   if (!toast) return;
   const toastBody = toast.querySelector('.toast-body');
   if (!toastBody) return;
   toastBody.textContent = message;
-  toast.classList.remove('bg-success', 'bg-danger');
-  toast.classList.add(type === 'success' ? 'bg-success' : 'bg-danger');
+  toast.classList.remove('bg-success', 'bg-danger', 'bg-warning');
+  toast.classList.add(type === 'success' ? 'bg-success' : (type === 'warning' ? 'bg-warning' : 'bg-danger'));
   const bsToast = bootstrap.Toast.getOrCreateInstance(toast);
   bsToast.show();
 }
 
-// Cargar perfil e inicializar el formulario
+/**
+ * MEJORA: Función para mostrar feedback visual cuando no hay usuario autenticado
+ * En lugar de lanzar error de consola, muestra un mensaje amigable al usuario
+ */
+function mostrarEstadoNoAutenticado() {
+  const profileDisplayName = document.getElementById('profileDisplayName');
+  const profileDisplayEmail = document.getElementById('profileDisplayEmail');
+  
+  if (profileDisplayName) {
+    profileDisplayName.textContent = 'No autenticado';
+  }
+  if (profileDisplayEmail) {
+    profileDisplayEmail.textContent = 'Inicia sesión para ver tu perfil';
+  }
+  
+  // Mostrar mensaje informativo (no error)
+  showToast('Por favor inicia sesión para acceder a tu perfil', 'warning');
+}
+
+/**
+ * MEJORA: Cargar perfil solo si el usuario está autenticado
+ * Se verifica firebase.auth().currentUser antes de solicitar datos
+ */
 async function cargarPerfil() {
+  // MEJORA: Verificar que existe usuario autenticado antes de cargar perfil
+  const currentUser = auth.currentUser;
+  if (!currentUser) {
+    console.log('No hay usuario autenticado, mostrando estado de no autenticado');
+    mostrarEstadoNoAutenticado();
+    return;
+  }
+  
   try {
     const perfil = await getProfile();
     console.log("Perfil recibido:", perfil);
@@ -62,10 +104,19 @@ async function cargarPerfil() {
   }
 }
 
-// Subida de foto de perfil
-window.handlePhotoUpload = async function (event) {
+/**
+ * MEJORA: Subida de foto de perfil - manejada por event listener en lugar de inline
+ */
+async function handlePhotoUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
+  
+  // MEJORA: Verificar autenticación antes de subir foto
+  if (!auth.currentUser) {
+    showToast('Debes iniciar sesión para subir una foto', 'warning');
+    return;
+  }
+  
   try {
     document.getElementById('saveProfileSpinner').classList.remove('d-none');
     await uploadProfilePhoto(file);
@@ -76,14 +127,95 @@ window.handlePhotoUpload = async function (event) {
   } finally {
     document.getElementById('saveProfileSpinner').classList.add('d-none');
   }
-};
+}
 
-// Guardar cambios de perfil
-document.getElementById('profileForm').addEventListener('submit', async function (e) {
+/**
+ * MEJORA: Mostrar/ocultar contraseña - función movida de inline a JS externo
+ */
+function togglePasswordVisibility(id) {
+  const input = document.getElementById(id);
+  const icon  = document.getElementById(id + 'Icon');
+  if (!input || !icon) return;
+  if (input.type === "password") {
+    input.type = "text";
+    icon.classList.remove('fa-eye');
+    icon.classList.add('fa-eye-slash');
+  } else {
+    input.type = "password";
+    icon.classList.add('fa-eye');
+    icon.classList.remove('fa-eye-slash');
+  }
+}
+
+/**
+ * MEJORA: Configurar todos los event listeners al cargar el DOM
+ * Esto reemplaza los event handlers inline en el HTML
+ */
+function setupEventListeners() {
+  // MEJORA: Event listener para el botón de volver (antes: onclick inline)
+  const backBtn = document.getElementById('backToDonationsBtn');
+  if (backBtn) {
+    backBtn.addEventListener('click', () => {
+      window.location.href = 'donationcenter.html';
+    });
+  }
+  
+  // MEJORA: Event listener para el overlay de foto (antes: onclick inline)
+  // Requiere ambos elementos: overlay y input
+  const photoOverlay = document.getElementById('profilePhotoOverlay');
+  const photoUploadInput = document.getElementById('photoUpload');
+  if (photoOverlay && photoUploadInput) {
+    photoOverlay.addEventListener('click', () => {
+      photoUploadInput.click();
+    });
+  }
+  
+  // MEJORA: Event listener para subida de foto (antes: onchange inline)
+  // Solo requiere el input, independiente del overlay
+  if (photoUploadInput) {
+    photoUploadInput.addEventListener('change', handlePhotoUpload);
+  }
+  
+  // MEJORA: Event listeners para toggle de contraseñas (antes: onclick inline)
+  const toggleCurrentPasswordBtn = document.getElementById('toggleCurrentPassword');
+  if (toggleCurrentPasswordBtn) {
+    toggleCurrentPasswordBtn.addEventListener('click', () => {
+      togglePasswordVisibility('currentPassword');
+    });
+  }
+  
+  const toggleNewPasswordBtn = document.getElementById('toggleNewPassword');
+  if (toggleNewPasswordBtn) {
+    toggleNewPasswordBtn.addEventListener('click', () => {
+      togglePasswordVisibility('newPassword');
+    });
+  }
+  
+  // Event listener para el formulario de perfil
+  const profileForm = document.getElementById('profileForm');
+  if (profileForm) {
+    profileForm.addEventListener('submit', handleProfileSubmit);
+  }
+}
+
+/**
+ * Handler para el envío del formulario de perfil
+ */
+async function handleProfileSubmit(e) {
   e.preventDefault();
+  
+  // MEJORA: Verificar autenticación antes de guardar
+  if (!auth.currentUser) {
+    showToast('Debes iniciar sesión para actualizar tu perfil', 'warning');
+    return;
+  }
+  
   const btn = document.getElementById('saveProfileBtn');
-  document.getElementById('saveProfileSpinner').classList.remove('d-none');
-  btn.disabled = true;
+  const spinner = document.getElementById('saveProfileSpinner');
+  
+  if (spinner) spinner.classList.remove('d-none');
+  if (btn) btn.disabled = true;
+  
   try {
     const data = {
       firstName: document.getElementById('firstName').value.trim(),
@@ -110,26 +242,31 @@ document.getElementById('profileForm').addEventListener('submit', async function
   } catch (err) {
     showToast("No se pudo actualizar el perfil: " + (err?.message || err), "danger");
   } finally {
-    document.getElementById('saveProfileSpinner').classList.add('d-none');
-    btn.disabled = false;
+    if (spinner) spinner.classList.add('d-none');
+    if (btn) btn.disabled = false;
   }
+}
+
+/**
+ * MEJORA: Inicialización con verificación de estado de autenticación
+ * Se usa onAuthStateChanged para esperar a que Firebase Auth esté listo
+ * antes de intentar cargar el perfil
+ */
+document.addEventListener('DOMContentLoaded', () => {
+  // Configurar event listeners inmediatamente
+  setupEventListeners();
+  
+  // MEJORA: Usar onAuthStateChanged para esperar confirmación de autenticación
+  // Esto evita errores de consola cuando el usuario no está autenticado
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      // Usuario autenticado, cargar perfil
+      console.log('Usuario autenticado, cargando perfil...');
+      cargarPerfil();
+    } else {
+      // No hay usuario autenticado, mostrar feedback visual sin error de consola
+      console.log('No hay usuario autenticado');
+      mostrarEstadoNoAutenticado();
+    }
+  });
 });
-
-// Mostrar/ocultar contraseña
-window.togglePasswordVisibility = function(id) {
-  const input = document.getElementById(id);
-  const icon  = document.getElementById(id + 'Icon');
-  if (!input || !icon) return;
-  if (input.type === "password") {
-    input.type = "text";
-    icon.classList.remove('fa-eye');
-    icon.classList.add('fa-eye-slash');
-  } else {
-    input.type = "password";
-    icon.classList.add('fa-eye');
-    icon.classList.remove('fa-eye-slash');
-  }
-};
-
-// Inicializar
-document.addEventListener('DOMContentLoaded', cargarPerfil);
