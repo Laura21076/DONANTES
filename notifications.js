@@ -19,22 +19,42 @@ async function waitForServiceWorkerActive(registration) {
   // Si hay uno instalándose o esperando, esperar a que esté activo
   const sw = registration.installing || registration.waiting;
   if (sw) {
-    return new Promise((resolve) => {
-      sw.addEventListener('statechange', function onStateChange() {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        sw.removeEventListener('statechange', onStateChange);
+        reject(new Error('Timeout esperando activación del Service Worker'));
+      }, 10000); // 10 segundos timeout
+
+      function onStateChange() {
         if (sw.state === 'activated') {
+          clearTimeout(timeout);
           sw.removeEventListener('statechange', onStateChange);
           resolve(registration);
+        } else if (sw.state === 'redundant') {
+          clearTimeout(timeout);
+          sw.removeEventListener('statechange', onStateChange);
+          reject(new Error('Service Worker se volvió redundante'));
         }
-      });
+      }
+
+      sw.addEventListener('statechange', onStateChange);
     });
   }
 
-  // Fallback: esperar al evento controllerchange
-  return new Promise((resolve) => {
-    navigator.serviceWorker.addEventListener('controllerchange', function onControllerChange() {
+  // Fallback: esperar al evento controllerchange con timeout
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      reject(new Error('Timeout esperando controllerchange del Service Worker'));
+    }, 10000); // 10 segundos timeout
+
+    function onControllerChange() {
+      clearTimeout(timeout);
       navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
       resolve(registration);
-    });
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
   });
 }
 

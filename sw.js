@@ -84,7 +84,7 @@ self.addEventListener("install", event => {
       // Cachear cada URL individualmente para evitar que una falla detenga todo el proceso
       const cachePromises = urlsToCache.map(async url => {
         try {
-          const response = await fetch(url, { cache: 'reload' });
+          const response = await fetch(url, { cache: 'no-cache' });
           if (response.ok) {
             await cache.put(url, response);
             return { url, status: 'cached' };
