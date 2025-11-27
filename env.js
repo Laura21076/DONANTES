@@ -19,3 +19,4 @@ window.__ENV__ = {
   // Emuladores de Firebase (solo si los tienes corriendo): true/false
   USE_FIREBASE_EMULATOR: false
 };
+
