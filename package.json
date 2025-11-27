@@ -41,6 +41,7 @@
     "@capacitor/push-notifications": "^6.0.4",
     "@capacitor/splash-screen": "^6.0.3",
     "@capacitor/status-bar": "^6.0.2",
+    "acorn": "^8.15.0",
     "http-server": "^14.1.1",
     "npm-run-all": "^4.1.5",
     "typescript": "^5.9.3",
