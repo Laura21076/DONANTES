@@ -7,6 +7,10 @@
  * 3. Si hay error en la subida, NO se intenta guardar el artículo en DB
  * 4. Si falla guardar el artículo, se elimina la imagen huérfana
  * 5. Mensajes de error claros y específicos para cada tipo de fallo
+ * 6. Siempre subir imagen primero a Firebase Storage, solo enviar URL al backend
+ * 7. Manejo robusto de errores no-JSON del backend
+ * 8. Limpieza de UI (desbloqueo botón, cierre modal) en cualquier error o timeout
+ * 9. Toast/mensaje visible para todos los errores
  */
 
 import { getCurrentLockerCode } from './locker.js';
@@ -16,6 +20,9 @@ import { requestArticle as requestArticleService } from './requests.js';
 import { storage } from './firebase.js';
 // MEJORA: Agregamos deleteObject y getMetadata para verificación y limpieza de imágenes huérfanas
 import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+
+// Timeout máximo para operaciones de subida (30 segundos)
+const UPLOAD_TIMEOUT_MS = 30000;
 
 let currentArticleId = null;
 let articlesCache = [];
@@ -305,7 +312,42 @@ function getTimeRemaining(expiresAt) {
   return `${minutes}m`;
 }
 
+/**
+ * Muestra un mensaje de feedback al usuario.
+ * Intenta usar toast si está disponible, de lo contrario usa el div de feedback.
+ */
 function showMessage(text, type) {
+  console.log(`[showMessage] ${type.toUpperCase()}: ${text}`);
+  
+  // Intentar usar toast de Bootstrap si está disponible
+  const toast = document.getElementById('toast');
+  if (toast && window.bootstrap?.Toast) {
+    const toastBody = toast.querySelector('.toast-body');
+    if (toastBody) {
+      // Configurar estilo según el tipo
+      toast.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+      switch (type) {
+        case 'success':
+          toast.style.backgroundColor = '#A992D8'; // Morado claro
+          break;
+        case 'danger':
+          toast.style.backgroundColor = '#6E49A3'; // Morado principal
+          break;
+        case 'warning':
+          toast.style.backgroundColor = '#8C78BF'; // Morado hover
+          break;
+        default:
+          toast.style.backgroundColor = '#8C78BF';
+      }
+      toast.style.color = '#ffffff';
+      toastBody.textContent = text;
+      const bsToast = new window.bootstrap.Toast(toast);
+      bsToast.show();
+      return; // Toast mostrado, no necesitamos el div de feedback
+    }
+  }
+  
+  // Fallback: usar el div de feedback message
   const messageDiv = document.getElementById('feedbackMessage');
   if (messageDiv) {
     messageDiv.innerHTML = `
@@ -368,132 +410,189 @@ async function eliminarImagenHuerfana(fileRef) {
 }
 
 /**
+ * Helper: Ejecutar operación con timeout
+ * @param {Promise} promise - La promesa a ejecutar
+ * @param {number} timeoutMs - Tiempo máximo en ms
+ * @param {string} operationName - Nombre de la operación para logs
+ */
+function withTimeout(promise, timeoutMs, operationName) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error(`Timeout: ${operationName} tardó más de ${timeoutMs/1000}s`)), timeoutMs)
+    )
+  ]);
+}
+
+/**
+ * Helper: Limpiar UI después de cualquier operación (éxito o error)
+ */
+function cleanupFormUI() {
+  console.log('[UI_CLEANUP] Limpiando estado de la UI...');
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = currentArticleId ? 'Actualizar artículo' : 'Publicar artículo';
+  }
+}
+
+/**
+ * Helper: Cerrar el modal de forma segura
+ */
+function closeUploadModal() {
+  try {
+    const modalElement = document.getElementById('uploadModal');
+    if (!modalElement) return;
+    
+    const modal = window.bootstrap?.Modal?.getInstance?.(modalElement);
+    if (modal) {
+      // Quitar foco del elemento activo antes de cerrar
+      if (modalElement.contains(document.activeElement)) {
+        document.activeElement.blur();
+      }
+      modal.hide();
+    }
+  } catch (e) {
+    console.warn('[closeUploadModal] Error al cerrar modal:', e.message);
+  }
+}
+
+/**
  * MEJORA: Función saveArticle con manejo robusto de subida de imágenes
  * - Logs claros con "[UPLOAD_OK]" tras subida exitosa
  * - Verificación de existencia del archivo
  * - Error específico si falla la subida (no intenta guardar artículo con link roto)
  * - Limpieza de imágenes huérfanas si falla guardar el artículo
+ * - Timeout para evitar que se quede "cargando" indefinidamente
+ * - Siempre subir imagen primero a Firebase Storage, solo enviar URL al backend
  */
 async function saveArticle() {
+  console.log('[saveArticle] Iniciando proceso de guardado...');
+  
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
-  const user = await getCurrentUser();
-  const baseData = {
-    title: document.getElementById('articleName').value.trim(),
-    description: document.getElementById('articleDescription').value.trim(),
-    category: document.getElementById('articleCategory').value,
-    condition: document.getElementById('articleCondition').value,
-    location: document.getElementById('articleLocation').value.trim() || null
-  };
+  const submitBtn = document.getElementById('submitBtn');
   
   // Variable para trackear la referencia de la imagen subida (para limpieza si falla)
   let uploadedFileRef = null;
-  // Flag para indicar si hubo error de subida (evita guardar artículo con link roto)
-  let uploadFailed = false;
-  // Flag para indicar si hubo error al guardar en DB
-  let dbSaveFailed = false;
   
   try {
-    const submitBtn = document.getElementById('submitBtn');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+    // Obtener usuario actual
+    const user = await getCurrentUser();
+    if (!user) {
+      showMessage('Error: No hay sesión activa. Por favor inicia sesión.', 'danger');
+      return;
+    }
+    console.log('[saveArticle] Usuario autenticado:', user.uid);
+    
+    // Bloquear botón de submit
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+    }
 
-    let imageUrl = urlInput.value.trim() || null;
-    const file = fileInput.files?.[0] || null;
+    // Construir datos base del artículo
+    const baseData = {
+      title: document.getElementById('articleName').value.trim(),
+      description: document.getElementById('articleDescription').value.trim(),
+      category: document.getElementById('articleCategory').value,
+      condition: document.getElementById('articleCondition').value,
+      location: document.getElementById('articleLocation').value.trim() || null
+    };
+    console.log('[saveArticle] Datos del artículo:', baseData);
 
-    // MEJORA: Subida de imagen con verificación y logs claros
-    if (file && user?.uid) {
+    // Determinar la URL de la imagen
+    let imageUrl = urlInput?.value?.trim() || null;
+    const file = fileInput?.files?.[0] || null;
+
+    // PASO 1: Subir imagen a Firebase Storage si hay archivo seleccionado
+    if (file) {
+      console.log('[UPLOAD_START] Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'bytes');
+      
       const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
       const path = `articles/${user.uid}/${Date.now()}_${safeName}`;
       const fileRef = ref(storage, path);
       
-      console.log('[UPLOAD_START] Iniciando subida de imagen:', path);
-      
       try {
-        // Subir archivo a Firebase Storage
-        await uploadBytes(fileRef, file);
-        console.log('[UPLOAD_OK] Imagen subida exitosamente:', path);
+        // Subir archivo con timeout
+        console.log('[UPLOAD_START] Iniciando subida a Firebase Storage:', path);
+        await withTimeout(uploadBytes(fileRef, file), UPLOAD_TIMEOUT_MS, 'subida de imagen');
+        console.log('[UPLOAD_OK] Imagen subida exitosamente a Firebase Storage');
         
-        // MEJORA: Verificar que el archivo existe después de subir
-        try {
-          const metadata = await getMetadata(fileRef);
-          console.log('[UPLOAD_VERIFY] Archivo verificado, tamaño:', metadata.size, 'bytes');
-        } catch (verifyError) {
-          // Si no podemos verificar la existencia, lanzar error
-          console.error('[UPLOAD_VERIFY_FAIL] No se pudo verificar la existencia del archivo');
-          throw new Error('Error verificando la imagen subida. Intente nuevamente.');
-        }
+        // Verificar que el archivo existe
+        console.log('[UPLOAD_VERIFY] Verificando que el archivo existe...');
+        const metadata = await withTimeout(getMetadata(fileRef), 10000, 'verificación de imagen');
+        console.log('[UPLOAD_VERIFY_OK] Archivo verificado, tamaño:', metadata.size, 'bytes');
         
-        // Obtener la URL de descarga
-        imageUrl = await getDownloadURL(fileRef);
-        console.log('[UPLOAD_URL_OK] URL de descarga obtenida correctamente');
+        // Obtener URL de descarga
+        console.log('[UPLOAD_URL] Obteniendo URL de descarga...');
+        imageUrl = await withTimeout(getDownloadURL(fileRef), 10000, 'obtención de URL');
+        console.log('[UPLOAD_URL_OK] URL de descarga obtenida:', imageUrl.substring(0, 50) + '...');
         
-        // Guardar referencia para posible limpieza posterior
+        // Guardar referencia para posible limpieza
         uploadedFileRef = fileRef;
         
       } catch (uploadError) {
-        // MEJORA: Error específico en subida de imagen - NO intentar guardar artículo
-        console.error('[UPLOAD_ERROR] Error al subir imagen:', uploadError.message);
-        showMessage('Error al subir la imagen: ' + (uploadError?.message || 'Error desconocido'), 'danger');
-        // Marcar que la subida falló para no continuar con el guardado
-        uploadFailed = true;
+        console.error('[UPLOAD_ERROR] Error en la subida de imagen:', uploadError);
+        showMessage('Error al subir la imagen: ' + (uploadError?.message || 'Error desconocido. Verifica tu conexión.'), 'danger');
+        // NO continuar con el guardado del artículo si la imagen falló
+        return;
       }
     }
 
-    // MEJORA: Solo intentar guardar si la subida de imagen fue exitosa (o no hubo imagen)
-    if (!uploadFailed) {
-      const articleData = { ...baseData, imageUrl };
-
-      // MEJORA: Intentar guardar artículo con manejo de error y limpieza de imagen huérfana
-      try {
-        if (currentArticleId) {
-          await updateArticle(currentArticleId, articleData);
-          showMessage('Artículo actualizado exitosamente', 'success');
-          console.log('[ARTICLE_UPDATE_OK] Artículo actualizado:', currentArticleId);
-        } else {
-          await createArticle(articleData);
-          showMessage('Artículo publicado exitosamente', 'success');
-          console.log('[ARTICLE_CREATE_OK] Artículo creado exitosamente');
-        }
-      } catch (dbError) {
-        // MEJORA: Si falla guardar en Firestore, eliminar imagen huérfana
-        console.error('[ARTICLE_SAVE_ERROR] Error al guardar artículo en DB:', dbError.message);
-        dbSaveFailed = true;
-        
-        if (uploadedFileRef) {
-          console.log('[CLEANUP_START] Eliminando imagen huérfana debido a fallo en DB...');
-          await eliminarImagenHuerfana(uploadedFileRef);
-        }
-        
-        // Mostrar error claro al usuario - NO devolver datos inconsistentes
-        showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error de base de datos'), 'danger');
+    // PASO 2: Enviar datos al backend (solo URL de imagen, nunca archivo)
+    console.log('[BACKEND_START] Enviando artículo al backend...');
+    const articleData = { ...baseData, imageUrl };
+    
+    // IMPORTANTE: Solo enviamos la URL, nunca el archivo File
+    console.log('[BACKEND_DATA] Datos a enviar (solo imageUrl, no File):', {
+      ...articleData,
+      imageUrl: articleData.imageUrl ? articleData.imageUrl.substring(0, 50) + '...' : null
+    });
+    
+    try {
+      if (currentArticleId) {
+        console.log('[BACKEND_UPDATE] Actualizando artículo existente:', currentArticleId);
+        await withTimeout(updateArticle(currentArticleId, articleData), 15000, 'actualización de artículo');
+        console.log('[ARTICLE_UPDATE_OK] Artículo actualizado exitosamente');
+        showMessage('Artículo actualizado exitosamente', 'success');
+      } else {
+        console.log('[BACKEND_CREATE] Creando nuevo artículo...');
+        await withTimeout(createArticle(articleData), 15000, 'creación de artículo');
+        console.log('[ARTICLE_CREATE_OK] Artículo creado exitosamente');
+        showMessage('Artículo publicado exitosamente', 'success');
       }
-
-      // Solo cerrar modal y recargar si todo fue exitoso
-      if (!dbSaveFailed) {
-        const modalElement = document.getElementById('uploadModal');
-        const modal = window.bootstrap?.Modal.getInstance
-          ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
-          : null;
-        if (modal && modalElement.contains(document.activeElement)) {
-          document.activeElement.blur();
-        }
-        if (modal) modal.hide();
-
-        await loadArticles(true);
-        currentArticleId = null; // Reset after save
+    } catch (dbError) {
+      console.error('[ARTICLE_SAVE_ERROR] Error al guardar artículo:', dbError);
+      
+      // Limpiar imagen huérfana si se subió pero falló el guardado
+      if (uploadedFileRef) {
+        console.log('[CLEANUP_START] Eliminando imagen huérfana debido a fallo en backend...');
+        await eliminarImagenHuerfana(uploadedFileRef);
       }
+      
+      showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error del servidor'), 'danger');
+      return;
     }
+
+    // PASO 3: Éxito total - cerrar modal y recargar
+    console.log('[SUCCESS] Proceso completado exitosamente');
+    closeUploadModal();
+    await loadArticles(true);
+    currentArticleId = null; // Reset después de guardar
+    
   } catch (error) {
-    showMessage('Error: ' + (error?.message || error), 'danger');
-    console.error('[GENERAL_ERROR]', error);
-  } finally {
-    // MEJORA: La limpieza de UI siempre se ejecuta, independientemente del resultado
-    const submitBtn = document.getElementById('submitBtn');
-    if (submitBtn) {
-      submitBtn.disabled = false;
-      submitBtn.textContent = currentArticleId ? 'Actualizar artículo' : 'Publicar artículo';
+    console.error('[GENERAL_ERROR] Error inesperado en saveArticle:', error);
+    showMessage('Error inesperado: ' + (error?.message || 'Por favor intenta de nuevo'), 'danger');
+    
+    // Limpiar imagen huérfana si existe
+    if (uploadedFileRef) {
+      console.log('[CLEANUP_START] Limpiando imagen por error general...');
+      await eliminarImagenHuerfana(uploadedFileRef);
     }
+  } finally {
+    // SIEMPRE limpiar la UI, sin importar el resultado
+    cleanupFormUI();
   }
 }
 
