@@ -1,9 +1,21 @@
+/**
+ * donationcenter.js
+ * 
+ * MEJORAS IMPLEMENTADAS EN LA SUBIDA DE IMÁGENES:
+ * 1. Log claro "[UPLOAD_OK]" tras cada subida exitosa de imagen
+ * 2. Verificación de existencia del archivo después de subir (getMetadata)
+ * 3. Si hay error en la subida, NO se intenta guardar el artículo en DB
+ * 4. Si falla guardar el artículo, se elimina la imagen huérfana
+ * 5. Mensajes de error claros y específicos para cada tipo de fallo
+ */
+
 import { getCurrentLockerCode } from './locker.js';
 import { createArticle, getArticles, updateArticle, deleteArticle } from './articles.js';
 import { getCurrentUser, getIdToken } from './auth.js';
 import { requestArticle as requestArticleService } from './requests.js';
 import { storage } from './firebase.js';
-import { ref, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+// MEJORA: Agregamos deleteObject y getMetadata para verificación y limpieza de imágenes huérfanas
+import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 let currentArticleId = null;
 let articlesCache = [];
@@ -339,6 +351,27 @@ function setupFormHandlers() {
   });
 }
 
+/**
+ * MEJORA: Función para eliminar imagen huérfana si falla guardar el artículo
+ * Esto evita imágenes sin artículo asociado en Storage
+ */
+async function eliminarImagenHuerfana(fileRef) {
+  try {
+    await deleteObject(fileRef);
+    console.log('[CLEANUP_OK] Imagen huérfana eliminada:', fileRef.fullPath);
+  } catch (cleanupError) {
+    // Si no se puede eliminar, solo logueamos el error (no crítico)
+    console.warn('[CLEANUP_WARN] No se pudo eliminar imagen huérfana:', cleanupError.message);
+  }
+}
+
+/**
+ * MEJORA: Función saveArticle con manejo robusto de subida de imágenes
+ * - Logs claros con "[UPLOAD_OK]" tras subida exitosa
+ * - Verificación de existencia del archivo
+ * - Error específico si falla la subida (no intenta guardar artículo con link roto)
+ * - Limpieza de imágenes huérfanas si falla guardar el artículo
+ */
 async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
@@ -350,6 +383,10 @@ async function saveArticle() {
     condition: document.getElementById('articleCondition').value,
     location: document.getElementById('articleLocation').value.trim() || null
   };
+  
+  // Variable para trackear la referencia de la imagen subida (para limpieza si falla)
+  let uploadedFileRef = null;
+  
   try {
     const submitBtn = document.getElementById('submitBtn');
     submitBtn.disabled = true;
@@ -358,22 +395,70 @@ async function saveArticle() {
     let imageUrl = urlInput.value.trim() || null;
     const file = fileInput.files?.[0] || null;
 
+    // MEJORA: Subida de imagen con verificación y logs claros
     if (file && user?.uid) {
       const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
       const path = `articles/${user.uid}/${Date.now()}_${safeName}`;
       const fileRef = ref(storage, path);
-      await uploadBytes(fileRef, file);
-      imageUrl = await getDownloadURL(fileRef);
+      
+      console.log('[UPLOAD_START] Iniciando subida de imagen:', path);
+      
+      try {
+        // Subir archivo a Firebase Storage
+        await uploadBytes(fileRef, file);
+        console.log('[UPLOAD_OK] Imagen subida exitosamente:', path);
+        
+        // MEJORA: Verificar que el archivo existe después de subir
+        try {
+          const metadata = await getMetadata(fileRef);
+          console.log('[UPLOAD_VERIFY] Archivo verificado, tamaño:', metadata.size, 'bytes');
+        } catch (verifyError) {
+          // Si no podemos verificar la existencia, lanzar error
+          console.error('[UPLOAD_VERIFY_FAIL] No se pudo verificar la existencia del archivo');
+          throw new Error('Error verificando la imagen subida. Intente nuevamente.');
+        }
+        
+        // Obtener la URL de descarga
+        imageUrl = await getDownloadURL(fileRef);
+        console.log('[UPLOAD_URL_OK] URL de descarga obtenida correctamente');
+        
+        // Guardar referencia para posible limpieza posterior
+        uploadedFileRef = fileRef;
+        
+      } catch (uploadError) {
+        // MEJORA: Error específico en subida de imagen - NO intentar guardar artículo
+        console.error('[UPLOAD_ERROR] Error al subir imagen:', uploadError.message);
+        showMessage('Error al subir la imagen: ' + (uploadError?.message || 'Error desconocido'), 'danger');
+        // No lanzamos el error general, simplemente retornamos para no guardar artículo con link roto
+        return;
+      }
     }
 
     const articleData = { ...baseData, imageUrl };
 
-    if (currentArticleId) {
-      await updateArticle(currentArticleId, articleData);
-      showMessage('Artículo actualizado exitosamente', 'success');
-    } else {
-      await createArticle(articleData);
-      showMessage('Artículo publicado exitosamente', 'success');
+    // MEJORA: Intentar guardar artículo con manejo de error y limpieza de imagen huérfana
+    try {
+      if (currentArticleId) {
+        await updateArticle(currentArticleId, articleData);
+        showMessage('Artículo actualizado exitosamente', 'success');
+        console.log('[ARTICLE_UPDATE_OK] Artículo actualizado:', currentArticleId);
+      } else {
+        await createArticle(articleData);
+        showMessage('Artículo publicado exitosamente', 'success');
+        console.log('[ARTICLE_CREATE_OK] Artículo creado exitosamente');
+      }
+    } catch (dbError) {
+      // MEJORA: Si falla guardar en Firestore, eliminar imagen huérfana
+      console.error('[ARTICLE_SAVE_ERROR] Error al guardar artículo en DB:', dbError.message);
+      
+      if (uploadedFileRef) {
+        console.log('[CLEANUP_START] Eliminando imagen huérfana debido a fallo en DB...');
+        await eliminarImagenHuerfana(uploadedFileRef);
+      }
+      
+      // Mostrar error claro al usuario - NO devolver datos inconsistentes
+      showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error de base de datos'), 'danger');
+      return;
     }
 
     const modalElement = document.getElementById('uploadModal');
@@ -389,7 +474,7 @@ async function saveArticle() {
     currentArticleId = null; // Reset after save
   } catch (error) {
     showMessage('Error: ' + (error?.message || error), 'danger');
-    console.error(error);
+    console.error('[GENERAL_ERROR]', error);
   } finally {
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
