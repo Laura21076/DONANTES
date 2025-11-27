@@ -11,11 +11,6 @@ const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.a
  * @returns {Promise<ServiceWorkerRegistration>}
  */
 async function waitForServiceWorkerActive(registration) {
-  // Si ya hay un service worker activo, retornarlo
- * @param {ServiceWorkerRegistration} registration
- * @returns {Promise<ServiceWorkerRegistration>}
- */
-async function waitForServiceWorkerActive(registration) {
   // Si ya hay un SW activo, retornamos inmediatamente
   if (registration.active) {
     return registration;
@@ -60,30 +55,6 @@ async function waitForServiceWorkerActive(registration) {
     }
 
     navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
-  // Esperar a que el SW esté activo
-  return new Promise((resolve, reject) => {
-    const sw = registration.installing || registration.waiting;
-    
-    if (!sw) {
-      reject(new Error('No hay Service Worker instalándose o esperando'));
-      return;
-    }
-
-    const timeout = setTimeout(() => {
-      reject(new Error('Timeout esperando activación del Service Worker'));
-    }, 10000); // 10 segundos timeout - más razonable para UX
-
-    sw.addEventListener('statechange', function handler() {
-      if (sw.state === 'activated') {
-        clearTimeout(timeout);
-        sw.removeEventListener('statechange', handler);
-        resolve(registration);
-      } else if (sw.state === 'redundant') {
-        clearTimeout(timeout);
-        sw.removeEventListener('statechange', handler);
-        reject(new Error('Service Worker se volvió redundante'));
-      }
-    });
   });
 }
 
@@ -117,10 +88,6 @@ export async function initializeNotifications() {
       console.error('❌ Error esperando activación del Service Worker:', activeError);
       return false;
     }
-
-    // Esperar a que el Service Worker esté activo antes de continuar
-    registration = await waitForServiceWorkerActive(registration);
-    console.log('✅ Service Worker activo');
 
     // Solicitar permiso para notificaciones
     const permission = await requestNotificationPermission();
