@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     const [profileResult, articlesResult] = await Promise.allSettled([
       loadUserProfile(),
-      loadArticles()
+      loadArticles(true)
     ]);
     if (profileResult.status === 'rejected') {
       showMessage('Error cargando perfil', 'warning');
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
     setupFormHandlers();
   } catch (error) {
-    showMessage('Error de inicialización', 'warning');
+    showMessage('Error de inicialización: ' + error.message, 'danger');
   }
 });
 
@@ -52,7 +52,6 @@ async function loadUserProfile() {
     const { getUser } = await import('./auth.js');
     const user = await getUser();
     if (!user) return;
-
     const token = await getIdToken();
     const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
     const response = await fetch(`${backendUrl}/api/users/profile`, {
@@ -61,21 +60,19 @@ async function loadUserProfile() {
         'Content-Type': 'application/json'
       }
     });
-
     if (response.ok) {
       const profile = await response.json();
       updateNavbarProfile(profile);
     }
   } catch (error) {
-    // Silenciar error de perfil
+    console.warn('Error al cargar perfil:', error);
   }
 }
 
-// ================== ACTUALIZAR NAVBAR CON FOTO DE PERFIL ==================
+// ================== ACTUALIZAR NAVBAR ==================
 function updateNavbarProfile(profile) {
   const profileIcon = document.getElementById('profileIcon');
   if (!profileIcon) return;
-
   profileIcon.outerHTML = `
     <div class="position-relative d-inline-block">
       <img id="profileIcon" 
@@ -102,6 +99,10 @@ async function loadArticles(forceReload = false) {
   }
   try {
     const articles = await getArticles();
+    if (!Array.isArray(articles)) {
+      showMessage('Respuesta inesperada al cargar artículos', 'danger');
+      return;
+    }
     articlesCache = articles;
     lastLoadTime = Date.now();
     displayArticles(articles);
@@ -109,7 +110,8 @@ async function loadArticles(forceReload = false) {
       preloadImages(articles);
     }
   } catch (error) {
-    showMessage('Error al cargar artículos: ' + error.message, 'danger');
+    showMessage('Error al cargar artículos: ' + (error?.message || error), 'danger');
+    console.error(error);
   }
 }
 
@@ -124,7 +126,6 @@ function preloadImages(articles) {
 async function displayArticles(articles) {
   const grid = document.getElementById('articlesGrid');
   const emptyState = document.getElementById('emptyState');
-
   let currentUser;
   try {
     const { getUser } = await import('./auth.js');
@@ -301,11 +302,16 @@ async function saveArticle() {
     }
 
     const modalElement = document.getElementById('uploadModal');
-    const modal = bootstrap.Modal.getInstance(modalElement);
-    modal.hide();
+    const modal = window.bootstrap?.Modal.getInstance
+      ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
+      : null;
+    if (modal) modal.hide();
+
     await loadArticles(true);
+    currentArticleId = null; // Reset after save
   } catch (error) {
-    showMessage('Error: ' + error.message, 'danger');
+    showMessage('Error: ' + (error?.message || error), 'danger');
+    console.error(error);
   } finally {
     const submitBtn = document.getElementById('submitBtn');
     if (submitBtn) {
@@ -344,8 +350,10 @@ window.editArticle = function(articleId) {
     previewWrap.style.display = 'none';
   }
   const modalElement = document.getElementById('uploadModal');
-  const modal = new bootstrap.Modal(modalElement);
-  modal.show();
+  const modal = window.bootstrap?.Modal.getInstance
+    ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
+    : null;
+  if (modal) modal.show();
 };
 
 window.confirmDelete = async function(articleId) {
@@ -357,7 +365,8 @@ window.confirmDelete = async function(articleId) {
     showMessage('Artículo eliminado exitosamente', 'success');
     await loadArticles(true);
   } catch (error) {
-    showMessage('Error al eliminar: ' + error.message, 'danger');
+    showMessage('Error al eliminar: ' + (error?.message || error), 'danger');
+    console.error(error);
   }
 };
 
@@ -373,6 +382,7 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     showMessage('¡Solicitud enviada!', 'success');
     await loadArticles();
   } catch (error) {
-    showMessage('Error al solicitar: ' + error.message, 'danger');
+    showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
+    console.error(error);
   }
 }
