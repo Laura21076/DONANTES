@@ -270,6 +270,36 @@ body {
 }
 .article-image-preview { display: none; }
 
+/* ===================== BUTTON LOADING STATES ====================== */
+.btn-loading {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.btn-loading .fa-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Article image container for error handling */
+.article-image-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Image error fallback styling */
+.article-image-container .no-image-placeholder {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+}
+
 /* ===================== RESPONSIVE GRIDS, CARDS, IMGS Y BORDERS ====================== */
 @media screen and (max-width: 768px) {
   .donation-card .card-img-top,

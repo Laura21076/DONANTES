@@ -166,9 +166,9 @@ async function displayArticles(articles) {
     return `
       <div class="col-md-6 col-lg-4">
         <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
-          <div class="position-relative">
+          <div class="position-relative article-image-container">
             ${article.imageUrl
-              ? `<img src="${article.imageUrl}" class="card-img-top" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">`
+              ? `<img src="${article.imageUrl}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;" data-article-id="${article.id}">`
               : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
                   <i class="fas fa-image fa-3x text-purple-light mb-2"></i>
                   <span style="color:#8C78BF;">Sin imagen</span>
@@ -189,14 +189,14 @@ async function displayArticles(articles) {
               ${
                 isOwner
                 ? `
-                  <button class="btn btn-outline-purple flex-fill shadow-sm" onclick="editArticle('${article.id}')">
+                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button class="btn btn-outline-danger flex-fill shadow-sm" onclick="confirmDelete('${article.id}')">
+                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-article-id="${article.id}">
                     <i class="fas fa-trash"></i>
                   </button>
                 `
-                : `<button class="btn btn-purple flex-fill shadow-sm" onclick="showRequestModal('${article.id}','${escapeHtml(article.title)}')">
+                : `<button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
                    <i class="fas fa-heart me-1"></i> Me interesa
                    </button>`
               }
@@ -206,7 +206,72 @@ async function displayArticles(articles) {
       </div>
     `;
   }).join('');
+  
+  // Attach event listeners using event delegation
+  attachArticleEventListeners();
 } // <- ESTA LLAVE CIERRA BIEN LA FUNCIÓN displayArticles
+
+// Event delegation for article buttons
+function attachArticleEventListeners() {
+  const grid = document.getElementById('articlesGrid');
+  if (!grid) return;
+  
+  // Remove existing listeners to avoid duplicates
+  grid.removeEventListener('click', handleArticleClick);
+  grid.addEventListener('click', handleArticleClick);
+}
+
+function handleArticleClick(event) {
+  const target = event.target.closest('button');
+  if (!target) return;
+  
+  const articleId = target.dataset.articleId;
+  const articleTitle = target.dataset.articleTitle;
+  
+  if (target.classList.contains('btn-edit-article')) {
+    event.preventDefault();
+    editArticle(articleId);
+  } else if (target.classList.contains('btn-delete-article')) {
+    event.preventDefault();
+    confirmDelete(articleId);
+  } else if (target.classList.contains('btn-request-article')) {
+    event.preventDefault();
+    // Add visual feedback
+    target.classList.add('btn-loading');
+    target.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Procesando...';
+    showRequestModal(articleId, articleTitle);
+    // Reset button after a short delay
+    setTimeout(() => {
+      target.classList.remove('btn-loading');
+      target.innerHTML = '<i class="fas fa-heart me-1"></i> Me interesa';
+    }, 500);
+  }
+}
+
+// Add error handler for article images (CORS fallback)
+function setupImageErrorHandlers() {
+  document.addEventListener('error', function(event) {
+    if (event.target.tagName === 'IMG' && event.target.classList.contains('article-image')) {
+      handleImageError(event.target);
+    }
+  }, true);
+}
+
+function handleImageError(img) {
+  const container = img.closest('.article-image-container');
+  if (container) {
+    container.innerHTML = `
+      <div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
+        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+        <span style="color:#8C78BF;">Error al cargar imagen</span>
+        <small class="text-muted mt-1">Verifica tu conexión o configuración CORS</small>
+      </div>
+    `;
+  }
+}
+
+// Initialize image error handlers on page load
+document.addEventListener('DOMContentLoaded', setupImageErrorHandlers);
 
 function getTimeRemaining(expiresAt) {
   if (!expiresAt) return 'Sin límite';
@@ -330,7 +395,7 @@ async function saveArticle() {
   }
 }
 
-window.editArticle = function(articleId) {
+function editArticle(articleId) {
   currentArticleId = articleId;
   const article = articlesCache.find(a => a.id === articleId);
   if (!article) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
@@ -370,9 +435,11 @@ window.editArticle = function(articleId) {
       if (firstInput) firstInput.focus();
     }, 400);
   }
-};
+}
+// Expose to window for backward compatibility
+window.editArticle = editArticle;
 
-window.confirmDelete = async function(articleId) {
+async function confirmDelete(articleId) {
   const article = articlesCache.find(a => a.id === articleId);
   if (!article) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
   if (!confirm(`¿Estás seguro de eliminar el artículo "${article.title}"?`)) return;
@@ -384,13 +451,17 @@ window.confirmDelete = async function(articleId) {
     showMessage('Error al eliminar: ' + (error?.message || error), 'danger');
     console.error(error);
   }
-};
+}
+// Expose to window for backward compatibility
+window.confirmDelete = confirmDelete;
 
-window.showRequestModal = function(articleId, articleTitle) {
+function showRequestModal(articleId, articleTitle) {
   const message = prompt(`¿Quieres solicitar "${articleTitle}"?\nPuedes agregar un mensaje opcional para el donador:`);
   if (message === null) return;
   requestArticleHandler(articleId, message, articleTitle);
-};
+}
+// Expose to window for backward compatibility
+window.showRequestModal = showRequestModal;
 
 async function requestArticleHandler(articleId, message, articleTitle) {
   try {
