@@ -1,10 +1,10 @@
 import { getMyRequests, getReceivedRequests, approveRequest, rejectRequest, confirmPickup } from './requests.js';
-import { getUser } from './auth.js';
+import { getCurrentUser } from './auth.js';
 import { getCurrentLockerCode } from './locker.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) {
       console.warn('⚠️ Usuario no autenticado, redirigiendo a login...');
       window.location.href = 'login.html';
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ================== CARGAR SOLICITUDES ENVIADAS ==================
 async function loadSentRequests() {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
     const requests = await getMyRequests();
     displaySentRequests(requests);
@@ -178,7 +178,7 @@ function renderPickupMap(lockerLocation) {
 // ================== CARGAR SOLICITUDES RECIBIDAS ==================
 async function loadReceivedRequests() {
   try {
-    const user = await getUser();
+    const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
     const requests = await getReceivedRequests();
     displayReceivedRequests(requests);
