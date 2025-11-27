@@ -198,27 +198,21 @@ async function displayArticles(articles) {
             </div>
             <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
             <div class="mt-auto d-flex gap-2">
-              ${
+              ${/* FIX: Ternario corregido - solo dos ramas, sin botones anidados */
                 isOwner
                 ? `
-                  <button class="btn btn-outline-purple flex-fill shadow-sm" data-action="edit" data-article-id="${article.id}">
+                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-action="edit" data-article-id="${article.id}">
                     <i class="fas fa-edit"></i>
                   </button>
-                  <button class="btn btn-outline-danger flex-fill shadow-sm" data-action="delete" data-article-id="${article.id}">
+                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-action="delete" data-article-id="${article.id}">
                     <i class="fas fa-trash"></i>
                   </button>
                 `
-                : `<button class="btn btn-purple flex-fill shadow-sm" data-action="request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
-                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-article-id="${article.id}">
-                    <i class="fas fa-trash"></i>
+                : `
+                  <button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-action="request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
+                    <i class="fas fa-heart me-1"></i> Me interesa
                   </button>
                 `
-                : `<button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
-                   <i class="fas fa-heart me-1"></i> Me interesa
-                   </button>`
               }
             </div>
           </div>
