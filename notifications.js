@@ -141,6 +141,9 @@ async function sendSubscriptionToServer(subscription) {
       throw new Error('Token no disponible');
     }
 
+    // Convert PushSubscription to a plain object for JSON serialization
+    const subscriptionData = subscription.toJSON ? subscription.toJSON() : subscription;
+
     const response = await fetch(`${API_URL}/notifications/subscribe`, {
       method: 'POST',
       headers: {
@@ -148,13 +151,15 @@ async function sendSubscriptionToServer(subscription) {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        subscription: subscription,
+        subscription: subscriptionData,
         userId: user.uid
       })
     });
 
     if (!response.ok) {
-      throw new Error('Error al enviar suscripción al servidor');
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('⚠️ Respuesta del servidor:', response.status, errorData);
+      throw new Error(errorData.error || 'Error al enviar suscripción al servidor');
     }
 
     console.log('✅ Suscripción enviada al servidor');
