@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     console.log('✅ Usuario autenticado, cargando solicitudes...');
+    
+    // Attach static event listeners (CSP compatible)
+    attachStaticEventListeners();
+    
     await loadSentRequests();
 
     document.getElementById('received-tab').addEventListener('shown.bs.tab', loadReceivedRequests);
@@ -26,6 +30,26 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 });
 
+// Attach static event listeners for modal buttons (CSP compatible)
+function attachStaticEventListeners() {
+  // Copy pickup code button in modal
+  const copyPickupCodeBtn = document.querySelector('.btn-copy-pickup-code');
+  if (copyPickupCodeBtn) {
+    copyPickupCodeBtn.addEventListener('click', function() {
+      const code = document.getElementById('pickupAccessCode').textContent;
+      if (typeof window.copyToClipboard === 'function') {
+        window.copyToClipboard(code);
+      }
+    });
+  }
+
+  // Approve handler button in modal
+  const approveHandlerBtn = document.querySelector('.btn-approve-handler');
+  if (approveHandlerBtn) {
+    approveHandlerBtn.addEventListener('click', function() {
+      if (typeof window.approveRequestHandler === 'function') {
+        window.approveRequestHandler();
+      }
 // Setup event listeners for modal buttons
 function setupModalEventListeners() {
   // Approve modal confirm button
@@ -133,6 +157,7 @@ function displaySentRequests(requests) {
                     <strong>Código de acceso:</strong>
                     <div class="access-code">${escapeHtmlAttr(req.accessCode)}</div>
                   </div>
+                  <button class="btn btn-sm btn-outline-success btn-copy-code" data-code="${req.accessCode}">
                   <button class="btn btn-sm btn-outline-success" data-action="copy-code" data-code="${req.accessCode}">
                   <button class="btn btn-sm btn-outline-success btn-copy-code" data-code="${escapedAccessCode}">
                     <i class="fas fa-copy"></i>
@@ -141,6 +166,9 @@ function displaySentRequests(requests) {
                 ${req.lockerLocation ? `<p class=\"mb-0 mt-2\"><i class=\"fas fa-map-marker-alt\"></i> ${escapeHtmlAttr(req.lockerLocation)}</p>` : ''}
                 ${req.lockerId ? `<p class=\"mb-0\"><i class=\"fas fa-lock\"></i> Casillero: ${escapeHtmlAttr(req.lockerId)}</p>` : ''}
               </div>
+              <button class="btn btn-info w-100 mb-2 btn-pickup-details" data-locker-location="${req.lockerLocation || ''}" data-locker-id="${req.lockerId || ''}">
+                <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
+              </button>
               <button class="btn btn-info w-100 mb-2" data-action="show-pickup-details" data-locker-location="${req.lockerLocation || ''}" data-locker-id="${req.lockerId || ''}">
                 <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
               </button>
@@ -161,6 +189,43 @@ function displaySentRequests(requests) {
       </div>
     `;
   }).join('');
+
+  // Attach event listeners for sent requests (CSP compatible)
+  attachSentRequestEventListeners();
+}
+
+// Attach event listeners for sent requests (CSP compatible)
+function attachSentRequestEventListeners() {
+  // Copy code buttons
+  document.querySelectorAll('#sentRequestsGrid .btn-copy-code').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const code = this.dataset.code;
+      if (typeof window.copyToClipboard === 'function') {
+        window.copyToClipboard(code);
+      }
+    });
+  });
+
+  // Pickup details buttons
+  document.querySelectorAll('#sentRequestsGrid .btn-pickup-details').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const lockerLocation = this.dataset.lockerLocation;
+      const lockerId = this.dataset.lockerId;
+      if (typeof window.showPickupDetailsModal === 'function') {
+        window.showPickupDetailsModal(lockerLocation, lockerId);
+      }
+    });
+  });
+
+  // Confirm pickup buttons
+  document.querySelectorAll('#sentRequestsGrid .btn-confirm-pickup').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const requestId = this.dataset.requestId;
+      if (typeof window.confirmPickupHandler === 'function') {
+        window.confirmPickupHandler(requestId);
+      }
+    });
+  });
   
   // Attach event listeners for dynamically created buttons
   attachSentRequestsListeners();
@@ -329,6 +394,9 @@ function displayReceivedRequests(requests) {
             <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
             ${req.status === 'pendiente' ? `
               <div class="btn-group w-100 mb-2" role="group">
+                <button class="btn btn-success btn-approve-request" data-request-id="${req.id}">
+                  <i class="fas fa-check"></i> Aprobar
+                </button>
                 <button class="btn btn-success" data-action="show-approve-modal" data-request-id="${req.id}">
                   <i class="fas fa-check"></i> Aprobar
                 </button>
@@ -345,6 +413,7 @@ function displayReceivedRequests(requests) {
                 <strong>Código:</strong> <span class="access-code">${req.accessCode}</span>
                 ${req.lockerLocation ? `<p class="mb-0 mt-2"><small>${req.lockerLocation}</small></p>` : ''}
               </div>
+              <button class="btn btn-primary w-100 btn-confirm-pickup-received" data-request-id="${req.id}">
               <button class="btn btn-primary w-100" data-action="confirm-pickup" data-request-id="${req.id}">
               <button class="btn btn-primary w-100 btn-confirm-delivery" data-request-id="${req.id}">
                 <i class="fas fa-check"></i> Marcar como Entregado
@@ -355,6 +424,42 @@ function displayReceivedRequests(requests) {
       </div>
     `;
   }).join('');
+
+  // Attach event listeners for received requests (CSP compatible)
+  attachReceivedRequestEventListeners();
+}
+
+// Attach event listeners for received requests (CSP compatible)
+function attachReceivedRequestEventListeners() {
+  // Approve buttons
+  document.querySelectorAll('#receivedRequestsGrid .btn-approve-request').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const requestId = this.dataset.requestId;
+      if (typeof window.showApproveModal === 'function') {
+        window.showApproveModal(requestId);
+      }
+    });
+  });
+
+  // Reject buttons
+  document.querySelectorAll('#receivedRequestsGrid .btn-reject-request').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const requestId = this.dataset.requestId;
+      if (typeof window.rejectRequestHandler === 'function') {
+        window.rejectRequestHandler(requestId);
+      }
+    });
+  });
+
+  // Confirm pickup buttons (received)
+  document.querySelectorAll('#receivedRequestsGrid .btn-confirm-pickup-received').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const requestId = this.dataset.requestId;
+      if (typeof window.confirmPickupHandler === 'function') {
+        window.confirmPickupHandler(requestId);
+      }
+    });
+  });
   
   // Attach event listeners for dynamically created buttons
   attachReceivedRequestsListeners();

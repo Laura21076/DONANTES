@@ -91,16 +91,29 @@ class AdminDashboard {
                     <h2 class="text-danger mb-3">Acceso Denegado</h2>
                     <p class="lead text-muted mb-4">No tienes permisos de administrador para acceder a esta página.</p>
                     <div class="d-flex gap-3 justify-content-center">
-                        <button class="btn btn-primary" onclick="window.location.href='donationcenter.html'">
+                        <button class="btn btn-primary btn-go-home">
                             <i class="bi bi-house-fill me-2"></i>Ir al Dashboard Principal
                         </button>
-                        <button class="btn btn-outline-secondary" onclick="logout()">
+                        <button class="btn btn-outline-secondary btn-logout-denied">
                             <i class="bi bi-box-arrow-right me-2"></i>Cerrar Sesión
                         </button>
                     </div>
                 </div>
             </div>
         `;
+        // Attach event listeners for access denied buttons
+        const goHomeBtn = document.querySelector('.btn-go-home');
+        if (goHomeBtn) {
+            goHomeBtn.addEventListener('click', function() {
+                window.location.href = 'donationcenter.html';
+            });
+        }
+        const logoutDeniedBtn = document.querySelector('.btn-logout-denied');
+        if (logoutDeniedBtn) {
+            logoutDeniedBtn.addEventListener('click', function() {
+                logout();
+            });
+        }
     }
 
     async loadDashboardData() {
@@ -319,6 +332,9 @@ async function logout() {
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
+    // Attach event listeners for dashboard buttons (CSP compatible)
+    attachDashboardEventListeners();
+    
     setTimeout(() => {
         new AdminDashboard();
     }, 1500);
@@ -353,6 +369,61 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+// Attach event listeners for dashboard buttons (CSP compatible)
+function attachDashboardEventListeners() {
+    // Logout button
+    const logoutBtn = document.querySelector('.btn-logout');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            logout();
+        });
+    }
+
+    // Quick action buttons
+    document.querySelectorAll('.btn-view-all-users').forEach(btn => {
+        btn.addEventListener('click', function() {
+            viewAllUsers();
+        });
+    });
+
+    document.querySelectorAll('.btn-moderate-content').forEach(btn => {
+        btn.addEventListener('click', function() {
+            moderateContent();
+        });
+    });
+
+    document.querySelectorAll('.btn-view-analytics').forEach(btn => {
+        btn.addEventListener('click', function() {
+            viewAnalytics();
+        });
+    });
+
+    document.querySelectorAll('.btn-go-donations').forEach(btn => {
+        btn.addEventListener('click', function() {
+            window.location.href = 'donationcenter.html';
+        });
+    });
+
+    // Admin panel buttons
+    document.querySelectorAll('.btn-admin-users').forEach(btn => {
+        btn.addEventListener('click', function() {
+            viewAllUsers();
+        });
+    });
+
+    document.querySelectorAll('.btn-admin-moderate').forEach(btn => {
+        btn.addEventListener('click', function() {
+            moderateContent();
+        });
+    });
+
+    document.querySelectorAll('.btn-admin-analytics').forEach(btn => {
+        btn.addEventListener('click', function() {
+            viewAnalytics();
+        });
+    });
+}
 
 // Hacer funciones disponibles globalmente
 window.viewAllUsers = viewAllUsers;

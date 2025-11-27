@@ -220,6 +220,16 @@ async function displayArticles(articles) {
               ${/* FIX: Ternario corregido - solo dos ramas, sin botones anidados */
                 isOwner
                 ? `
+                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-article-id="${article.id}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                `
+                : `<button class="btn btn-purple flex-fill shadow-sm btn-show-request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
+                   <i class="fas fa-heart me-1"></i> Me interesa
+                   </button>`
                   <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-action="edit" data-article-id="${article.id}">
                     <i class="fas fa-edit"></i>
                   </button>
@@ -239,6 +249,8 @@ async function displayArticles(articles) {
       </div>
     `;
   }).join('');
+
+  // Attach event listeners for CSP compatibility
   
   // Attach event listeners using event delegation
   attachArticleEventListeners();
@@ -674,6 +686,39 @@ async function requestArticleHandler(articleId, message, articleTitle) {
   }
 }
 
+// Attach event listeners for article buttons (CSP compatible)
+function attachArticleEventListeners() {
+  // "Me interesa" buttons
+  document.querySelectorAll('.btn-show-request').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const articleId = this.dataset.articleId;
+      const articleTitle = this.dataset.articleTitle;
+      if (typeof window.showRequestModal === 'function') {
+        window.showRequestModal(articleId, articleTitle);
+      }
+    });
+  });
+
+  // Edit buttons
+  document.querySelectorAll('.btn-edit-article').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const articleId = this.dataset.articleId;
+      if (typeof window.editArticle === 'function') {
+        window.editArticle(articleId);
+      }
+    });
+  });
+
+  // Delete buttons
+  document.querySelectorAll('.btn-delete-article').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const articleId = this.dataset.articleId;
+      if (typeof window.confirmDelete === 'function') {
+        window.confirmDelete(articleId);
+      }
+    });
+  });
+}
 // ================== EVENT DELEGATION PARA BOTONES DE ARTÍCULOS ==================
 // Usar delegación de eventos para evitar inline event handlers (CSP compliance)
 document.addEventListener('DOMContentLoaded', () => {
