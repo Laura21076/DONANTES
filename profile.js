@@ -6,22 +6,51 @@ import { updateProfile as fbUpdateProfile, updatePassword as fbUpdatePassword } 
 import { storage } from './firebase.js';
 import { getCurrentUser } from './auth.js';
 
-// Obtener datos de perfil
+// Obtener datos de perfil - SIEMPRE devuelve todos los campos esperados
 export async function getProfile() {
   const user = await getCurrentUser();
   if (!user) throw new Error('No autenticado');
   const firestore = getFirestore();
   const userRef = doc(firestore, 'users', user.uid);
   const snap = await getDoc(userRef);
-  if (snap.exists()) {
-    return { ...snap.data(), email: user.email, displayName: user.displayName, photoURL: user.photoURL };
-  }
-  // Si el documento no existe, usa datos básicos del usuario
-  return {
+
+  // Campos por defecto para un perfil completo
+  const defaults = {
     email: user.email,
     displayName: user.displayName,
-    photoURL: user.photoURL
+    photoURL: user.photoURL,
+    firstName: "",
+    lastName: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    dateOfBirth: "",
+    gender: "",
+    occupation: "",
+    interests: [],
+    notifications: {
+      email: true,
+      push: true,
+      sms: false
+    },
+    privacy: {
+      profileVisible: true,
+      showEmail: false,
+      showPhone: false
+    },
+    createdAt: "",
+    updatedAt: "",
+    lastLoginAt: ""
   };
+
+  if (snap.exists()) {
+    // Normaliza: rellena campos faltantes con defaults
+    return { ...defaults, ...snap.data() };
+  }
+  // Si no existe el documento, retorna todos los campos base
+  return defaults;
 }
 
 // Actualizar perfil en Firestore y Firebase Auth displayName
