@@ -338,6 +338,36 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
         new AdminDashboard();
     }, 1500);
+
+    // Event delegation for dashboard action buttons (CSP compliance)
+    document.addEventListener('click', (event) => {
+        const button = event.target.closest('button[data-action]');
+        if (!button) return;
+
+        const action = button.dataset.action;
+        switch (action) {
+            case 'view-users':
+                viewAllUsers();
+                break;
+            case 'moderate-content':
+                moderateContent();
+                break;
+            case 'view-analytics':
+                viewAnalytics();
+                break;
+            case 'go-dashboard':
+                window.location.href = 'donationcenter.html';
+                break;
+        }
+    });
+
+    // Logout button event listener
+    const logoutBtn = document.getElementById('dashboardLogoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', () => {
+            logout();
+        });
+    }
 });
 
 // Attach event listeners for dashboard buttons (CSP compatible)

@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadSentRequests();
 
     document.getElementById('received-tab').addEventListener('shown.bs.tab', loadReceivedRequests);
+    
+    // Setup event listeners for modal buttons
+    setupModalEventListeners();
   } catch (error) {
     console.error('❌ Error durante inicialización:', error);
     showMessage('Error de autenticación. Redirigiendo...', 'warning');
@@ -47,6 +50,20 @@ function attachStaticEventListeners() {
       if (typeof window.approveRequestHandler === 'function') {
         window.approveRequestHandler();
       }
+// Setup event listeners for modal buttons
+function setupModalEventListeners() {
+  // Approve modal confirm button
+  const approveModalConfirmBtn = document.getElementById('approveModalConfirmBtn');
+  if (approveModalConfirmBtn) {
+    approveModalConfirmBtn.addEventListener('click', approveRequestHandler);
+  }
+  
+  // Copy pickup code button
+  const copyPickupCodeBtn = document.getElementById('copyPickupCodeBtn');
+  if (copyPickupCodeBtn) {
+    copyPickupCodeBtn.addEventListener('click', function() {
+      const code = document.getElementById('pickupAccessCode')?.textContent || '';
+      copyToClipboard(code);
     });
   }
 }
@@ -106,31 +123,57 @@ function displaySentRequests(requests) {
     } catch (error) {
       date = 'Fecha inválida';
     }
+    // Escape special characters in strings for data attributes (full HTML entity escaping)
+    const escapeHtmlAttr = (str) => {
+      if (!str) return '';
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/\n/g, '&#10;')
+        .replace(/\r/g, '&#13;');
+    };
+    
+    const escapedAccessCode = escapeHtmlAttr(req.accessCode);
+    const escapedLockerLocation = escapeHtmlAttr(req.lockerLocation);
+    const escapedLockerId = escapeHtmlAttr(req.lockerId);
+    
     return `
       <div class="col-md-6 col-lg-4">
         <div class="card request-card h-100" style="border: 1px solid #E8DFF5; background: rgba(255, 255, 255, 0.95); box-shadow: 0 4px 12px rgba(110, 73, 163, 0.15);">
           <div class="card-body">
             <div class="d-flex justify-content-between align-items-start mb-3">
-              <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${req.articleTitle}</h5>
+              <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${escapeHtmlAttr(req.articleTitle)}</h5>
               <span class="badge ${statusInfo.class}" style="${statusInfo.style || ''}">${statusInfo.text}</span>
             </div>
-            ${req.message ? `<p class="card-text" style="color: #5A4A6B;"><small><i class="fas fa-comment"></i> ${req.message}</small></p>` : ''}
+            ${req.message ? `<p class="card-text" style="color: #5A4A6B;"><small><i class="fas fa-comment"></i> ${escapeHtmlAttr(req.message)}</small></p>` : ''}
             <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
             ${req.status === 'aprobada' ? `
               <div class="alert alert-success mb-3">
                 <div class="d-flex justify-content-between align-items-center">
                   <div>
                     <strong>Código de acceso:</strong>
-                    <div class="access-code">${req.accessCode}</div>
+                    <div class="access-code">${escapeHtmlAttr(req.accessCode)}</div>
                   </div>
                   <button class="btn btn-sm btn-outline-success btn-copy-code" data-code="${req.accessCode}">
+                  <button class="btn btn-sm btn-outline-success" data-action="copy-code" data-code="${req.accessCode}">
+                  <button class="btn btn-sm btn-outline-success btn-copy-code" data-code="${escapedAccessCode}">
                     <i class="fas fa-copy"></i>
                   </button>
                 </div>
-                ${req.lockerLocation ? `<p class=\"mb-0 mt-2\"><i class=\"fas fa-map-marker-alt\"></i> ${req.lockerLocation}</p>` : ''}
-                ${req.lockerId ? `<p class=\"mb-0\"><i class=\"fas fa-lock\"></i> Casillero: ${req.lockerId}</p>` : ''}
+                ${req.lockerLocation ? `<p class=\"mb-0 mt-2\"><i class=\"fas fa-map-marker-alt\"></i> ${escapeHtmlAttr(req.lockerLocation)}</p>` : ''}
+                ${req.lockerId ? `<p class=\"mb-0\"><i class=\"fas fa-lock\"></i> Casillero: ${escapeHtmlAttr(req.lockerId)}</p>` : ''}
               </div>
               <button class="btn btn-info w-100 mb-2 btn-pickup-details" data-locker-location="${req.lockerLocation || ''}" data-locker-id="${req.lockerId || ''}">
+                <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
+              </button>
+              <button class="btn btn-info w-100 mb-2" data-action="show-pickup-details" data-locker-location="${req.lockerLocation || ''}" data-locker-id="${req.lockerId || ''}">
+                <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
+              </button>
+              <button class="btn btn-primary w-100" data-action="confirm-pickup" data-request-id="${req.id}">
+              <button class="btn btn-info w-100 mb-2 btn-pickup-details" data-locker-location="${escapedLockerLocation}" data-locker-id="${escapedLockerId}">
                 <i class="fas fa-map-marked-alt"></i> Ver detalles de recogida
               </button>
               <button class="btn btn-primary w-100 btn-confirm-pickup" data-request-id="${req.id}">
@@ -138,7 +181,7 @@ function displaySentRequests(requests) {
               </button>
             ` : req.status === 'rechazada' && req.rejectionReason ? `
               <div class="alert alert-danger">
-                <small><i class="fas fa-exclamation-circle"></i> ${req.rejectionReason}</small>
+                <small><i class="fas fa-exclamation-circle"></i> ${escapeHtmlAttr(req.rejectionReason)}</small>
               </div>
             ` : ''}
           </div>
@@ -183,10 +226,41 @@ function attachSentRequestEventListeners() {
       }
     });
   });
+  
+  // Attach event listeners for dynamically created buttons
+  attachSentRequestsListeners();
+}
+
+// Attach event listeners for sent requests grid
+let sentRequestsListenerAttached = false;
+function attachSentRequestsListeners() {
+  const grid = document.getElementById('sentRequestsGrid');
+  if (!grid || sentRequestsListenerAttached) return;
+  
+  grid.addEventListener('click', handleSentRequestsClick);
+  sentRequestsListenerAttached = true;
+}
+
+// Handle click events for sent requests
+function handleSentRequestsClick(event) {
+  const target = event.target.closest('button');
+  if (!target) return;
+  
+  if (target.classList.contains('btn-copy-code')) {
+    const code = target.dataset.code || '';
+    copyToClipboard(code);
+  } else if (target.classList.contains('btn-pickup-details')) {
+    const lockerLocation = target.dataset.lockerLocation || '';
+    const lockerId = target.dataset.lockerId || '';
+    showPickupDetailsModal(lockerLocation, lockerId);
+  } else if (target.classList.contains('btn-confirm-pickup')) {
+    const requestId = target.dataset.requestId;
+    confirmPickupHandler(requestId);
+  }
 }
 
 // Mostrar modal de detalles de recogida
-window.showPickupDetailsModal = function(lockerLocation, lockerId) {
+function showPickupDetailsModal(lockerLocation, lockerId) {
   const modal = new bootstrap.Modal(document.getElementById('pickupDetailsModal'));
   document.getElementById('pickupCodeBox').style.display = 'none';
   document.getElementById('pickupCodeSpinner').style.display = 'inline-block';
@@ -204,7 +278,7 @@ window.showPickupDetailsModal = function(lockerLocation, lockerId) {
     renderPickupMap(lockerLocation);
   }, 300);
   modal.show();
-};
+}
 
 function renderPickupMap(lockerLocation) {
   const mapDiv = document.getElementById('pickupMap');
@@ -323,6 +397,13 @@ function displayReceivedRequests(requests) {
                 <button class="btn btn-success btn-approve-request" data-request-id="${req.id}">
                   <i class="fas fa-check"></i> Aprobar
                 </button>
+                <button class="btn btn-success" data-action="show-approve-modal" data-request-id="${req.id}">
+                  <i class="fas fa-check"></i> Aprobar
+                </button>
+                <button class="btn btn-danger" data-action="reject-request" data-request-id="${req.id}">
+                <button class="btn btn-success btn-approve-request" data-request-id="${req.id}">
+                  <i class="fas fa-check"></i> Aprobar
+                </button>
                 <button class="btn btn-danger btn-reject-request" data-request-id="${req.id}">
                   <i class="fas fa-times"></i> Rechazar
                 </button>
@@ -333,6 +414,8 @@ function displayReceivedRequests(requests) {
                 ${req.lockerLocation ? `<p class="mb-0 mt-2"><small>${req.lockerLocation}</small></p>` : ''}
               </div>
               <button class="btn btn-primary w-100 btn-confirm-pickup-received" data-request-id="${req.id}">
+              <button class="btn btn-primary w-100" data-action="confirm-pickup" data-request-id="${req.id}">
+              <button class="btn btn-primary w-100 btn-confirm-delivery" data-request-id="${req.id}">
                 <i class="fas fa-check"></i> Marcar como Entregado
               </button>
             ` : ''}
@@ -377,18 +460,47 @@ function attachReceivedRequestEventListeners() {
       }
     });
   });
+  
+  // Attach event listeners for dynamically created buttons
+  attachReceivedRequestsListeners();
+}
+
+// Attach event listeners for received requests grid
+let receivedRequestsListenerAttached = false;
+function attachReceivedRequestsListeners() {
+  const grid = document.getElementById('receivedRequestsGrid');
+  if (!grid || receivedRequestsListenerAttached) return;
+  
+  grid.addEventListener('click', handleReceivedRequestsClick);
+  receivedRequestsListenerAttached = true;
+}
+
+// Handle click events for received requests
+function handleReceivedRequestsClick(event) {
+  const target = event.target.closest('button');
+  if (!target) return;
+  
+  const requestId = target.dataset.requestId;
+  
+  if (target.classList.contains('btn-approve-request')) {
+    showApproveModal(requestId);
+  } else if (target.classList.contains('btn-reject-request')) {
+    rejectRequestHandler(requestId);
+  } else if (target.classList.contains('btn-confirm-delivery')) {
+    confirmPickupHandler(requestId);
+  }
 }
 
 // ================== APROBAR SOLICITUD ==================
-window.showApproveModal = function(requestId) {
+function showApproveModal(requestId) {
   document.getElementById('approveRequestId').value = requestId;
   document.getElementById('lockerId').value = '';
   document.getElementById('lockerLocation').value = '';
   const modal = new bootstrap.Modal(document.getElementById('approveModal'));
   modal.show();
-};
+}
 
-window.approveRequestHandler = async function() {
+async function approveRequestHandler() {
   const requestId = document.getElementById('approveRequestId').value;
   const lockerId = document.getElementById('lockerId').value.trim();
   const lockerLocation = document.getElementById('lockerLocation').value.trim();
@@ -401,10 +513,10 @@ window.approveRequestHandler = async function() {
   } catch (error) {
     showMessage('Error al aprobar: ' + error.message, 'danger');
   }
-};
+}
 
 // ================== RECHAZAR SOLICITUD ==================
-window.rejectRequestHandler = async function(requestId) {
+async function rejectRequestHandler(requestId) {
   const reason = prompt('¿Por qué rechazas esta solicitud? (opcional)');
   if (reason === null) return;
   try {
@@ -414,10 +526,10 @@ window.rejectRequestHandler = async function(requestId) {
   } catch (error) {
     showMessage('Error al rechazar: ' + error.message, 'danger');
   }
-};
+}
 
 // ================== CONFIRMAR RETIRO ==================
-window.confirmPickupHandler = async function(requestId) {
+async function confirmPickupHandler(requestId) {
   if (!confirm('¿Confirmas que el artículo ha sido retirado/entregado?')) return;
   try {
     await confirmPickup(requestId);
@@ -431,7 +543,7 @@ window.confirmPickupHandler = async function(requestId) {
   } catch (error) {
     showMessage('Error al confirmar: ' + error.message, 'danger');
   }
-};
+}
 
 // ================== UTILIDADES ==================
 function getStatusInfo(status) {
@@ -466,11 +578,13 @@ function getStatusInfo(status) {
   return result;
 }
 
-window.copyToClipboard = function(text) {
+function copyToClipboard(text) {
   navigator.clipboard.writeText(text).then(() => {
     showMessage('Código copiado', 'info');
+  }).catch(() => {
+    showMessage('Error al copiar código', 'danger');
   });
-};
+}
 
 function showMessage(text, type) {
   const messageDiv = document.getElementById('feedbackMessage');
@@ -509,4 +623,57 @@ async function createRequestWithLocation(requestData) {
     requestData.location = { source: 'unknown' };
   }
   await createRequest(requestData);
+}
+
+// ================== EVENT DELEGATION PARA BOTONES ==================
+// Usar delegación de eventos para evitar inline event handlers (CSP compliance)
+document.addEventListener('DOMContentLoaded', () => {
+  // Delegación para solicitudes enviadas
+  const sentGrid = document.getElementById('sentRequestsGrid');
+  if (sentGrid) {
+    sentGrid.addEventListener('click', handleRequestAction);
+  }
+
+  // Delegación para solicitudes recibidas
+  const receivedGrid = document.getElementById('receivedRequestsGrid');
+  if (receivedGrid) {
+    receivedGrid.addEventListener('click', handleRequestAction);
+  }
+
+  // Delegación para el modal de aprobación
+  const approveModalBtn = document.getElementById('approveModalBtn');
+  if (approveModalBtn) {
+    approveModalBtn.addEventListener('click', () => {
+      window.approveRequestHandler();
+    });
+  }
+});
+
+function handleRequestAction(event) {
+  const button = event.target.closest('button[data-action]');
+  if (!button) return;
+
+  const action = button.dataset.action;
+  const requestId = button.dataset.requestId;
+  const code = button.dataset.code;
+  const lockerLocation = button.dataset.lockerLocation;
+  const lockerId = button.dataset.lockerId;
+
+  switch (action) {
+    case 'copy-code':
+      window.copyToClipboard(code);
+      break;
+    case 'show-pickup-details':
+      window.showPickupDetailsModal(lockerLocation, lockerId);
+      break;
+    case 'confirm-pickup':
+      window.confirmPickupHandler(requestId);
+      break;
+    case 'show-approve-modal':
+      window.showApproveModal(requestId);
+      break;
+    case 'reject-request':
+      window.rejectRequestHandler(requestId);
+      break;
+  }
 }

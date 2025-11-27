@@ -5,6 +5,59 @@ const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.a
 
 // ================== INICIALIZACIÓN DE NOTIFICACIONES ==================
 
+/**
+ * Espera a que el Service Worker esté activo
+ * @param {ServiceWorkerRegistration} registration 
+ * @returns {Promise<ServiceWorkerRegistration>}
+ */
+async function waitForServiceWorkerActive(registration) {
+  // Si ya hay un SW activo, retornamos inmediatamente
+  if (registration.active) {
+    return registration;
+  }
+
+  // Si hay uno instalándose o esperando, esperar a que esté activo
+  const sw = registration.installing || registration.waiting;
+  if (sw) {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => {
+        sw.removeEventListener('statechange', onStateChange);
+        reject(new Error('Timeout esperando activación del Service Worker'));
+      }, 10000); // 10 segundos timeout
+
+      function onStateChange() {
+        if (sw.state === 'activated') {
+          clearTimeout(timeout);
+          sw.removeEventListener('statechange', onStateChange);
+          resolve(registration);
+        } else if (sw.state === 'redundant') {
+          clearTimeout(timeout);
+          sw.removeEventListener('statechange', onStateChange);
+          reject(new Error('Service Worker se volvió redundante'));
+        }
+      }
+
+      sw.addEventListener('statechange', onStateChange);
+    });
+  }
+
+  // Fallback: esperar al evento controllerchange con timeout
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      reject(new Error('Timeout esperando controllerchange del Service Worker'));
+    }, 10000); // 10 segundos timeout
+
+    function onControllerChange() {
+      clearTimeout(timeout);
+      navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+      resolve(registration);
+    }
+
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+  });
+}
+
 export async function initializeNotifications() {
   try {
     console.log('🔔 Inicializando notificaciones push...');
@@ -18,8 +71,22 @@ export async function initializeNotifications() {
     // Registrar service worker si no está registrado
     let registration = await navigator.serviceWorker.getRegistration();
     if (!registration) {
-      registration = await navigator.serviceWorker.register('sw.js');
-      console.log('✅ Service Worker registrado');
+      try {
+        registration = await navigator.serviceWorker.register('sw.js');
+        console.log('✅ Service Worker registrado');
+      } catch (swError) {
+        console.error('❌ Error al registrar Service Worker:', swError);
+        return false;
+      }
+    }
+
+    // IMPORTANTE: Esperar a que el Service Worker esté activo antes de suscribirse
+    try {
+      registration = await waitForServiceWorkerActive(registration);
+      console.log('✅ Service Worker activo y listo');
+    } catch (activeError) {
+      console.error('❌ Error esperando activación del Service Worker:', activeError);
+      return false;
     }
 
     // Solicitar permiso para notificaciones
@@ -29,7 +96,7 @@ export async function initializeNotifications() {
       return false;
     }
 
-    // Suscribirse a push notifications
+    // Suscribirse a push notifications (ahora el SW está activo)
     const subscription = await subscribeToPush(registration);
     if (subscription) {
       // Enviar suscripción al servidor
@@ -89,6 +156,9 @@ async function sendSubscriptionToServer(subscription) {
       throw new Error('Token no disponible');
     }
 
+    // Convert PushSubscription to a plain object for JSON serialization
+    const subscriptionData = subscription.toJSON ? subscription.toJSON() : subscription;
+
     const response = await fetch(`${API_URL}/notifications/subscribe`, {
       method: 'POST',
       headers: {
@@ -96,13 +166,15 @@ async function sendSubscriptionToServer(subscription) {
         'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
-        subscription: subscription,
+        subscription: subscriptionData,
         userId: user.uid
       })
     });
 
     if (!response.ok) {
-      throw new Error('Error al enviar suscripción al servidor');
+      const errorData = await response.json().catch(() => ({}));
+      console.warn('⚠️ Respuesta del servidor:', response.status, errorData);
+      throw new Error(errorData.error || 'Error al enviar suscripción al servidor');
     }
 
     console.log('✅ Suscripción enviada al servidor');

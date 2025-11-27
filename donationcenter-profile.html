@@ -31,15 +31,16 @@
     <div class="container">
       <div class="d-flex align-items-center">
         <button class="btn btn-link text-white me-3 p-0 btn-back-to-donations" style="border: none; background: none; font-size: 1.2rem; text-decoration: none;" title="Volver a Donaciones">
+        <button class="btn btn-link text-white me-3 p-0" id="backToDonationsBtn" style="border: none; background: none; font-size: 1.2rem; text-decoration: none;" title="Volver a Donaciones">
+        <!-- MEJORA: Eliminado onclick inline, manejado en JS externo para mejor seguridad y mantenibilidad -->
+        <button id="backToDonationsBtn" class="btn btn-link text-white me-3 p-0" style="border: none; background: none; font-size: 1.2rem; text-decoration: none;" title="Volver a Donaciones">
           <i class="fas fa-arrow-left"></i>
         </button>
         <a class="navbar-brand fw-bold text-white profile-navbar-brand" href="donationcenter.html">
           <i class="fas fa-heart heart-icon"></i>DONANTES
         </a>
       </div>
-      <span class="navbar-text fw-bold text-white" title="Volver">
-        <i class="fas fa-arrow-left"></i>
-      </span>
+
     </div>
   </nav>
 
@@ -58,6 +59,13 @@
           <div class="profile-photo-overlay" id="profilePhotoOverlay">
             <i class="fas fa-camera fa-2x text-white"></i>
           </div>
+            <i class="fas fa-camera fa-2x text-white"></i>
+          </div>
+          <!-- MEJORA: Eliminado onclick inline, manejado en JS externo -->
+          <div id="profilePhotoOverlay" class="profile-photo-overlay">
+            <i class="fas fa-camera fa-2x text-white"></i>
+          </div>
+          <!-- MEJORA: Eliminado onchange inline, manejado en JS externo -->
           <input type="file" id="photoUpload" accept="image/*" class="hidden-file-input">
         </div>
         <div class="d-flex align-items-center mb-2">
@@ -160,6 +168,8 @@
           <div class="input-group">
             <input type="password" id="currentPassword" class="form-control" placeholder="••••••••" readonly>
             <button class="btn btn-outline-secondary btn-toggle-password" type="button" id="toggleCurrentPassword" data-target="currentPassword">
+            <!-- MEJORA: Eliminado onclick inline, manejado en JS externo -->
+            <button class="btn btn-outline-secondary" type="button" id="toggleCurrentPassword">
               <i class="fas fa-eye" id="currentPasswordIcon"></i>
             </button>
           </div>
@@ -171,6 +181,8 @@
           <div class="input-group">
             <input type="password" id="newPassword" class="form-control" placeholder="••••••••" minlength="6">
             <button class="btn btn-outline-secondary btn-toggle-password" type="button" id="toggleNewPassword" data-target="newPassword">
+            <input type="password" id="newPassword" class="form-control" autocomplete="new-password" placeholder="••••••••" minlength="6">
+            <button class="btn btn-outline-secondary" type="button" id="toggleNewPassword">
               <i class="fas fa-eye" id="newPasswordIcon"></i>
             </button>
           </div>
@@ -183,6 +195,7 @@
             <span id="saveProfileText">Actualizar perfil</span>
             <span id="saveProfileSpinner" class="spinner-border spinner-border-sm d-none ms-2"></span>
           </button>
+          <a href="two-factor.html" class="btn btn-outline-purple ms-2">
             <i class="fas fa-shield-alt me-2"></i>
             Configurar 2FA
           </a>

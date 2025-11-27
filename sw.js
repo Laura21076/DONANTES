@@ -53,7 +53,6 @@ const urlsToCache = [
   // PWA
   "manifest.json",
   "sw.js",
-  "pwa-debug.html",
 
   // Assets
   "assets/logo.ico",
@@ -61,27 +60,67 @@ const urlsToCache = [
   "assets/logo512.png",
   "assets/S_SDG_inverted_WEB-12.png",
 
-  // Archivos HTML especiales
-  "verificar-permisos.html",
-  "test-edit-delete.html",
-  "reinicio-completo.html",
-  "clear-cache-force.html",
-
   // CDN externas (críticas)
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css",
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js",
-  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
+  "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+];
+
+// External resources that may fail (fonts) - cached separately with graceful handling
+const optionalExternalResources = [
   "https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700&family=Moirai+One&display=swap",
   "https://fonts.gstatic.com/s/rubik/v28/iJWZBXyIfDnIV5PNhY1KTN7Z-Yh-B4iFVUUzdYPFkaVNA6w.woff2",
   "https://fonts.gstatic.com/s/moiraione/v11/2sDcZGJYm4e-k2eP_9twI4J-oeFbJF.woff2"
 ];
 
-// Instalar y cachear los recursos
+// Instalar y cachear los recursos con manejo de errores individual
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log("Archivos cacheados correctamente");
-      return cache.addAll(urlsToCache);
+    caches.open(CACHE_NAME).then(async cache => {
+      console.log("Iniciando cacheo de archivos...");
+      
+      // Cachear cada URL individualmente para que un fallo no detenga los demás
+      const cachePromises = urlsToCache.map(async (url) => {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            await cache.put(url, response.clone());
+            return { url, success: true };
+          } else {
+            console.warn(`⚠️ No se pudo cachear (status ${response.status}): ${url}`);
+            return { url, success: false, status: response.status };
+          }
+        } catch (error) {
+          console.warn(`⚠️ Error al cachear ${url}:`, error.message);
+          return { url, success: false, error: error.message };
+        }
+      });
+      
+      // Cache optional external resources (fonts) with graceful handling
+      const optionalPromises = optionalExternalResources.map(async (url) => {
+        try {
+          const response = await fetch(url);
+          if (response.ok) {
+            await cache.put(url, response.clone());
+            return { url, success: true, optional: true };
+          } else {
+            console.warn(`⚠️ Recurso externo opcional no disponible (status ${response.status}): ${url}`);
+            return { url, success: false, optional: true, status: response.status };
+          }
+        } catch (error) {
+          console.warn(`⚠️ Recurso externo opcional falló: ${url} -`, error.message);
+          return { url, success: false, optional: true, error: error.message };
+        }
+      });
+      
+      const results = await Promise.all([...cachePromises, ...optionalPromises]);
+      const successful = results.filter(r => r.success).length;
+      const failed = results.filter(r => !r.success && !r.optional).length;
+      const optionalFailed = results.filter(r => !r.success && r.optional).length;
+      
+      console.log(`✅ Cacheo completado: ${successful} exitosos, ${failed} fallidos${optionalFailed > 0 ? `, ${optionalFailed} recursos opcionales no cacheados` : ''}`);
+      
+      return results;
     })
   );
   if (FORCE_UPDATE) {
@@ -111,6 +150,11 @@ self.addEventListener("fetch", event => {
 
   // Ignorar peticiones no GET para mejor rendimiento
   if (request.method !== 'GET') {
+    return;
+  }
+
+  // Ignorar peticiones con esquemas no soportados (chrome-extension://, etc.)
+  if (url.protocol === 'chrome-extension:' || url.protocol === 'moz-extension:' || url.protocol === 'ms-browser-extension:') {
     return;
   }
 

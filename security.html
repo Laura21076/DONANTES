@@ -178,6 +178,14 @@
                     <i class="fas fa-file-alt me-2"></i>Ver Logs
                   </button>
                   <button class="btn btn-outline-warning btn-sm btn-manage-users">
+                  <button class="btn btn-outline-info btn-sm" id="viewLogsBtn">
+                    <i class="fas fa-file-alt me-2"></i>Ver Logs
+                  </button>
+                  <button class="btn btn-outline-warning btn-sm" id="manageUsersBtn">
+                  <button class="btn btn-outline-info btn-sm" data-action="view-logs">
+                    <i class="fas fa-file-alt me-2"></i>Ver Logs
+                  </button>
+                  <button class="btn btn-outline-warning btn-sm" data-action="manage-users">
                     <i class="fas fa-users me-2"></i>Gestionar Usuarios
                   </button>
                 </div>
@@ -200,11 +208,15 @@
                 <div class="row">
                   <div class="col-md-6 mb-3">
                     <button class="btn btn-outline-secondary w-100 btn-change-password">
+                    <button class="btn btn-outline-secondary w-100" id="changePasswordBtn">
+                    <button class="btn btn-outline-secondary w-100" data-action="change-password">
                       <i class="fas fa-lock me-2"></i>Cambiar Contraseña
                     </button>
                   </div>
                   <div class="col-md-6 mb-3">
                     <button class="btn btn-outline-info w-100 btn-download-data">
+                    <button class="btn btn-outline-info w-100" id="downloadDataBtn">
+                    <button class="btn btn-outline-info w-100" data-action="download-data">
                       <i class="fas fa-download me-2"></i>Descargar Mis Datos
                     </button>
                   </div>
@@ -361,6 +373,8 @@
       `;
     }
   </script>
+  <script src="security-page.js"></script>
+  <script src="security-init.js"></script>
 </body>
 
 </html>
