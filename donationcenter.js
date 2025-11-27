@@ -23,6 +23,18 @@ import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from 'htt
 
 // Timeout máximo para operaciones de subida (30 segundos)
 const UPLOAD_TIMEOUT_MS = 30000;
+// Timeout para operaciones de verificación (10 segundos)
+const VERIFY_TIMEOUT_MS = 10000;
+// Timeout para operaciones de backend (15 segundos)
+const BACKEND_TIMEOUT_MS = 15000;
+
+// Colores para mensajes toast
+const TOAST_COLORS = {
+  success: '#A992D8', // Morado claro
+  danger: '#6E49A3',  // Morado principal
+  warning: '#8C78BF', // Morado hover
+  default: '#8C78BF'
+};
 
 let currentArticleId = null;
 let articlesCache = [];
@@ -326,19 +338,7 @@ function showMessage(text, type) {
     if (toastBody) {
       // Configurar estilo según el tipo
       toast.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
-      switch (type) {
-        case 'success':
-          toast.style.backgroundColor = '#A992D8'; // Morado claro
-          break;
-        case 'danger':
-          toast.style.backgroundColor = '#6E49A3'; // Morado principal
-          break;
-        case 'warning':
-          toast.style.backgroundColor = '#8C78BF'; // Morado hover
-          break;
-        default:
-          toast.style.backgroundColor = '#8C78BF';
-      }
+      toast.style.backgroundColor = TOAST_COLORS[type] || TOAST_COLORS.default;
       toast.style.color = '#ffffff';
       toastBody.textContent = text;
       const bsToast = new window.bootstrap.Toast(toast);
@@ -416,12 +416,14 @@ async function eliminarImagenHuerfana(fileRef) {
  * @param {string} operationName - Nombre de la operación para logs
  */
 function withTimeout(promise, timeoutMs, operationName) {
-  return Promise.race([
-    promise,
-    new Promise((_, reject) => 
-      setTimeout(() => reject(new Error(`Timeout: ${operationName} tardó más de ${timeoutMs/1000}s`)), timeoutMs)
-    )
-  ]);
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`Timeout: ${operationName} tardó más de ${timeoutMs/1000}s`)), timeoutMs);
+  });
+  
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timeoutId);
+  });
 }
 
 /**
@@ -521,13 +523,13 @@ async function saveArticle() {
         
         // Verificar que el archivo existe
         console.log('[UPLOAD_VERIFY] Verificando que el archivo existe...');
-        const metadata = await withTimeout(getMetadata(fileRef), 10000, 'verificación de imagen');
+        const metadata = await withTimeout(getMetadata(fileRef), VERIFY_TIMEOUT_MS, 'verificación de imagen');
         console.log('[UPLOAD_VERIFY_OK] Archivo verificado, tamaño:', metadata.size, 'bytes');
         
         // Obtener URL de descarga
         console.log('[UPLOAD_URL] Obteniendo URL de descarga...');
-        imageUrl = await withTimeout(getDownloadURL(fileRef), 10000, 'obtención de URL');
-        console.log('[UPLOAD_URL_OK] URL de descarga obtenida:', imageUrl.substring(0, 50) + '...');
+        imageUrl = await withTimeout(getDownloadURL(fileRef), VERIFY_TIMEOUT_MS, 'obtención de URL');
+        console.log('[UPLOAD_URL_OK] URL de descarga obtenida');
         
         // Guardar referencia para posible limpieza
         uploadedFileRef = fileRef;
@@ -545,20 +547,17 @@ async function saveArticle() {
     const articleData = { ...baseData, imageUrl };
     
     // IMPORTANTE: Solo enviamos la URL, nunca el archivo File
-    console.log('[BACKEND_DATA] Datos a enviar (solo imageUrl, no File):', {
-      ...articleData,
-      imageUrl: articleData.imageUrl ? articleData.imageUrl.substring(0, 50) + '...' : null
-    });
+    console.log('[BACKEND_DATA] Artículo preparado, imageUrl:', imageUrl ? 'presente' : 'ninguna');
     
     try {
       if (currentArticleId) {
         console.log('[BACKEND_UPDATE] Actualizando artículo existente:', currentArticleId);
-        await withTimeout(updateArticle(currentArticleId, articleData), 15000, 'actualización de artículo');
+        await withTimeout(updateArticle(currentArticleId, articleData), BACKEND_TIMEOUT_MS, 'actualización de artículo');
         console.log('[ARTICLE_UPDATE_OK] Artículo actualizado exitosamente');
         showMessage('Artículo actualizado exitosamente', 'success');
       } else {
         console.log('[BACKEND_CREATE] Creando nuevo artículo...');
-        await withTimeout(createArticle(articleData), 15000, 'creación de artículo');
+        await withTimeout(createArticle(articleData), BACKEND_TIMEOUT_MS, 'creación de artículo');
         console.log('[ARTICLE_CREATE_OK] Artículo creado exitosamente');
         showMessage('Artículo publicado exitosamente', 'success');
       }
