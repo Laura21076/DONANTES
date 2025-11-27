@@ -159,27 +159,59 @@ async function sendSubscriptionToServer(subscription) {
     // Convert PushSubscription to a plain object for JSON serialization
     const subscriptionData = subscription.toJSON ? subscription.toJSON() : subscription;
 
+    // MEJORA: Log detallado de datos enviados al servidor
+    const requestBody = {
+      subscription: subscriptionData,
+      userId: user.uid
+    };
+    
+    console.log('📤 [NOTIFICATIONS] Enviando suscripción al servidor...');
+    console.log('📤 [NOTIFICATIONS] Endpoint:', `${API_URL}/notifications/subscribe`);
+    console.log('📤 [NOTIFICATIONS] Body enviado:', JSON.stringify(requestBody, null, 2));
+
     const response = await fetch(`${API_URL}/notifications/subscribe`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({
-        subscription: subscriptionData,
-        userId: user.uid
-      })
+      body: JSON.stringify(requestBody)
     });
 
+    // MEJORA: Log detallado de respuesta del servidor
+    console.log('📥 [NOTIFICATIONS] Respuesta del servidor:', response.status, response.statusText);
+    
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.warn('⚠️ Respuesta del servidor:', response.status, errorData);
-      throw new Error(errorData.error || 'Error al enviar suscripción al servidor');
+      // MEJORA: Log completo de errores, especialmente para HTTP 400
+      let errorData = {};
+      let errorText = '';
+      
+      try {
+        errorText = await response.text();
+        errorData = JSON.parse(errorText);
+      } catch (parseError) {
+        errorData = { rawResponse: errorText };
+      }
+      
+      console.error(`❌ [NOTIFICATIONS] Error del servidor (HTTP ${response.status})`);
+      console.error('❌ [NOTIFICATIONS] Respuesta completa:', errorData);
+      console.error('❌ [NOTIFICATIONS] Datos enviados que causaron el error:', requestBody);
+      
+      // Log específico para errores 400 (Bad Request)
+      if (response.status === 400) {
+        console.error('❌ [NOTIFICATIONS] ERROR 400 - Bad Request: El body enviado no coincide con lo esperado por el backend');
+        console.error('❌ [NOTIFICATIONS] Verifica que el objeto subscription tenga: endpoint, keys.p256dh, keys.auth');
+        console.error('❌ [NOTIFICATIONS] subscription.endpoint:', subscriptionData.endpoint);
+        console.error('❌ [NOTIFICATIONS] subscription.keys:', subscriptionData.keys);
+      }
+      
+      throw new Error(errorData.error || errorData.message || `Error al enviar suscripción al servidor (HTTP ${response.status})`);
     }
 
-    console.log('✅ Suscripción enviada al servidor');
+    console.log('✅ [NOTIFICATIONS] Suscripción enviada al servidor exitosamente');
   } catch (error) {
-    console.error('❌ Error al enviar suscripción:', error);
+    console.error('❌ [NOTIFICATIONS] Error al enviar suscripción:', error.message);
+    console.error('❌ [NOTIFICATIONS] Stack trace:', error.stack);
   }
 }
 

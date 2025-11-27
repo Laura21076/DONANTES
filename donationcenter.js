@@ -20,6 +20,11 @@ import { requestArticle as requestArticleService } from './requests.js';
 import { storage } from './firebase.js';
 // MEJORA: Agregamos deleteObject y getMetadata para verificación y limpieza de imágenes huérfanas
 import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
+// MEJORA: Importar utilidades de imagen
+import { getPlaceholderPath, buildFirebaseStorageUrl } from './image-utils.js';
+
+// Placeholder image path
+const PLACEHOLDER_IMAGE = getPlaceholderPath();
 
 // Timeout máximo para operaciones de subida (30 segundos)
 const UPLOAD_TIMEOUT_MS = 30000;
@@ -194,12 +199,15 @@ async function displayArticles(articles) {
             <i class="fa-regular fa-clock me-1"></i> ${getTimeRemaining(article.expiresAt)}
           </span>` : "";
 
+    // MEJORA: Usar placeholder para imágenes con manejo de error robusto
+    const imageUrl = article.imageUrl ? buildFirebaseStorageUrl(article.imageUrl) : null;
+
     return `
       <div class="col-md-6 col-lg-4">
         <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
           <div class="position-relative article-image-container">
-            ${article.imageUrl
-              ? `<img src="${article.imageUrl}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;" data-article-id="${article.id}">`
+            ${imageUrl
+              ? `<img src="${imageUrl}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;" data-article-id="${article.id}" data-has-fallback="true">`
               : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
                   <i class="fas fa-image fa-3x text-purple-light mb-2"></i>
                   <span style="color:#8C78BF;">Sin imagen</span>
@@ -217,8 +225,7 @@ async function displayArticles(articles) {
             </div>
             <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
             <div class="mt-auto d-flex gap-2">
-              ${/* FIX: Ternario corregido - solo dos ramas, sin botones anidados */
-                isOwner
+              ${isOwner
                 ? `
                   <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
                     <i class="fas fa-edit"></i>
@@ -227,18 +234,8 @@ async function displayArticles(articles) {
                     <i class="fas fa-trash"></i>
                   </button>
                 `
-                : `<button class="btn btn-purple flex-fill shadow-sm btn-show-request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
-                   <i class="fas fa-heart me-1"></i> Me interesa
-                   </button>`
-                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-action="edit" data-article-id="${article.id}">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-action="delete" data-article-id="${article.id}">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                `
                 : `
-                  <button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-action="request" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
+                  <button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
                     <i class="fas fa-heart me-1"></i> Me interesa
                   </button>
                 `
@@ -306,17 +303,30 @@ function setupImageErrorHandlers() {
   }
 }
 
+// MEJORA: Manejar error de imagen con placeholder
 function handleImageError(img) {
-  const container = img.closest('.article-image-container');
-  if (container) {
-    container.innerHTML = `
-      <div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
-        <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
-        <span style="color:#8C78BF;">Error al cargar imagen</span>
-        <small class="text-muted mt-1">Verifica tu conexión o configuración CORS</small>
-      </div>
-    `;
-  }
+  // Si ya tiene placeholder, no hacer nada
+  if (img.src.includes(PLACEHOLDER_IMAGE)) return;
+  
+  // Primero intentar con placeholder
+  console.log('[IMAGE_ERROR] Error cargando imagen, usando placeholder:', img.src);
+  img.src = PLACEHOLDER_IMAGE;
+  img.alt = 'Imagen no disponible';
+  
+  // Si el placeholder también falla, mostrar el div de error
+  img.addEventListener('error', function placeholderError() {
+    img.removeEventListener('error', placeholderError);
+    const container = img.closest('.article-image-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
+          <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+          <span style="color:#8C78BF;">Error al cargar imagen</span>
+          <small class="text-muted mt-1">Imagen no disponible</small>
+        </div>
+      `;
+    }
+  }, { once: true });
 }
 
 // Initialize image error handlers on page load
@@ -686,63 +696,29 @@ async function requestArticleHandler(articleId, message, articleTitle) {
   }
 }
 
-// Attach event listeners for article buttons (CSP compatible)
+// Attach event listeners for article buttons using event delegation (CSP compatible)
 function attachArticleEventListeners() {
-  // "Me interesa" buttons
-  document.querySelectorAll('.btn-show-request').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const articleId = this.dataset.articleId;
-      const articleTitle = this.dataset.articleTitle;
-      if (typeof window.showRequestModal === 'function') {
-        window.showRequestModal(articleId, articleTitle);
-      }
-    });
-  });
-
-  // Edit buttons
-  document.querySelectorAll('.btn-edit-article').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const articleId = this.dataset.articleId;
-      if (typeof window.editArticle === 'function') {
-        window.editArticle(articleId);
-      }
-    });
-  });
-
-  // Delete buttons
-  document.querySelectorAll('.btn-delete-article').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const articleId = this.dataset.articleId;
-      if (typeof window.confirmDelete === 'function') {
-        window.confirmDelete(articleId);
-      }
-    });
+  const grid = document.getElementById('articlesGrid');
+  if (!grid) return;
+  
+  // Use event delegation on the grid instead of individual button listeners
+  grid.addEventListener('click', function(event) {
+    const target = event.target.closest('button');
+    if (!target) return;
+    
+    const articleId = target.dataset.articleId;
+    const articleTitle = target.dataset.articleTitle;
+    
+    if (target.classList.contains('btn-edit-article')) {
+      event.preventDefault();
+      editArticle(articleId);
+    } else if (target.classList.contains('btn-delete-article')) {
+      event.preventDefault();
+      confirmDelete(articleId);
+    } else if (target.classList.contains('btn-request-article')) {
+      event.preventDefault();
+      showRequestModal(articleId, articleTitle);
+    }
   });
 }
-// ================== EVENT DELEGATION PARA BOTONES DE ARTÍCULOS ==================
-// Usar delegación de eventos para evitar inline event handlers (CSP compliance)
-document.addEventListener('DOMContentLoaded', () => {
-  const articlesGrid = document.getElementById('articlesGrid');
-  if (articlesGrid) {
-    articlesGrid.addEventListener('click', (event) => {
-      const button = event.target.closest('button[data-action]');
-      if (!button) return;
-
-      const action = button.dataset.action;
-      const articleId = button.dataset.articleId;
-      const articleTitle = button.dataset.articleTitle;
-
-      switch (action) {
-        case 'edit':
-          window.editArticle(articleId);
-          break;
-        case 'delete':
-          window.confirmDelete(articleId);
-          break;
-        case 'request':
-          window.showRequestModal(articleId, articleTitle);
-          break;
-      }
-    });
-  }
-});
+// End of file
