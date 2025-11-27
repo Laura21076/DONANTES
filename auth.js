@@ -81,10 +81,22 @@ export async function logout() {
 }
 
 /**
- * Obtener usuario actual de Firebase Auth (objeto User, o null)
+ * Obtener usuario actual de Firebase Auth (robusto: espera la inicialización, nunca rebotará entre páginas)
+ * Devuelve Promise<User|null>
  */
+let __authInitPromise = null;
+let __authInitDone = false;
+
 export function getCurrentUser() {
-  return auth.currentUser;
+  if (__authInitDone) return Promise.resolve(auth.currentUser);
+  if (__authInitPromise) return __authInitPromise;
+  __authInitPromise = new Promise((resolve) => {
+    onAuthStateChanged(auth, (user) => {
+      __authInitDone = true;
+      resolve(user);
+    });
+  });
+  return __authInitPromise;
 }
 window.getCurrentUser = getCurrentUser;
 
@@ -92,7 +104,8 @@ window.getCurrentUser = getCurrentUser;
  * Obtener el ID Token actual (actualizado)
  */
 export async function getIdToken() {
-  const user = auth.currentUser;
+  // Usa la versión Promise de getCurrentUser por robustez:
+  const user = await getCurrentUser();
   if (!user) throw { code: "UNAUTHORIZED", message: "No autenticado" };
   return await user.getIdToken();
 }
@@ -118,7 +131,7 @@ export async function resetPassword(email) {
  * Actualizar perfil del usuario.
  */
 export async function updateUserProfile(data) {
-  const user = auth.currentUser;
+  const user = await getCurrentUser();
   if (!user) throw { code: "UNAUTHORIZED", message: "No autenticado" };
   if (data.displayName) await updateProfile(user, { displayName: data.displayName });
   if (data.email && data.email !== user.email) await updateEmail(user, data.email);
@@ -134,4 +147,3 @@ export function onUserAuthStateChange(callback) {
   return onAuthStateChanged(auth, callback);
 }
 window.onUserAuthStateChange = onUserAuthStateChange;
-
