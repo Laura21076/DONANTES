@@ -33,7 +33,7 @@ export async function requestArticle(articleId, message = '') {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ articleId, message })
+      body: JSON.stringify({ articleId, message, lockerCode})
     });
 
     console.log('[requestArticle] Respuesta del backend:', response.status, response.statusText);
@@ -243,3 +243,4 @@ export async function confirmPickup(requestId) {
     throw error;
   }
 }
+
