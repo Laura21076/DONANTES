@@ -1,8 +1,3 @@
-/**
- * donationcenter.js
- * Mejoras en la subida de imágenes y robustez general.
- */
-
 import { getCurrentLockerCode } from './locker.js';
 import { createArticle, getArticles, updateArticle, deleteArticle } from './articles.js';
 import { getCurrentUser, getIdToken } from './auth.js';
@@ -27,7 +22,7 @@ let articlesCache = [];
 let lastLoadTime = 0;
 const CACHE_DURATION = 30000;
 
-// ========== FUNCIONES UTILITARIAS ==========
+// ========== FUNCIONES UTILITARIAS DE USO GENERAL (¡DEBEN IR ARRIBA!) ==========
 
 function escapeHtml(unsafe) {
   return unsafe.replace(/&/g, "&amp;")
@@ -276,6 +271,7 @@ async function displayArticles(articles) {
 }
 
 // ========== EVENTOS DE ARTÍCULOS ==========
+
 function attachArticleEventListeners() {
   const grid = document.getElementById('articlesGrid');
   if (!grid) return;
@@ -321,7 +317,6 @@ function setupImageErrorHandlers() {
 
 function handleImageError(img) {
   if (img.src.includes(PLACEHOLDER_IMAGE)) return;
-  console.log('[IMAGE_ERROR] Error cargando imagen, usando placeholder:', img.src);
   img.src = PLACEHOLDER_IMAGE;
   img.alt = 'Imagen no disponible';
   img.addEventListener('error', function placeholderError() {
@@ -377,7 +372,6 @@ function setupFormHandlers() {
 // ========== SUBIDA Y MANEJO DE ARTÍCULOS ==========
 
 async function saveArticle() {
-  console.log('[saveArticle] Iniciando proceso de guardado...');
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
   const submitBtn = document.getElementById('submitBtn');
@@ -445,10 +439,7 @@ async function saveArticle() {
 async function eliminarImagenHuerfana(fileRef) {
   try {
     await deleteObject(fileRef);
-    console.log('[CLEANUP_OK] Imagen huérfana eliminada:', fileRef.fullPath);
-  } catch (cleanupError) {
-    console.warn('[CLEANUP_WARN] No se pudo eliminar imagen huérfana:', cleanupError.message);
-  }
+  } catch (cleanupError) {}
 }
 
 function cleanupFormUI() {
@@ -468,9 +459,7 @@ function closeUploadModal() {
       if (modalElement.contains(document.activeElement)) document.activeElement.blur();
       modal.hide();
     }
-  } catch (e) {
-    console.warn('[closeUploadModal] Error al cerrar modal:', e.message);
-  }
+  } catch (e) {}
 }
 
 // ========== EDICIÓN Y ELIMINACIÓN DE ARTÍCULOS ==========
@@ -527,7 +516,6 @@ async function confirmDelete(articleId) {
     await loadArticles(true);
   } catch (error) {
     showMessage('Error al eliminar: ' + (error?.message || error), 'danger');
-    console.error(error);
   }
 }
 window.confirmDelete = confirmDelete;
@@ -548,6 +536,5 @@ async function requestArticleHandler(articleId, message, articleTitle) {
     await loadArticles();
   } catch (error) {
     showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
-    console.error(error);
   }
 }
