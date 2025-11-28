@@ -1,7 +1,6 @@
 /**
  * donationcenter.js
  * Mejoras en la subida de imágenes y robustez general.
- * (ver comentarios previos)
  */
 
 import { getCurrentLockerCode } from './locker.js';
@@ -12,6 +11,7 @@ import { storage } from './firebase.js';
 import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 import { getPlaceholderPath, buildFirebaseStorageUrl } from './image-utils.js';
 
+// ========== CONSTANTES Y VARIABLES ==========
 const PLACEHOLDER_IMAGE = getPlaceholderPath();
 const UPLOAD_TIMEOUT_MS = 30000;
 const VERIFY_TIMEOUT_MS = 10000;
@@ -22,11 +22,12 @@ const TOAST_COLORS = {
   warning: '#8C78BF',
   default: '#8C78BF'
 };
-
 let currentArticleId = null;
 let articlesCache = [];
 let lastLoadTime = 0;
 const CACHE_DURATION = 30000;
+
+// ========== FUNCIONES UTILITARIAS ==========
 
 function escapeHtml(unsafe) {
   return unsafe.replace(/&/g, "&amp;")
@@ -36,9 +37,63 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
+function showMessage(text, type) {
+  console.log(`[showMessage] ${type.toUpperCase()}: ${text}`);
+  const toast = document.getElementById('toast');
+  if (toast && window.bootstrap?.Toast) {
+    const toastBody = toast.querySelector('.toast-body');
+    if (toastBody) {
+      toast.classList.remove('bg-success', 'bg-danger', 'bg-warning', 'bg-info');
+      toast.style.backgroundColor = TOAST_COLORS[type] || TOAST_COLORS.default;
+      toast.style.color = '#ffffff';
+      toastBody.textContent = text;
+      const bsToast = new window.bootstrap.Toast(toast);
+      bsToast.show();
+      return;
+    }
+  }
+  const messageDiv = document.getElementById('feedbackMessage');
+  if (messageDiv) {
+    messageDiv.innerHTML = `
+      <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+        ${text}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    `;
+    setTimeout(() => {
+      messageDiv.innerHTML = '';
+    }, 5000);
+  }
+}
+
+function getTimeRemaining(expiresAt) {
+  if (!expiresAt) return 'Sin límite';
+  const now = new Date();
+  const expiry = new Date(expiresAt);
+  const diff = expiry - now;
+  if (diff <= 0) return 'Expirado';
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
+
+function withTimeout(promise, timeoutMs, operationName) {
+  let timeoutId;
+  const timeoutPromise = new Promise((_, reject) => {
+    timeoutId = setTimeout(() => reject(new Error(`Timeout: ${operationName} tardó más de ${timeoutMs / 1000}s`)), timeoutMs);
+  });
+  return Promise.race([promise, timeoutPromise]).finally(() => {
+    clearTimeout(timeoutId);
+  });
+}
+
+// ========== INICIO Y PERFIL ==========
+
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    const { getCurrentUser } = await import('./auth.js');
     let user = await getCurrentUser();
     if (!user) {
       window.location.replace('login.html');
@@ -59,7 +114,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadUserProfile() {
   try {
-    const { getCurrentUser } = await import('./auth.js');
     let user = await getCurrentUser();
     if (!user) return;
     const token = await getIdToken();
@@ -95,6 +149,8 @@ function updateNavbarProfile(profile) {
   `;
 }
 window.updateNavbarProfile = updateNavbarProfile;
+
+// ========== CARGA Y VISUALIZACIÓN DE ARTÍCULOS ==========
 
 async function loadArticles(forceReload = false) {
   if (
@@ -134,7 +190,6 @@ async function displayArticles(articles) {
   const emptyState = document.getElementById('emptyState');
   let currentUser;
   try {
-    const { getCurrentUser } = await import('./auth.js');
     currentUser = await getCurrentUser();
   } catch {
     currentUser = null;
@@ -162,8 +217,8 @@ async function displayArticles(articles) {
     const estado = (article.status === 'expirado')
       ? `<span class="badge status-badge status-expired position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Expirado</span>`
       : (article.status === 'reservado')
-      ? `<span class="badge status-badge status-reserved position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Reservado</span>`
-      : `<span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>`;
+        ? `<span class="badge status-badge status-reserved position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Reservado</span>`
+        : `<span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>`;
 
     const timer = article.expiresAt
       ? `<span class="article-timer position-absolute top-0 start-0 mt-2 ms-2">
@@ -217,17 +272,17 @@ async function displayArticles(articles) {
     `;
   }).join('');
 
-  // Attach article events (SÓLO UNA DEFINICIÓN, SIN DUPLICADOS)
   attachArticleEventListeners();
 }
 
-// ------ SÓLO UNA DEFINICIÓN ---------
+// ========== EVENTOS DE ARTÍCULOS ==========
 function attachArticleEventListeners() {
   const grid = document.getElementById('articlesGrid');
   if (!grid) return;
   grid.removeEventListener('click', handleArticleClick);
   grid.addEventListener('click', handleArticleClick);
 }
+
 function handleArticleClick(event) {
   const target = event.target.closest('button');
   if (!target) return;
@@ -250,9 +305,249 @@ function handleArticleClick(event) {
     }, 500);
   }
 }
-// ------ FIN SOLO UNA DEFINICIÓN ---------
 
-// ... El resto del archivo continúa igual, como lo tienes ...
+// ========== MANEJO DE ERRORES DE IMÁGENES ==========
 
-// (setupImageErrorHandlers, saveArticle, editArticle, confirmDelete, etc.)
-// (No es necesario pegarlos todos aquí si no se han modificado más abajo y no afectan a la duplicidad)
+function setupImageErrorHandlers() {
+  const grid = document.getElementById('articlesGrid');
+  if (grid) {
+    grid.addEventListener('error', function (event) {
+      if (event.target.tagName === 'IMG' && event.target.classList.contains('article-image')) {
+        handleImageError(event.target);
+      }
+    }, true);
+  }
+}
+
+function handleImageError(img) {
+  if (img.src.includes(PLACEHOLDER_IMAGE)) return;
+  console.log('[IMAGE_ERROR] Error cargando imagen, usando placeholder:', img.src);
+  img.src = PLACEHOLDER_IMAGE;
+  img.alt = 'Imagen no disponible';
+  img.addEventListener('error', function placeholderError() {
+    img.removeEventListener('error', placeholderError);
+    const container = img.closest('.article-image-container');
+    if (container) {
+      container.innerHTML = `
+        <div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
+          <i class="fas fa-exclamation-triangle fa-2x text-warning mb-2"></i>
+          <span style="color:#8C78BF;">Error al cargar imagen</span>
+          <small class="text-muted mt-1">Imagen no disponible</small>
+        </div>
+      `;
+    }
+  }, { once: true });
+}
+
+// ========== FORMULARIOS Y SUBIDA DE ARTÍCULOS ==========
+
+function setupFormHandlers() {
+  const form = document.getElementById('uploadForm');
+  const fileInput = document.getElementById('articleImageFile');
+  const previewImg = document.getElementById('articleImagePreviewImg');
+  const previewWrap = document.getElementById('articleImagePreview');
+
+  fileInput?.addEventListener('change', () => {
+    const file = fileInput.files?.[0];
+    if (!file) {
+      if (previewWrap) previewWrap.style.display = 'none';
+      if (previewImg) previewImg.src = '';
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = e => {
+      if (previewImg) previewImg.src = e.target.result;
+      if (previewWrap) previewWrap.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  form?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!form.checkValidity()) {
+      e.stopPropagation();
+      form.classList.add('was-validated');
+      return;
+    }
+    await saveArticle();
+    form.classList.remove('was-validated');
+  });
+}
+
+// ========== SUBIDA Y MANEJO DE ARTÍCULOS ==========
+
+async function saveArticle() {
+  console.log('[saveArticle] Iniciando proceso de guardado...');
+  const fileInput = document.getElementById('articleImageFile');
+  const urlInput = document.getElementById('articleImageUrl');
+  const submitBtn = document.getElementById('submitBtn');
+  let uploadedFileRef = null;
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      showMessage('Error: No hay sesión activa. Por favor inicia sesión.', 'danger');
+      return;
+    }
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+    }
+    const baseData = {
+      title: document.getElementById('articleName').value.trim(),
+      description: document.getElementById('articleDescription').value.trim(),
+      category: document.getElementById('articleCategory').value,
+      condition: document.getElementById('articleCondition').value,
+      location: document.getElementById('articleLocation').value.trim() || null
+    };
+    let imageUrl = urlInput?.value?.trim() || null;
+    const file = fileInput?.files?.[0] || null;
+    // PASO 1: Subir imagen a Firebase Storage si hay archivo seleccionado
+    if (file) {
+      const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
+      const path = `articles/${user.uid}/${Date.now()}_${safeName}`;
+      const fileRef = ref(storage, path);
+      try {
+        await withTimeout(uploadBytes(fileRef, file), UPLOAD_TIMEOUT_MS, 'subida de imagen');
+        await withTimeout(getMetadata(fileRef), VERIFY_TIMEOUT_MS, 'verificación de imagen');
+        imageUrl = await withTimeout(getDownloadURL(fileRef), VERIFY_TIMEOUT_MS, 'obtención de URL');
+        uploadedFileRef = fileRef;
+      } catch (uploadError) {
+        showMessage('Error al subir la imagen: ' + (uploadError?.message || 'Error desconocido. Verifica tu conexión.'), 'danger');
+        return;
+      }
+    }
+    // PASO 2: Enviar datos al backend
+    const articleData = { ...baseData, imageUrl };
+    try {
+      if (currentArticleId) {
+        await withTimeout(updateArticle(currentArticleId, articleData), BACKEND_TIMEOUT_MS, 'actualización de artículo');
+        showMessage('Artículo actualizado exitosamente', 'success');
+      } else {
+        await withTimeout(createArticle(articleData), BACKEND_TIMEOUT_MS, 'creación de artículo');
+        showMessage('Artículo publicado exitosamente', 'success');
+      }
+    } catch (dbError) {
+      if (uploadedFileRef) await eliminarImagenHuerfana(uploadedFileRef);
+      showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error del servidor'), 'danger');
+      return;
+    }
+    closeUploadModal();
+    await loadArticles(true);
+    currentArticleId = null;
+  } catch (error) {
+    showMessage('Error inesperado: ' + (error?.message || 'Por favor intenta de nuevo'), 'danger');
+    if (uploadedFileRef) await eliminarImagenHuerfana(uploadedFileRef);
+  } finally {
+    cleanupFormUI();
+  }
+}
+
+async function eliminarImagenHuerfana(fileRef) {
+  try {
+    await deleteObject(fileRef);
+    console.log('[CLEANUP_OK] Imagen huérfana eliminada:', fileRef.fullPath);
+  } catch (cleanupError) {
+    console.warn('[CLEANUP_WARN] No se pudo eliminar imagen huérfana:', cleanupError.message);
+  }
+}
+
+function cleanupFormUI() {
+  const submitBtn = document.getElementById('submitBtn');
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = currentArticleId ? 'Actualizar artículo' : 'Publicar artículo';
+  }
+}
+
+function closeUploadModal() {
+  try {
+    const modalElement = document.getElementById('uploadModal');
+    if (!modalElement) return;
+    const modal = window.bootstrap?.Modal?.getInstance?.(modalElement);
+    if (modal) {
+      if (modalElement.contains(document.activeElement)) document.activeElement.blur();
+      modal.hide();
+    }
+  } catch (e) {
+    console.warn('[closeUploadModal] Error al cerrar modal:', e.message);
+  }
+}
+
+// ========== EDICIÓN Y ELIMINACIÓN DE ARTÍCULOS ==========
+
+function editArticle(articleId) {
+  currentArticleId = articleId;
+  const article = articlesCache.find(a => a.id === articleId);
+  if (!article) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
+  const fields = {
+    'articleName': article.title || '',
+    'articleDescription': article.description || '',
+    'articleCategory': article.category || 'general',
+    'articleCondition': article.condition || 'bueno',
+    'articleLocation': article.location || ''
+  };
+  for (const [fieldId, value] of Object.entries(fields)) {
+    const field = document.getElementById(fieldId);
+    if (field) field.value = value;
+  }
+  const urlInput = document.getElementById('articleImageUrl');
+  const fileInput = document.getElementById('articleImageFile');
+  const previewWrap = document.getElementById('articleImagePreview');
+  const previewImg = document.getElementById('articleImagePreviewImg');
+  if (fileInput) fileInput.value = '';
+  if (urlInput) urlInput.value = article.imageUrl || '';
+  if (article.imageUrl && previewWrap && previewImg) {
+    previewImg.src = article.imageUrl;
+    previewWrap.style.display = 'block';
+  } else if (previewWrap && previewImg) {
+    previewImg.src = '';
+    previewWrap.style.display = 'none';
+  }
+  const modalElement = document.getElementById('uploadModal');
+  const modal = window.bootstrap?.Modal.getInstance
+    ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
+    : null;
+  if (modal) {
+    modal.show();
+    setTimeout(() => {
+      const firstInput = modalElement.querySelector('input, textarea, select');
+      if (firstInput) firstInput.focus();
+    }, 400);
+  }
+}
+window.editArticle = editArticle;
+
+async function confirmDelete(articleId) {
+  const article = articlesCache.find(a => a.id === articleId);
+  if (!article) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
+  if (!confirm(`¿Estás seguro de eliminar el artículo "${article.title}"?`)) return;
+  try {
+    await deleteArticle(articleId);
+    showMessage('Artículo eliminado exitosamente', 'success');
+    await loadArticles(true);
+  } catch (error) {
+    showMessage('Error al eliminar: ' + (error?.message || error), 'danger');
+    console.error(error);
+  }
+}
+window.confirmDelete = confirmDelete;
+
+// ========== SOLICITUD DE ARTÍCULOS ==========
+
+function showRequestModal(articleId, articleTitle) {
+  const message = prompt(`¿Quieres solicitar "${articleTitle}"?\nPuedes agregar un mensaje opcional para el donador:`);
+  if (message === null) return;
+  requestArticleHandler(articleId, message, articleTitle);
+}
+window.showRequestModal = showRequestModal;
+
+async function requestArticleHandler(articleId, message, articleTitle) {
+  try {
+    await requestArticleService(articleId, message);
+    showMessage('¡Solicitud enviada!', 'success');
+    await loadArticles();
+  } catch (error) {
+    showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
+    console.error(error);
+  }
+}
