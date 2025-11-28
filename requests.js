@@ -1,5 +1,8 @@
 import { getIdToken } from './auth.js';
 
+import { getCurrentLockerCode } from './locker.js';
+
+const lockerCode = await getCurrentLockerCode();
 const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
 
 /**
@@ -243,5 +246,6 @@ export async function confirmPickup(requestId) {
     throw error;
   }
 }
+
 
 
