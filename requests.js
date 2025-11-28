@@ -17,7 +17,7 @@ async function safeParseJSON(response) {
 }
 
 // Solicitar un artículo
-export async function requestArticle(articleId, message = '') {
+export async function requestArticle(articleId, message = '', lockerCode = null) {
   console.log('[requestArticle] Solicitando artículo:', articleId);
   try {
     const token = await getIdToken();
@@ -243,4 +243,5 @@ export async function confirmPickup(requestId) {
     throw error;
   }
 }
+
 
