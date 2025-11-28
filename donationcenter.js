@@ -21,6 +21,7 @@ let currentArticleId = null;
 let articlesCache = [];
 let lastLoadTime = 0;
 const CACHE_DURATION = 30000;
+const lockerCode = await getCurrentLockerCode();
 
 // ========== FUNCIONES UTILITARIAS DE USO GENERAL (¡DEBEN IR ARRIBA!) ==========
 
@@ -544,4 +545,5 @@ async function requestArticleHandler(articleId, message, articleTitle, lockerCod
     showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
   }
 }
+
 
