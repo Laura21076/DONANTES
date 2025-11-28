@@ -525,16 +525,23 @@ window.confirmDelete = confirmDelete;
 function showRequestModal(articleId, articleTitle) {
   const message = prompt(`¿Quieres solicitar "${articleTitle}"?\nPuedes agregar un mensaje opcional para el donador:`);
   if (message === null) return;
-  requestArticleHandler(articleId, message, articleTitle);
+  // Obtener locker code al momento de solicitar
+  getCurrentLockerCode().then(lockerCode => {
+    requestArticleHandler(articleId, message, articleTitle, lockerCode);
+  }).catch(err => {
+    showMessage('No se pudo obtener el código de la caja fuerte', 'warning');
+    requestArticleHandler(articleId, message, articleTitle, null);
+  });
 }
 window.showRequestModal = showRequestModal;
 
-async function requestArticleHandler(articleId, message, articleTitle) {
+async function requestArticleHandler(articleId, message, articleTitle, lockerCode) {
   try {
-    await requestArticleService(articleId, message);
+    await requestArticleService(articleId, message, lockerCode);
     showMessage('¡Solicitud enviada!', 'success');
     await loadArticles();
   } catch (error) {
     showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
   }
 }
+
