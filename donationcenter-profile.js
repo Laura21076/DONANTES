@@ -50,14 +50,21 @@ function mostrarEstadoNoAutenticado() {
  * Se verifica firebase.auth().currentUser antes de solicitar datos
  */
 async function cargarPerfil() {
-  // MEJORA: Verificar que existe usuario autenticado antes de cargar perfil (robusto)
+  // Loader ON
+  const loader = document.getElementById('profileLoader');
+  const container = document.getElementById('profileContainer');
+  if (loader) loader.style.display = '';
+  if (container) container.style.display = 'none';
+
   const currentUser = await getCurrentUser();
   if (!currentUser) {
+    if (loader) loader.style.display = 'none';
+    if (container) container.style.display = 'none';
     console.log('No hay usuario autenticado, mostrando estado de no autenticado');
     mostrarEstadoNoAutenticado();
     return;
   }
-  
+
   try {
     const perfil = await getProfile();
     console.log("Perfil recibido:", perfil);
@@ -72,7 +79,7 @@ async function cargarPerfil() {
     // Foto de perfil
     const photoContainer = document.getElementById('profilePhotoDisplay');
     if (photoContainer) {
-      photoContainer.innerHTML = ''; // Limpia el div
+      photoContainer.innerHTML = '';
       if (perfil.photoURL) {
         const img = document.createElement('img');
         img.src = perfil.photoURL;
@@ -81,7 +88,6 @@ async function cargarPerfil() {
         img.style.maxWidth = "110px";
         photoContainer.appendChild(img);
       } else {
-        // Ícono por defecto
         photoContainer.innerHTML = '<i class="fas fa-user-circle"></i>';
       }
     }
@@ -99,7 +105,13 @@ async function cargarPerfil() {
     // Limpia los campos sensibles de contraseña
     if (document.getElementById('currentPassword')) document.getElementById('currentPassword').value = "********";
     if (document.getElementById('newPassword'))     document.getElementById('newPassword').value = "";
+
+    // Loader OFF, mostrar perfil
+    if (loader) loader.style.display = 'none';
+    if (container) container.style.display = '';
   } catch (err) {
+    if (loader) loader.style.display = 'none';
+    if (container) container.style.display = 'none';
     console.error("Error cargando perfil:", err);
     showToast("No se pudo cargar el perfil: " + (err?.message || err), "danger");
   }

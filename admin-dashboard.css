@@ -1,3 +1,23 @@
+/* --- CSP: Clases para reemplazar estilos inline --- */
+.spacer-navbar {
+    height: 80px;
+}
+.z-9999 {
+    z-index: 9999 !important;
+}
+.spinner-3rem {
+    width: 3rem !important;
+    height: 3rem !important;
+}
+.navbar-gradient {
+    background: linear-gradient(135deg, #A992D8 0%, #8B7CB8 100%) !important;
+}
+.font-size-2rem {
+    font-size: 2rem !important;
+}
+.d-none {
+    display: none !important;
+}
 /**
  * Dashboard de Administrador - Estilos CSS
  * Archivo: admin-dashboard.css
