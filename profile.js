@@ -1,20 +1,21 @@
 import { auth } from './firebase.js';
 import { getToken } from './db.js';
+import { getCurrentUser } from './auth.js';
 
 // 1. Obtener el token actual de usuario autenticado
 // Primero intenta obtenerlo del storage (IndexedDB), luego de Firebase Auth
 async function getAuthToken() {
   // Intentar obtener token del almacenamiento (IndexedDB)
   let token = await getToken('access');
-  
-  // Si no hay token en storage, intentar obtenerlo de Firebase Auth
+
+  // Si no hay token en storage, intentar obtenerlo de Firebase Auth (robusto)
   if (!token) {
-    const user = auth.currentUser;
+    const user = await getCurrentUser();
     if (user) {
       token = await user.getIdToken();
     }
   }
-  
+
   // Si aún no hay token, redirigir a login
   if (!token) {
     console.warn('No se encontró token de autenticación, redirigiendo a login');
@@ -22,7 +23,7 @@ async function getAuthToken() {
     // Retornar null para indicar que no hay token (la redirección ya está en curso)
     return null;
   }
-  
+
   return token;
 }
 

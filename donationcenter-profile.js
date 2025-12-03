@@ -10,6 +10,7 @@
 
 import { getProfile, updateProfile, updatePassword, uploadProfilePhoto } from './profile.js';
 import { auth } from './firebase.js';
+import { getCurrentUser } from './auth.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
 // Mostrar Toast - función para mostrar mensajes al usuario
@@ -49,8 +50,8 @@ function mostrarEstadoNoAutenticado() {
  * Se verifica firebase.auth().currentUser antes de solicitar datos
  */
 async function cargarPerfil() {
-  // MEJORA: Verificar que existe usuario autenticado antes de cargar perfil
-  const currentUser = auth.currentUser;
+  // MEJORA: Verificar que existe usuario autenticado antes de cargar perfil (robusto)
+  const currentUser = await getCurrentUser();
   if (!currentUser) {
     console.log('No hay usuario autenticado, mostrando estado de no autenticado');
     mostrarEstadoNoAutenticado();
@@ -111,8 +112,9 @@ async function handlePhotoUpload(event) {
   const file = event.target.files[0];
   if (!file) return;
   
-  // MEJORA: Verificar autenticación antes de subir foto
-  if (!auth.currentUser) {
+  // MEJORA: Verificar autenticación antes de subir foto (robusto)
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
     showToast('Debes iniciar sesión para subir una foto', 'warning');
     return;
   }
@@ -204,8 +206,9 @@ function setupEventListeners() {
 async function handleProfileSubmit(e) {
   e.preventDefault();
   
-  // MEJORA: Verificar autenticación antes de guardar
-  if (!auth.currentUser) {
+  // MEJORA: Verificar autenticación antes de guardar (robusto)
+  const currentUser = await getCurrentUser();
+  if (!currentUser) {
     showToast('Debes iniciar sesión para actualizar tu perfil', 'warning');
     return;
   }

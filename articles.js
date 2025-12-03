@@ -2,6 +2,7 @@
 // MEJORAS: Manejo robusto de errores no-JSON, logs detallados, nunca queda "cargando"
 
 import { getIdToken } from './auth.js';
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
 
@@ -229,4 +230,19 @@ export async function deleteArticle(id) {
     console.error('[deleteArticle] Excepción:', error);
     throw error;
   }
+}
+
+// --- Subida de imágenes a Firebase Storage ---
+
+/**
+ * Sube una imagen a Firebase Storage y devuelve la URL pública
+ * @param {File} file - Archivo de imagen
+ * @param {string} userId - ID del usuario
+ * @returns {Promise<string>} URL pública de la imagen
+ */
+export async function uploadImage(file, userId) {
+  const storage = getStorage();
+  const imageRef = ref(storage, `articles/${userId}/${Date.now()}_${file.name}`);
+  await uploadBytes(imageRef, file);
+  return await getDownloadURL(imageRef);
 }
