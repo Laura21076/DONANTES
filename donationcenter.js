@@ -392,7 +392,8 @@ async function saveArticle() {
       description: document.getElementById('articleDescription').value.trim(),
       category: document.getElementById('articleCategory').value,
       condition: document.getElementById('articleCondition').value,
-      location: document.getElementById('articleLocation').value.trim() || null
+      location: document.getElementById('articleLocation').value.trim() || null,
+      status: 'disponible'
     };
     let imageUrl = urlInput?.value?.trim() || null;
     const file = fileInput?.files?.[0] || null;
