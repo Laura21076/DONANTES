@@ -144,13 +144,13 @@ class AdminDashboard {
 
     async loadArticleStats() {
         try {
-            this.stats.totalArticles = 89; // Simulated data
-
-            // TODO: Implementar consulta real a Firestore
-            // const articlesSnapshot = await getDocs(collection(db, 'articles'));
-            // this.stats.totalArticles = articlesSnapshot.size;
+            // Importar dinámicamente la función getArticles
+            const { getArticles } = await import('./articles.js');
+            const articles = await getArticles();
+            this.stats.totalArticles = Array.isArray(articles) ? articles.length : 0;
         } catch (error) {
             console.error('Error cargando estadísticas de artículos:', error);
+            this.stats.totalArticles = 0;
         }
     }
 

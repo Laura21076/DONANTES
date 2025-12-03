@@ -73,33 +73,33 @@
     <form id="profileForm">
       <div class="row g-3">
         <div class="col-md-6">
-          <label class="form-label">Nombre</label>
-          <input type="text" id="firstName" class="form-control" placeholder="Nombre" required>
+          <label class="form-label" for="firstName">Nombre</label>
+          <input type="text" id="firstName" name="firstName" class="form-control" placeholder="Nombre" required autocomplete="given-name">
         </div>
         <div class="col-md-6">
-          <label class="form-label">Apellido</label>
-          <input type="text" id="lastName" class="form-control" placeholder="Apellido" required>
+          <label class="form-label" for="lastName">Apellido</label>
+          <input type="text" id="lastName" name="lastName" class="form-control" placeholder="Apellido" required autocomplete="family-name">
         </div>
 
         <div class="col-md-12">
-          <label class="form-label">Correo electrónico</label>
-          <input type="email" id="email" class="form-control" placeholder="correo@ejemplo.com" required disabled>
+          <label class="form-label" for="email">Correo electrónico</label>
+          <input type="email" id="email" name="email" class="form-control" placeholder="correo@ejemplo.com" required disabled autocomplete="email">
           <small class="text-muted">Para cambiar tu email, usa la opción en configuración de seguridad</small>
         </div>
 
         <div class="col-md-12">
-          <label class="form-label">Teléfono</label>
-          <input type="tel" id="phone" class="form-control" placeholder="(000) 000-0000">
+          <label class="form-label" for="phone">Teléfono</label>
+          <input type="tel" id="phone" name="phone" class="form-control" placeholder="(000) 000-0000" autocomplete="tel">
         </div>
 
         <div class="col-md-12">
-          <label class="form-label">Dirección</label>
-          <input type="text" id="address" class="form-control" placeholder="Calle, número, colonia">
+          <label class="form-label" for="address">Dirección</label>
+          <input type="text" id="address" name="address" class="form-control" placeholder="Calle, número, colonia" autocomplete="street-address">
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Estado</label>
-          <select id="state" class="form-control">
+          <label class="form-label" for="state">Estado</label>
+          <select id="state" name="state" class="form-control" autocomplete="address-level1">
             <option value="">Seleccionar estado...</option>
             <option value="Aguascalientes">Aguascalientes</option>
             <option value="Baja California">Baja California</option>
@@ -137,13 +137,13 @@
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Ciudad</label>
-          <input type="text" id="city" class="form-control" placeholder="Ciudad">
+          <label class="form-label" for="city">Ciudad</label>
+          <input type="text" id="city" name="city" class="form-control" placeholder="Ciudad" autocomplete="address-level2">
         </div>
 
         <div class="col-md-6">
-          <label class="form-label">Código Postal</label>
-          <input type="text" id="zipCode" class="form-control" placeholder="00000" maxlength="5">
+          <label class="form-label" for="zipCode">Código Postal</label>
+          <input type="text" id="zipCode" name="zipCode" class="form-control" placeholder="00000" maxlength="5" autocomplete="postal-code">
         </div>
 
         <!-- Gestión de Contraseña -->
