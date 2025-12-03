@@ -1,0 +1,139 @@
+/* Estilos específicos para verificar-permisos.html */
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.permission-box {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 10px;
+    border: 2px solid #e9ecef;
+}
+
+.owner-section {
+    border-color: #6E49A3;
+    background: #F6F1F9;
+}
+
+.user-section {
+    border-color: #17a2b8;
+    background: #e3f2fd;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 5px;
+    transition: all 0.3s ease;
+}
+
+.btn-owner {
+    background: linear-gradient(135deg, #E8DFF5, #F6F1F9);
+    color: #6E49A3;
+    border: 2px solid #A992D8;
+}
+
+.btn-edit {
+    background: linear-gradient(135deg, #E3F2FD, #BBDEFB);
+    color: #1976D2;
+}
+
+.btn-delete {
+    background: linear-gradient(135deg, #FFEBEE, #FFCDD2);
+    color: #D32F2F;
+}
+
+.btn-request {
+    background: linear-gradient(135deg, #A992D8, #8C78BF, #6E49A3);
+    color: white;
+}
+
+.btn-disabled {
+    background: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+
+.status {
+    font-weight: bold;
+    padding: 8px 15px;
+    border-radius: 20px;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.status-owner {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-user {
+    background: #cce5ff;
+    color: #004085;
+}
+
+/* Estilos específicos para secciones con márgenes */
+.controls-section {
+    margin-top: 15px;
+}
+
+.permissions-box {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.owner-permissions {
+    background: rgba(110, 73, 163, 0.1);
+}
+
+.user-permissions {
+    background: rgba(23, 162, 184, 0.1);
+}
+
+.info-permissions {
+    background: rgba(108, 117, 125, 0.1);
+}
+
+/* Corazón animado */
+.heart-icon.animated {
+    margin-right: 8px;
+    font-size: 16px;
+    animation: heartbeat 2s ease-in-out infinite alternate;
+}
+
+/* Animación de heartbeat */
+@keyframes heartbeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+/* Enlaces como botones */
+.btn-link {
+    text-decoration: none;
+    display: inline-block;
+}
+
+/* Sección de navegación */
+.navigation-section {
+    text-align: center;
+    margin-top: 30px;
+}

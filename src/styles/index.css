@@ -1,0 +1,935 @@
+/* Estilos específicos para index.html */
+
+/* Botones flotantes */
+.floating-actions {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 15px;
+}
+
+.btn-floating {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.btn-main {
+  background: linear-gradient(135deg, #6E49A3, #8C78BF, #A992D8);
+  animation: pulse 2s infinite;
+}
+
+.btn-install {
+  background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.btn-game {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+}
+
+.btn-floating:hover {
+  transform: translateY(-3px) scale(1.1);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(110, 73, 163, 0.7); }
+  70% { box-shadow: 0 0 0 10px rgba(110, 73, 163, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(110, 73, 163, 0); }
+}
+
+/* Footer mejorado */
+.footer-enhanced {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #4A3066;
+  padding: 3rem 0 1.5rem;
+  margin-top: 4rem;
+}
+
+.social-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 35px;
+  height: 35px;
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-size: 14px;
+}
+
+.social-link:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #A992D8;
+  transform: translateY(-2px);
+}
+
+/* Estilos para sección de contacto */
+.contact-form .contact-input {
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid rgba(110, 73, 163, 0.2);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  color: #2D1B44;
+  font-weight: 500;
+}
+
+.contact-form .contact-input:focus {
+  background: white;
+  border-color: #6E49A3;
+  box-shadow: 0 0 0 0.25rem rgba(110, 73, 163, 0.15);
+  transform: translateY(-1px);
+}
+
+.contact-form .contact-input::placeholder {
+  color: #8C78BF;
+  opacity: 0.7;
+}
+
+.contact-submit-btn {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  border: none;
+  color: white;
+  font-weight: 700;
+  border-radius: 15px;
+  padding: 15px 35px;
+  font-size: 1.1rem;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  box-shadow: 0 8px 25px rgba(110, 73, 163, 0.3);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 0.5px;
+}
+
+.contact-submit-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+
+.contact-submit-btn:hover::before {
+  left: 100%;
+}
+
+.contact-submit-btn:hover {
+  background: linear-gradient(135deg, #8C78BF 0%, #A992D8 100%);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 35px rgba(110, 73, 163, 0.4);
+  color: white;
+}
+
+.contact-info-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px 15px;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.contact-info-card:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-2px);
+}
+
+.contact-icon {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #A992D8 0%, #8C78BF 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  font-size: 18px;
+  color: white;
+  flex-shrink: 0;
+}
+
+/* Sección de contacto OPTIMIZADA - FONDO COMPLETAMENTE CLARO */
+.contact-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%);
+  position: relative;
+  overflow: hidden;
+  padding: 4rem 0 !important;
+  margin: 0 !important;
+}
+
+.contact-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%236E49A3' fill-opacity='0.02'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") repeat;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.contact-section .container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px !important; /* Usar más ancho */
+}
+
+.contact-title {
+  font-family: 'Moirai One', cursive;
+  font-weight: 400;
+  font-size: 2.5rem;
+  margin-bottom: 1rem !important;
+}
+
+.contact-subtitle {
+  font-size: 1.2rem;
+  margin-bottom: 2rem !important;
+}
+
+/* Formulario de contacto EXPANDIDO */
+.contact-card {
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+  border: none;
+}
+
+.contact-form-header {
+  background: linear-gradient(135deg, #6E49A3, #8C78BF);
+  border: none;
+  padding: 1.5rem 2rem;
+}
+
+.contact-form-header h4 {
+  font-family: 'Rubik', sans-serif;
+  font-weight: 600;
+  font-size: 1.3rem;
+}
+
+.contact-card .card-body {
+  padding: 2rem !important;
+}
+
+/* Información de contacto EXPANDIDA */
+.contact-info-cards {
+  margin-top: 0 !important;
+}
+
+.contact-info-cards .row {
+  margin: 0 !important;
+  justify-content: center;
+}
+
+.contact-form .form-label {
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+  color: var(--purple-primary);
+  font-weight: 600;
+}
+
+.contact-form-icon {
+  color: var(--purple-light) !important;
+  opacity: 0.8;
+}
+
+.contact-form-label {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--purple-primary);
+}
+
+.contact-form .contact-input {
+  margin-bottom: 6px;
+  font-size: 0.95rem;
+}
+
+.contact-form .row .col-12 {
+  margin-bottom: 0.75rem; /* Reducido de 1.5rem a 0.75rem */
+}
+
+.contact-form .row .col-12:last-child {
+  margin-bottom: 0;
+}
+
+/* Optimización adicional del card del formulario */
+.contact-card {
+  border-radius: 20px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.contact-card .card-body {
+  padding: 2.5rem !important; /* Reducido padding interno */
+}
+
+/* Mejoras en el textarea */
+.contact-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Botón de envío mejorado */
+.contact-submit-btn {
+  background: linear-gradient(135deg, var(--purple-primary), var(--purple-hover)) !important;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 30px;
+  font-weight: 600;
+  color: white;
+  font-size: 1rem;
+  min-width: 180px;
+  transition: all 0.3s ease;
+}
+
+.contact-submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(110, 73, 163, 0.3);
+  background: linear-gradient(135deg, var(--purple-hover), var(--purple-primary)) !important;
+}
+
+/* Toast de confirmación */
+.contact-toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+  padding: 15px 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 20px rgba(40, 167, 69, 0.4);
+  z-index: 1080;
+  transform: translateX(100%);
+  transition: transform 0.3s ease;
+}
+
+/* Estilos para la imagen ODS */
+.ods-image-container {
+  position: relative;
+  display: inline-block;
+  padding: 0;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  border: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.ods-image-background {
+  position: relative;
+  display: inline-block;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.95) 50%, rgba(248, 244, 251, 0.8) 100%);
+  border-radius: 30px;
+  padding: 25px 30px;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.08),
+    0 5px 15px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  backdrop-filter: blur(20px);
+}
+
+.ods-image-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(248, 244, 251, 0.3) 0%, transparent 50%, rgba(230, 169, 51, 0.1) 100%);
+  border-radius: 30px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.ods-image-container:hover .ods-image-background::before {
+  opacity: 1;
+}
+
+.ods-image-container:hover .ods-image-background {
+  transform: translateY(-8px) scale(1.05);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.12),
+    0 10px 25px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  border-color: rgba(230, 169, 51, 0.3);
+}
+
+.ods-logo-large {
+  width: 200px;
+  height: auto;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.1));
+  transition: all 0.4s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.ods-image-container:hover .ods-logo-large {
+  filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.15));
+  transform: scale(1.02);
+}
+
+/* Badge ODS mejorado */
+.ods-badge {
+  background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+  color: white;
+  font-size: 1.1rem;
+  padding: 12px 24px;
+  border-radius: 25px;
+  font-weight: 600;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+  border: none;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Estilos de modal iOS */
+.ios-install-modal .modal-content {
+  border-radius: 20px;
+  border: none;
+}
+
+.ios-install-modal .modal-header {
+  background: linear-gradient(135deg, #6E49A3, #8C78BF);
+  color: white;
+  border: none;
+}
+
+.ios-install-step {
+  width: 30px;
+  height: 30px;
+  background: #6E49A3;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* Footer con estilos claros y consistentes */
+.index-footer {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  color: #495057;
+  border-top: 1px solid #dee2e6;
+}
+
+.index-footer h5 {
+  font-family: 'Moirai One', cursive;
+  color: #6E49A3;
+  margin-bottom: 0.5rem;
+}
+
+.index-footer .heart-icon {
+  color: #A992D8;
+  text-shadow: 0 0 8px rgba(169, 146, 216, 0.6);
+  animation: heartbeat 2s ease-in-out infinite alternate;
+}
+
+.index-footer .social-link {
+  color: #6E49A3;
+  font-size: 1.5rem;
+  transition: all 0.3s ease;
+  text-decoration: none;
+}
+
+.index-footer .social-link:hover {
+  color: #A992D8;
+  transform: translateY(-2px);
+}
+
+/* Navbar con iconos de corazón */
+.navbar-brand .heart-icon {
+  color: #A992D8;
+  font-size: 1.4rem;
+  text-shadow: 0 0 8px rgba(169, 146, 216, 0.6);
+  animation: heartbeat 2s ease-in-out infinite alternate;
+}
+
+/* Botón principal flotante con corazón */
+.btn-main .heart-icon {
+  color: #A992D8;
+  font-size: 1.5rem;
+  text-shadow: 0 0 12px rgba(169, 146, 216, 0.8);
+  animation: heartbeat 1.8s ease-in-out infinite alternate;
+}
+
+/* Iconos grandes */
+.icon-xl {
+  font-size: 2.5rem !important;
+  color: #6E49A3 !important;
+  filter: drop-shadow(0 2px 4px rgba(110, 73, 163, 0.2));
+  transition: all 0.3s ease;
+}
+
+.icon-xl:hover {
+  transform: scale(1.1);
+  color: #A992D8 !important;
+  filter: drop-shadow(0 4px 8px rgba(110, 73, 163, 0.3));
+}
+
+/* Iconos grandes verticales para pasos */
+.icon-xl-vertical {
+  font-size: 2rem !important;
+  color: #6E49A3 !important;
+  filter: drop-shadow(0 2px 4px rgba(110, 73, 163, 0.2));
+  transition: all 0.3s ease;
+}
+
+.icon-xl-vertical:hover {
+  transform: scale(1.05);
+  color: #A992D8 !important;
+}
+
+/* Botón de instalación */
+.btn-install-hidden {
+  display: none;
+}
+
+/* Responsive para imágenes ODS */
+@media (max-width: 768px) {
+  .floating-actions {
+    bottom: 15px;
+    right: 15px;
+  }
+  
+  .btn-floating {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+  
+  .ods-logo-large {
+    width: 160px;
+  }
+  
+  .ods-image-background {
+    padding: 20px 25px;
+    border-radius: 25px;
+  }
+  
+  .ods-image-background::before {
+    border-radius: 25px;
+  }
+  
+  .ods-badge {
+    font-size: 0.9rem;
+    padding: 10px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ods-logo-large {
+    width: 140px;
+  }
+  
+  .ods-image-background {
+    padding: 18px 22px;
+    border-radius: 20px;
+  }
+  
+  .ods-image-background::before {
+    border-radius: 20px;
+  }
+}
+
+/* Estilos específicos para información de contacto */
+.contact-info-title {
+  font-weight: 600;
+}
+
+/* Estilos para navbar de index */
+.index-navbar {
+  background-color: #F6F1F9;
+}
+
+.index-brand {
+  font-family: 'Moirai One', cursive;
+  font-size: 1.3rem;
+  color: #6E49A3;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Estilos para carrusel */
+.carousel-slide-1 {
+  min-height: 300px;
+  background: linear-gradient(135deg, #F6F1F9 60%, #E5D4F2);
+}
+
+.carousel-slide-2 {
+  min-height: 300px;
+  background: linear-gradient(135deg, #E8F8F2, #F6F1F9);
+}
+
+.carousel-slide-3 {
+  min-height: 300px;
+  background: linear-gradient(135deg, #FDEFEF, #F6F1F9);
+}
+
+.carousel-title {
+  color: #4A3066;
+  font-weight: 700;
+}
+
+.carousel-text {
+  max-width: 600px;
+  color: #5A4A6B;
+  font-weight: 500;
+}
+
+/* ========================================== */
+/* NUEVAS CLASES PARA ESTILOS SEPARADOS */
+/* ========================================== */
+
+/* Títulos de sección general */
+.section-title {
+  font-family: 'Moirai One', cursive;
+  color: #4A3066;
+  font-weight: 700;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  letter-spacing: 0.5px;
+}
+
+/* Títulos y textos específicos */
+.purpose-title {
+  color: #4A3066;
+  font-weight: 700;
+}
+
+.objective-title, .mission-title {
+  color: #6E49A3;
+  font-weight: 600;
+}
+
+.objective-text, .mission-text {
+  color: #4A3066;
+}
+
+/* Sección de compromiso */
+.compromiso-section {
+  background: linear-gradient(135deg, #F8F4FB 0%, #F6F1F9 100%);
+}
+
+.compromiso-title {
+  font-family: 'Moirai One', cursive;
+  color: #4A3066;
+  font-weight: 700;
+}
+
+/* Tarjetas de impacto */
+.impact-card-1 {
+  background: linear-gradient(135deg, #F6F1F9, #E5D4F2);
+}
+
+.impact-card-2 {
+  background: linear-gradient(135deg, #E8F8F2, #F6F1F9);
+}
+
+.impact-card-3 {
+  background: linear-gradient(135deg, #FDEFEF, #F6F1F9);
+}
+
+.impact-card-4 {
+  background: linear-gradient(135deg, #FFF6E5, #F6F1F9);
+}
+
+/* Sección de contacto */
+.contact-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%);
+}
+
+.contact-title {
+  font-family: 'Moirai One', cursive;
+  font-weight: 700;
+  color: #4A3066;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.contact-icon {
+  color: #6E49A3;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+}
+
+.contact-subtitle {
+  font-size: 1.1rem;
+  color: #5a4a6b;
+  font-weight: 500;
+}
+
+.contact-card {
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+}
+
+/* Formulario de contacto */
+.contact-form-label {
+  color: #2D1B44;
+  font-weight: 600;
+}
+
+.contact-form-icon {
+  color: #6E49A3;
+}
+
+.contact-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Panel de información de contacto mejorado - ESTILO CLARO */
+.contact-info-panel {
+  padding: 2rem;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: 0 10px 30px rgba(110, 73, 163, 0.15);
+  border: 2px solid rgba(169, 146, 216, 0.2);
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.contact-info-panel::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle, rgba(169, 146, 216, 0.05) 0%, transparent 70%);
+  z-index: 0;
+}
+
+.contact-info-panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.contact-info-header {
+  background: linear-gradient(135deg, #6E49A3, #8C78BF);
+  margin: -2rem -2rem 1.5rem -2rem;
+  padding: 1.5rem 2rem;
+  border-radius: 20px 20px 0 0;
+}
+
+.contact-info-header h4 {
+  font-family: 'Rubik', sans-serif;
+  color: #FFFFFF;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  text-align: center;
+}
+
+.contact-info-content {
+  margin-top: 0;
+}
+
+.contact-info-item {
+  display: flex;
+  align-items: center;
+  padding: 1.2rem 0;
+  border-bottom: 2px solid rgba(169, 146, 216, 0.1);
+  transition: all 0.3s ease;
+}
+
+.contact-info-item:hover {
+  transform: translateX(8px);
+  padding-left: 0.5rem;
+  background: rgba(169, 146, 216, 0.05);
+  border-radius: 10px;
+  margin: 0 -0.5rem;
+}
+
+.contact-info-item:last-child {
+  border-bottom: none;
+}
+
+.contact-info-icon {
+  width: 55px;
+  height: 55px;
+  background: linear-gradient(135deg, #6E49A3, #8C78BF);
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 1.2rem;
+  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(110, 73, 163, 0.3);
+  transition: transform 0.3s ease;
+}
+
+.contact-info-item:hover .contact-info-icon {
+  transform: scale(1.1);
+}
+
+.contact-info-icon i {
+  color: #FFFFFF;
+  font-size: 1.3rem;
+}
+
+.contact-info-details h6 {
+  color: #6E49A3;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  font-size: 1rem;
+  font-family: 'Rubik', sans-serif;
+}
+
+.contact-info-details span {
+  color: #5a4a6b;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* Sección social mejorada */
+.contact-info-social {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid rgba(169, 146, 216, 0.1);
+}
+
+.contact-info-social h6 {
+  color: #6E49A3 !important;
+  font-family: 'Rubik', sans-serif;
+  font-weight: 700;
+  font-size: 1rem;
+  margin-bottom: 1rem !important;
+  text-align: center;
+}
+
+.contact-info-social .social-links {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.contact-social-link {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #6E49A3, #8C78BF);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(110, 73, 163, 0.25);
+}
+
+.contact-social-link:hover {
+  background: linear-gradient(135deg, #8C78BF, #A992D8);
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(110, 73, 163, 0.4);
+}
+
+.contact-social-link i {
+  color: #FFFFFF;
+  font-size: 1.2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 991.98px) {
+  .contact-info-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+  }
+  
+  .contact-info-item {
+    padding: 0.75rem 0;
+  }
+  
+  .contact-info-icon {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .contact-section .container {
+    max-width: 100% !important;
+    padding: 0 1rem;
+  }
+  
+  .contact-card .card-body {
+    padding: 1.5rem !important;
+  }
+  
+  .contact-form-header {
+    padding: 1.2rem 1.5rem;
+  }
+  
+  .contact-info-icon {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* Información de contacto lateral (legacy - mantener para compatibilidad) */
+.contact-info-sidebar {
+  background: rgba(169, 146, 216, 0.1);
+  border-radius: 15px;
+  padding: 1.5rem;
+  height: fit-content;
+}
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(169, 146, 216, 0.2);
+}
+
+.contact-item:last-child {
+  border-bottom: none;
+}
+
+.contact-item i {
+  color: #6E49A3;
+  font-size: 1.1rem;
+  width: 20px;
+  text-align: center;
+}
+
+.contact-item span {
+  color: #2D1B44;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* Footer */
+.footer-logo-container {
+  display: flex;
+  align-items: center;
+}

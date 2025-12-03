@@ -1,0 +1,65 @@
+{
+  "name": "Donantes - Universidad Tecnológica",
+  "short_name": "Donantes",
+  "description": "Aplicación web progresiva (PWA) que conecta donantes y receptores mediante geolocalización e IoT, promoviendo la solidaridad y el aprovechamiento responsable de recursos. Desarrollada para la Universidad Tecnológica.",
+  "start_url": "donationcenter.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F6F1F9",
+  "theme_color": "#A992D8",
+  "orientation": "portrait-primary",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["education", "social", "sustainability"],
+  "icons": [
+    {
+      "src": "assets/logo192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/logo192.png",
+      "sizes": "192x192", 
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/logo512.png",
+      "sizes": "512x512",
+      "type": "image/png", 
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Centro de Donaciones",
+      "short_name": "Donaciones",
+      "description": "Ver y publicar artículos para donar",
+      "url": "donationcenter.html",
+      "icons": [{ "src": "assets/logo192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Mis Solicitudes",
+      "short_name": "Solicitudes",
+      "description": "Gestionar mis solicitudes de donaciones",
+      "url": "requests.html",
+      "icons": [{ "src": "assets/logo192.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "protocol_handlers": [
+    {
+      "protocol": "mailto",
+      "url": "index.html?mailto=%s"
+    }
+  ]
+}
+

@@ -1,0 +1,263 @@
+/* Estilos específicos para donationcenter-profile.html */
+
+/* FORCE REFRESH - v4.0.3 */
+/* Aplicar tipografía Rubik con mejor contraste */
+body {
+  font-family: 'Rubik', sans-serif;
+  background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%);
+  min-height: 100vh;
+  color: #2D1B44;
+}
+
+/* Navbar estilo morado con contraste mejorado */
+.custom-navbar {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  box-shadow: 0 2px 10px rgba(110, 73, 163, 0.3);
+  padding: 15px 0;
+}
+
+.navbar-brand, .navbar-text {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Card de perfil con mejor contraste */
+.profile-container {
+  max-width: 600px;
+  margin: 30px auto;
+  background: #FFFFFF;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(110, 73, 163, 0.15);
+  overflow: hidden;
+  border: 1px solid rgba(110, 73, 163, 0.1);
+}
+
+.profile-header {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  color: #FFFFFF;
+  padding: 30px;
+  text-align: center;
+  position: relative;
+}
+
+.profile-header h3 {
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  margin-top: 15px;
+  margin-bottom: 5px;
+}
+
+.profile-header p {
+  color: rgba(255, 255, 255, 0.95) !important;
+  font-weight: 500 !important;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+.profile-photo-container {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+/* Avatar visual mejorado */
+.profile-photo {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  border: 5px solid #A992D8;
+  box-shadow: 0 6px 24px rgba(110, 73, 163, 0.18);
+  object-fit: cover;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(.4,2,.3,1);
+  background: linear-gradient(135deg, #E8DFF5 0%, #A992D8 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  color: #6E49A3;
+  position: relative;
+  overflow: hidden;
+}
+
+.profile-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+}
+
+.profile-photo .profile-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  color: #A992D8;
+  background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%);
+}
+
+.profile-photo:hover {
+  transform: scale(1.05);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.profile-photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.profile-photo-container:hover .profile-photo-overlay {
+  opacity: 1;
+}
+
+.profile-icon {
+  font-size: 4rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.profile-icon:hover {
+  transform: scale(1.1);
+}
+
+.profile-body {
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.98);
+}
+
+/* Labels mejorados para mejor contraste */
+.form-label {
+  color: #4A3066 !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.1);
+}
+
+/* Formularios */
+.form-control {
+  border: 2px solid #E8DFF5;
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: 0.95rem;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.95);
+  color: #2D1B44 !important;
+  font-weight: 500;
+}
+
+.form-control:focus {
+  border-color: #A992D8;
+  box-shadow: 0 0 0 0.2rem rgba(169, 146, 216, 0.25);
+  background: white;
+  color: #2D1B44 !important;
+}
+
+.form-control::placeholder {
+  color: #8C78BF !important;
+  opacity: 0.8;
+  font-weight: 400;
+}
+
+/* Texto muted mejorado */
+.text-muted {
+  color: #6E49A3 !important;
+  font-weight: 500;
+  font-size: 0.85rem;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.05);
+}
+
+/* Botones */
+.btn-purple {
+  background: linear-gradient(135deg, #6E49A3 0%, #8C78BF 100%);
+  border: none;
+  color: white;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 12px 25px;
+  transition: all 0.3s ease;
+}
+
+.btn-purple:hover {
+  background: linear-gradient(135deg, #5a3d85 0%, #7a6aa8 100%);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(110, 73, 163, 0.3);
+}
+
+.btn-outline-purple {
+  border: 2px solid #6E49A3;
+  color: #6E49A3;
+  background: transparent;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 12px 25px;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-purple:hover {
+  background: #6E49A3;
+  color: white;
+  transform: translateY(-2px);
+}
+
+/* Estilos específicos para navbar */
+.profile-navbar-brand {
+  font-family: 'Moirai One', cursive;
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.profile-navbar .heart-icon {
+  color: #A992D8;
+  font-size: 1.3rem;
+  text-shadow: 0 0 8px rgba(169, 146, 216, 0.6);
+  animation: heartbeat 2s ease-in-out infinite alternate;
+  margin-right: 8px;
+}
+
+/* Estilos para input de archivo oculto */
+.hidden-file-input {
+  display: none;
+}
+
+/* Estilos para títulos de perfil */
+.profile-display-name {
+  color: white;
+  font-weight: 700;
+}
+
+.profile-display-email {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+/* Estilos para secciones de información */
+.profile-section-title {
+  color: #4A3066;
+  font-weight: 600;
+  border-bottom: 2px solid #E8DFF5;
+  padding-bottom: 10px;
+}
+
+/* Toast específico para perfil */
+.profile-toast-container {
+  z-index: 1080;
+}
