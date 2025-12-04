@@ -1,4 +1,7 @@
-// notifications-init.js
-// Inicialización de notificaciones push (ejemplo)
-console.log('Inicializando notificaciones...');
-// Aquí va la lógica real de notificaciones push
+// notifications-init.js - Inicialización automática de notificaciones push en todas las páginas principales
+
+import { initializeNotifications } from './notifications.js';
+
+window.addEventListener('DOMContentLoaded', () => {
+  initializeNotifications();
+});
