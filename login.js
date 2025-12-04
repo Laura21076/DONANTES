@@ -45,7 +45,10 @@ if (loginForm) {
       // Enviar a backend para obtener access/refresh tokens
       const response = await fetch(`${backendUrl}/api/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + idToken
+        },
         credentials: 'include',
         body: JSON.stringify({ idToken }),
       });
