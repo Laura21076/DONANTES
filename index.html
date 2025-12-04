@@ -67,8 +67,37 @@
       <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
         <ul class="navbar-nav align-items-lg-center">
           <li class="nav-item"><a href="#how" class="nav-link">Cómo funciona</a></li>
-          <li class="nav-item mt-2 mt-lg-0"><a href="register.html" class="btn btn-purple">Registrarse</a></li>
-          <li class="nav-item mt-2 mt-lg-0"><a href="login.html" class="btn btn-outline-purple">Iniciar sesión</a></li>
+          <li class="nav-item mt-2 mt-lg-0"><a href="pages/register.html" class="btn btn-purple">Registrarse</a></li>
+          <li class="nav-item mt-2 mt-lg-0"><a href="pages/login.html" class="btn btn-outline-purple">Iniciar sesión</a></li>
+          <!-- Botón de instalar PWA -->
+          <div id="installPwaContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:none;">
+            <button id="installPwaBtn" class="btn btn-success shadow rounded-pill px-4 py-2">
+              <i class="fa-solid fa-download"></i> Instalar App
+            </button>
+          </div>
+          <script>
+            let deferredPrompt;
+            const installBtn = document.getElementById('installPwaBtn');
+            const installContainer = document.getElementById('installPwaContainer');
+            window.addEventListener('beforeinstallprompt', (e) => {
+              e.preventDefault();
+              deferredPrompt = e;
+              installContainer.style.display = 'block';
+            });
+            if (installBtn) {
+              installBtn.addEventListener('click', async () => {
+                installContainer.style.display = 'none';
+                if (deferredPrompt) {
+                  deferredPrompt.prompt();
+                  const { outcome } = await deferredPrompt.userChoice;
+                  deferredPrompt = null;
+                }
+              });
+            }
+            window.addEventListener('appinstalled', () => {
+              installContainer.style.display = 'none';
+            });
+          </script>
         </ul>
       </div>
     </div>
