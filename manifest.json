@@ -1,7 +1,7 @@
 {
   "name": "Donantes App",
   "short_name": "Donantes",
-  "start_url": "./index.html",
+  "start_url": "pages/donationcenter.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#b71c1c",
