@@ -43,7 +43,8 @@ export async function getProfile() {
   const token = await getAuthToken();
   if (!token) return null; // Redirección en curso
   
-  const resp = await fetch('https://donantes-backend-202152301689.northamerica-south1.run.app/api/users/profile', {
+  const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
+  const resp = await fetch(`${backendUrl}/api/users/profile`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -67,7 +68,8 @@ export async function updateProfile(data) {
   const token = await getAuthToken();
   if (!token) return null; // Redirección en curso
   
-  const resp = await fetch('https://donantes-backend-202152301689.northamerica-south1.run.app/api/users/profile', {
+  const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
+  const resp = await fetch(`${backendUrl}/api/users/profile`, {
     method: 'PUT',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -92,7 +94,8 @@ export async function updatePassword(newPassword) {
   const token = await getAuthToken();
   if (!token) return null; // Redirección en curso
   
-  const resp = await fetch('https://donantes-backend-202152301689.northamerica-south1.run.app/api/users/password', {
+  const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
+  const resp = await fetch(`${backendUrl}/api/users/password`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -120,7 +123,8 @@ export async function uploadProfilePhoto(file) {
   const formData = new FormData();
   formData.append('photo', file);
 
-  const resp = await fetch('https://donantes-backend-202152301689.northamerica-south1.run.app/api/users/photo', {
+  const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
+  const resp = await fetch(`${backendUrl}/api/users/photo`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`
