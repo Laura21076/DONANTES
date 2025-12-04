@@ -52,7 +52,7 @@ async function checkTwoFactorStatus() {
     }
 
     const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-    const response = await fetch(`${backendUrl}/api/auth/2fa/status`, {
+    const response = await fetch(`${backendUrl}/api/auth/2fa-status`, {
       headers: {
         'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
