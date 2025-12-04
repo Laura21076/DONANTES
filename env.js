@@ -8,7 +8,7 @@ window.__ENV__ = {
 	FIREBASE_MESSAGING_SENDER_ID: "202152301689",
 	FIREBASE_APP_ID: "1:202152301689:web:5485bb0344ba6a821030a8",
 	FIREBASE_MEASUREMENT_ID: "G-NR3LS2M6YV",
-	BACKEND_URL: "https://donantes-backend-202152301689.northamerica-south1.run.app",
+	BACKEND_URL: "https://donantes-backend-202152301689.us-central1.run.app",
 	NODE_ENV: "production",
 	USE_FIREBASE_EMULATOR: false
 };
