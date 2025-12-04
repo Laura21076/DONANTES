@@ -5,7 +5,7 @@ import { getToken } from './db.js';
 
 export async function getCurrentLockerCode() {
   const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.us-central1.run.app';
-  const token = await getToken('accessToken');
+  const token = await getToken('access'); // JWT propio del backend
   const resp = await fetch(`${backendUrl}/api/caja-fuerte/clave-actual`, {
     headers: {
       'Authorization': `Bearer ${token}`,

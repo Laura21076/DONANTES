@@ -88,11 +88,16 @@ body {
   text-shadow: 0 1px 2px rgba(74,48,102,0.1);
   font-family: 'Moirai One', cursive;
 }
-.profile-icon {
+ .profile-icon {
   width: 45px;
   height: 45px;
   border-radius: 50%;
   border: 2px solid var(--purple-light);
+  background: var(--purple-light);
+  color: var(--purple-primary) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   object-fit: cover;
   cursor: pointer;
 }

@@ -134,10 +134,13 @@ function updateNavbarProfile(profile) {
   if (!profileIcon) return;
   profileIcon.outerHTML = `
     <div class="position-relative d-inline-block">
-      <img id="profileIcon"
-           src="${profile.photoURL || ''}"
-           class="profile-photo"
-           alt="Foto de perfil">
+      <img id="profileIcon" 
+           src="${profile.photoURL || ''}" 
+           class="profile-photo rounded-circle border border-2" 
+           width="40" 
+           height="40" 
+           alt="Foto de perfil"
+           style="object-fit: cover; cursor: pointer; border-color: #6f42c1 !important;">
     </div>
   `;
 }
