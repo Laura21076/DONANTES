@@ -1,15 +1,14 @@
 // env.js
-// Configuración de Firebase para el frontend
-// Rellena estos valores con los datos de tu proyecto Firebase
-const firebaseConfig = {
-  apiKey: "TU_API_KEY",
-  authDomain: "TU_AUTH_DOMAIN",
-  projectId: "TU_PROJECT_ID",
-  storageBucket: "TU_STORAGE_BUCKET",
-  messagingSenderId: "TU_MESSAGING_SENDER_ID",
-  appId: "TU_APP_ID",
-  measurementId: "TU_MEASUREMENT_ID"
+// Configuración de variables de entorno para el frontend
+window.__ENV__ = {
+  FIREBASE_API_KEY: "AIzaSyBaBir5mquN-xK-6H-92Wcf_Mp6muY4cSQ",
+  FIREBASE_AUTH_DOMAIN: "donantes-400ba.firebaseapp.com",
+  FIREBASE_PROJECT_ID: "donantes-400ba",
+  FIREBASE_STORAGE_BUCKET: "donantes-400ba.appspot.com",
+  FIREBASE_MESSAGING_SENDER_ID: "202152301689",
+  FIREBASE_APP_ID: "1:202152301689:web:5485bb0344ba6a821030a8",
+  FIREBASE_MEASUREMENT_ID: "G-NR3LS2M6YV",
+  BACKEND_URL: "https://donantes-backend-202152301689.northamerica-south1.run.app",
+  NODE_ENV: "production",
+  USE_FIREBASE_EMULATOR: false
 };
-
-// URL del backend (Cloud Run)
-const API_URL = "https://TU_CLOUD_RUN_URL";

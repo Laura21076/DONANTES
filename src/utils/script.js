@@ -1,5 +1,5 @@
 import { auth, db, storage } from './firebase.js';
-import { getUser, refreshTokenIfNeeded } from './auth.js';
+import { getCurrentUser, refreshTokenIfNeeded } from './auth.js';
 import { saveToken, getToken } from './db.js';
 import { showToast, handleAuthError } from './ui.js';
 import { SessionManager } from './session-manager.js';
