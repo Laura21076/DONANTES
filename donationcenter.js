@@ -134,13 +134,10 @@ function updateNavbarProfile(profile) {
   if (!profileIcon) return;
   profileIcon.outerHTML = `
     <div class="position-relative d-inline-block">
-      <img id="profileIcon" 
-           src="${profile.photoURL || ''}" 
-           class="profile-photo rounded-circle border border-2" 
-           width="40" 
-           height="40" 
-           alt="Foto de perfil"
-           style="object-fit: cover; cursor: pointer; border-color: #6f42c1 !important;">
+      <img id="profileIcon"
+           src="${profile.photoURL || ''}"
+           class="profile-photo"
+           alt="Foto de perfil">
     </div>
   `;
 }
@@ -542,9 +539,85 @@ async function requestArticleHandler(articleId, message, articleTitle, lockerCod
     await requestArticleService(articleId, message, lockerCode);
     showMessage('¡Solicitud enviada!', 'success');
     await loadArticles();
+    // Mostrar modal con código, mapa y pasos
+    showLockerInfoModal(lockerCode);
   } catch (error) {
     showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
   }
+}
+
+// Modal para mostrar código, mapa y pasos
+function showLockerInfoModal(lockerCode) {
+  // Crear modal dinámico si no existe
+  let modal = document.getElementById('lockerInfoModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'lockerInfoModal';
+    modal.className = 'modal fade';
+    modal.tabIndex = -1;
+    modal.innerHTML = `
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fas fa-key me-2"></i>Código y pasos para el locker</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3 text-center">
+              <strong>Código de acceso:</strong>
+              <div class="access-code" style="font-size:2rem;letter-spacing:6px;">${lockerCode || 'No disponible'}</div>
+              <button class="btn btn-outline-success btn-sm mt-2" onclick="navigator.clipboard.writeText('${lockerCode}')"><i class="fas fa-copy"></i> Copiar código</button>
+            </div>
+            <div class="mb-3">
+              <strong>Ubicación del casillero:</strong>
+              <div id="lockerMap" style="height:250px;border-radius:8px;"></div>
+            </div>
+            <div class="mb-2">
+              <strong>Pasos para dejar/recoger el artículo:</strong>
+              <ol class="mt-2">
+                <li>Dirígete al casillero indicado en el mapa.</li>
+                <li>Verifica tu ubicación en el mapa.</li>
+                <li>Ingresa el código mostrado en el teclado del casillero.</li>
+                <li>Deposita o recoge tu artículo y cierra la puerta.</li>
+              </ol>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-purple" data-bs-dismiss="modal"><i class="fas fa-check"></i> Entendido</button>
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+  }
+  // Inicializar mapa de Google Maps
+  setTimeout(() => {
+    if (window.google && window.google.maps) {
+      const mapDiv = document.getElementById('lockerMap');
+      const lockerLatLng = { lat: 25.6866, lng: -100.3161 };
+      const map = new google.maps.Map(mapDiv, {
+        zoom: 15,
+        center: lockerLatLng,
+        mapTypeId: 'roadmap'
+      });
+      new google.maps.Marker({
+        position: lockerLatLng,
+        map,
+        title: 'Casillero',
+        icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+      });
+    } else {
+      // Cargar Google Maps API si no está presente
+      const script = document.createElement('script');
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A';
+      script.async = true;
+      script.onload = () => showLockerInfoModal(lockerCode);
+      document.body.appendChild(script);
+    }
+  }, 400);
+  // Mostrar modal
+  const bsModal = new window.bootstrap.Modal(modal);
+  bsModal.show();
 }
 
 

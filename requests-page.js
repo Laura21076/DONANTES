@@ -200,15 +200,45 @@ function showPickupDetailsModal(lockerLocation, lockerId) {
     document.getElementById('pickupCodeSpinner').style.display = 'none';
     document.getElementById('pickupCodeBox').style.display = 'block';
     document.getElementById('pickupAccessCode').textContent = code;
+    // Mostrar mapa Google Maps
+    showGoogleLockerMap(lockerLocation);
   }).catch(() => {
     document.getElementById('pickupCodeSpinner').style.display = 'none';
     document.getElementById('pickupCodeBox').style.display = 'block';
     document.getElementById('pickupAccessCode').textContent = 'Error';
+    showGoogleLockerMap(lockerLocation);
   });
-  setTimeout(() => {
-    renderPickupMap(lockerLocation);
-  }, 300);
   modal.show();
+}
+
+function showGoogleLockerMap(lockerLocation) {
+  const mapDiv = document.getElementById('pickupMap');
+  mapDiv.innerHTML = '';
+  // Coordenadas por defecto (Monterrey, Centro)
+  let lockerCoords = { lat: 25.6866, lng: -100.3161 };
+  if (lockerLocation && lockerLocation.toLowerCase().includes('uts')) {
+    lockerCoords = { lat: 25.7305, lng: -100.309 };
+  }
+  if (window.google && window.google.maps) {
+    const map = new google.maps.Map(mapDiv, {
+      zoom: 15,
+      center: lockerCoords,
+      mapTypeId: 'roadmap'
+    });
+    new google.maps.Marker({
+      position: lockerCoords,
+      map,
+      title: 'Casillero',
+      icon: 'https://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+    });
+  } else {
+    // Cargar Google Maps API si no está presente
+    const script = document.createElement('script');
+    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A';
+    script.async = true;
+    script.onload = () => showGoogleLockerMap(lockerLocation);
+    document.body.appendChild(script);
+  }
 }
 
 function renderPickupMap(lockerLocation) {
