@@ -3,7 +3,7 @@ import { getUser, refreshTokenIfNeeded } from './auth.js';
 import { saveToken, getToken } from './db.js';
 import { showToast, handleAuthError } from './ui.js';
 import { SessionManager } from './session-manager.js';
-import { authGuard } from './auth-guard.js';
+import { initializeAuthGuard, isProtectedPage, isPublicPage } from './auth-guard.js';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword
