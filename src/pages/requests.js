@@ -3,7 +3,7 @@ import { getIdToken } from './auth.js';
 import { getCurrentLockerCode } from './locker.js';
 
 const lockerCode = await getCurrentLockerCode();
-const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
+const API_URL = 'https://donantes-backend-202152301689.us-central1.run.app/api';
 
 /**
  * Helper para parsear respuesta del backend de forma segura
