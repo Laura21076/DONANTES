@@ -24,7 +24,8 @@ async function safeParseJSON(response) {
 export async function createArticle(articleData) {
   console.log('[createArticle] Iniciando creación de artículo...', articleData);
   try {
-    const token = await getIdToken();
+    const { getToken } = await import('./db.js');
+    const token = await getToken('access');
     if (!token) {
       console.error('[createArticle] No hay token de acceso');
       throw new Error('No hay token de acceso');
@@ -61,7 +62,8 @@ export async function createArticle(articleData) {
 export async function getArticles(filters = {}) {
   console.log('[getArticles] Obteniendo artículos con filtros:', filters);
   try {
-    const token = await getIdToken();
+    const { getToken } = await import('./db.js');
+    const token = await getToken('access');
     if (!token) {
       console.error('[getArticles] No hay token de acceso');
       throw new Error('No hay token de acceso');

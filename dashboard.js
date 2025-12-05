@@ -59,13 +59,28 @@ class AdminDashboard {
                 return;
             }
 
-            // Verificar si es administrador usando el sistema de roles
-            // Si roleManager está en window, usa window.roleManager
-            if (window.roleManager) {
-                this.isAdminUser = await window.roleManager.isAdmin();
+            // Obtener el token JWT propio del backend
+            const { getToken } = await import('./db.js');
+            const token = await getToken('access');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
             }
-            // Si usas import { roleManager } from './roles.js', entonces sería:
-            // this.isAdminUser = await roleManager.isAdmin();
+
+            // Consultar el perfil al backend para obtener el rol
+            const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
+            const resp = await fetch(`${backendUrl}/api/users/profile`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!resp.ok) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const profile = await resp.json();
+            this.isAdminUser = profile.role === 'admin';
 
             if (!this.isAdminUser) {
                 this.showAccessDenied();

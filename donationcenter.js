@@ -103,16 +103,38 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (articlesResult.status === 'rejected') showMessage('Error al cargar artículos', 'warning');
     setupFormHandlers();
     setupImageErrorHandlers();
+    setupImagePreviewHandler();
   } catch (error) {
     showMessage('Error de inicialización: ' + error.message, 'danger');
   }
 });
+// Vista previa de imagen en el modal de publicación
+function setupImagePreviewHandler() {
+  const fileInput = document.getElementById('articleImageFile');
+  const previewImg = document.getElementById('articleImagePreviewImg');
+  if (!fileInput || !previewImg) return;
+  fileInput.addEventListener('change', function (e) {
+    const file = e.target.files && e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = function (ev) {
+        previewImg.src = ev.target.result;
+        previewImg.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    } else {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+    }
+  });
+}
 
 async function loadUserProfile() {
   try {
     let user = await getCurrentUser();
     if (!user) return;
-    const token = await getIdToken();
+    const { getToken } = await import('./db.js');
+    const token = await getToken('access');
     const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
     const response = await fetch(`${backendUrl}/api/users/profile`, {
       headers: {
@@ -143,6 +165,16 @@ function updateNavbarProfile(profile) {
            style="object-fit: cover; cursor: pointer; border-color: #6f42c1 !important;">
     </div>
   `;
+  // Mostrar acceso admin si corresponde
+  if (profile.role === 'admin') {
+    document.querySelectorAll('.admin-only').forEach(el => {
+      el.style.display = '';
+    });
+  } else {
+    document.querySelectorAll('.admin-only').forEach(el => {
+      el.style.display = 'none';
+    });
+  }
 }
 window.updateNavbarProfile = updateNavbarProfile;
 
@@ -158,7 +190,7 @@ async function loadArticles(forceReload = false) {
     return;
   }
   try {
-    const articles = await getArticles();
+    const articles = await getArticles(); // getArticles ya usa el token correcto
     if (!Array.isArray(articles)) {
       showMessage('Respuesta inesperada al cargar artículos', 'danger');
       return;

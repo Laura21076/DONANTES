@@ -1,4 +1,4 @@
-import { getIdToken } from './auth.js';
+import { getToken } from './db.js';
 
 import { getCurrentLockerCode } from './locker.js';
 
@@ -23,7 +23,7 @@ async function safeParseJSON(response) {
 export async function requestArticle(articleId, message = '', lockerCode = null) {
   console.log('[requestArticle] Solicitando artículo:', articleId);
   try {
-    const token = await getIdToken();
+    const token = await getToken('access');
     if (!token) {
       console.error('[requestArticle] No hay token de acceso');
       throw new Error('No hay token de acceso. Por favor inicia sesión nuevamente.');
@@ -74,7 +74,7 @@ export async function requestArticle(articleId, message = '', lockerCode = null)
 export async function getMyRequests() {
   console.log('[getMyRequests] Obteniendo mis solicitudes...');
   try {
-    const token = await getIdToken();
+    const token = await getToken('access');
     if (!token) {
       console.error('[getMyRequests] No hay token de acceso');
       throw new Error('No hay token de acceso');
@@ -108,7 +108,7 @@ export async function getMyRequests() {
 export async function getReceivedRequests() {
   console.log('[getReceivedRequests] Obteniendo solicitudes recibidas...');
   try {
-    const token = await getIdToken();
+    const token = await getToken('access');
     if (!token) {
       console.error('[getReceivedRequests] No hay token de acceso');
       throw new Error('No hay token de acceso');
@@ -142,7 +142,7 @@ export async function getReceivedRequests() {
 export async function approveRequest(requestId, lockerId, lockerLocation) {
   console.log('[approveRequest] Aprobando solicitud:', requestId);
   try {
-    const token = await getIdToken();
+    const token = await getToken('access');
     if (!token) {
       console.error('[approveRequest] No hay token de acceso');
       throw new Error('No hay token de acceso');

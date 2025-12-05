@@ -6,7 +6,7 @@ import { getCurrentUser } from './auth.js';
 // Primero intenta obtenerlo del storage (IndexedDB), luego de Firebase Auth
 async function getAuthToken() {
   // Intentar obtener token del almacenamiento (IndexedDB)
-  let token = await getToken('access');
+  let token = await getToken('access'); // JWT propio del backend
 
   // Si no hay token en storage, intentar obtenerlo de Firebase Auth (robusto)
   if (!token) {
