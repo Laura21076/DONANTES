@@ -68,9 +68,30 @@ if (loginForm) {
       console.log('🟢 auth.currentUser antes de redirect:', auth.currentUser);
 
       // Breve delay para asegurar persistencia
-      setTimeout(() => {
+      // Verificar rol del usuario antes de redirigir
+      (async () => {
+        try {
+          const { getToken } = await import('./db.js');
+          const token = await getToken('access');
+          const backendUrl = window.__ENV__?.BACKEND_URL;
+          const resp = await fetch(`${backendUrl}/api/users/profile`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          });
+          if (resp.ok) {
+            const profile = await resp.json();
+            if (profile.role === 'admin') {
+              window.location.replace('dashboard.html');
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('No se pudo verificar el rol, redirigiendo a donationcenter.html');
+        }
         window.location.replace('donationcenter.html');
-      }, 150); // 150ms para dejar a onAuthStateChanged establecer user
+      })();
 
     } catch (error) {
       console.error('Error al iniciar sesión:', error);

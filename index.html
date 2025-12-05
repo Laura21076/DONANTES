@@ -16,6 +16,7 @@
     object-src 'none';
     base-uri 'self';
     form-action 'self';
+    frame-src 'self' https:;
   " />
   <title>DONANTES</title>
   <meta name="description"
@@ -74,9 +75,9 @@
           <li class="nav-item mt-2 mt-lg-0"><a href="register.html" class="btn btn-purple">Registrarse</a></li>
           <li class="nav-item mt-2 mt-lg-0"><a href="login.html" class="btn btn-outline-purple">Iniciar sesión</a></li>
           <!-- Botón de instalar PWA -->
-          <div id="installPwaContainer" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:none;">
-            <button id="installPwaBtn" class="btn btn-success shadow rounded-pill px-4 py-2">
-              <i class="fa-solid fa-download"></i> Instalar App
+          <div id="installPwaContainer" style="position:fixed;bottom:32px;right:32px;z-index:1050;display:none;">
+            <button id="installPwaBtn" class="btn btn-purple btn-float shadow-lg rounded-circle d-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:2rem;box-shadow:0 4px 16px rgba(169,146,216,0.25);">
+              <i class="fa-solid fa-download"></i>
             </button>
           </div>
           <script>
