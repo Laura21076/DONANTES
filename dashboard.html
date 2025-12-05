@@ -23,18 +23,18 @@
     
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' 'sha256-kPx0AsF0oz2kKiZ875xSvv693TBHkQ/0SkMJZnnNpnQ=' https://www.gstatic.com https://cdn.jsdelivr.net https://firebase.googleapis.com https://firebasestorage.googleapis.com chrome-extension:;
-        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net;
-        font-src 'self' https://cdn.jsdelivr.net;
-        img-src 'self' data: blob: https://firebasestorage.googleapis.com https://donantes-400ba.firebasestorage.app;
-        connect-src 'self' https://identitytoolkit.googleapis.com https://firestore.googleapis.com https://donantes-400ba.firebaseapp.com https://firebasestorage.googleapis.com https://donantes-400ba.firebasestorage.app http://127.0.0.1:4000;
-        frame-src 'none';
+        default-src 'self' https:;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://maps.googleapis.com https://www.googletagmanager.com chrome-extension:;
+        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+        img-src 'self' data: https: blob: firebasestorage.googleapis.com *.firebasestorage.app *.googleapis.com *.gstatic.com;
+        connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https: wss: firebasestorage.googleapis.com *.googleapis.com *.firebasestorage.app;
+        worker-src 'self' blob:;
+        manifest-src 'self';
         object-src 'none';
         base-uri 'self';
         form-action 'self';
-        upgrade-insecure-requests;
-    ">
+    " />
 </head>
     <script src="sw-register.js"></script>
     <script type="module" src="notifications-init.js"></script>
@@ -239,6 +239,13 @@
     <script type="module" src="dashboard.js"></script>
     <script type="module" src="auth.js"></script>
 
+    <!-- Módulos principales DONANTES -->
+    <script type="module" src="dashboard.js"></script>
+    <script type="module" src="articles.js"></script>
+    <script type="module" src="requests.js"></script>
+    <script type="module" src="profile.js"></script>
+    <script type="module" src="auth.js"></script>
+    <script type="module" src="locker.js"></script>
 </body>
 
 </html>
