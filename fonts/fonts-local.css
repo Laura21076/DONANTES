@@ -1,0 +1,37 @@
+/* Fuentes locales para DONANTES */
+@font-face {
+  font-family: 'Rubik';
+  src: url('./fonts/Rubik-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Rubik';
+  src: url('./fonts/Rubik-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Rubik';
+  src: url('./fonts/Rubik-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Moirai One';
+  src: url('./fonts/MoiraiOne-Regular.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+/* Ejemplo de uso:
+body {
+  font-family: 'Rubik', Arial, sans-serif;
+}
+.titulo-moirai {
+  font-family: 'Moirai One', cursive;
+}
+*/
