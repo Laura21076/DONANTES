@@ -74,35 +74,46 @@
           <li class="nav-item"><a href="#how" class="nav-link">Cómo funciona</a></li>
           <li class="nav-item mt-2 mt-lg-0"><a href="register.html" class="btn btn-purple">Registrarse</a></li>
           <li class="nav-item mt-2 mt-lg-0"><a href="login.html" class="btn btn-outline-purple">Iniciar sesión</a></li>
-          <!-- Botón de instalar PWA -->
-          <div id="installPwaContainer" style="position:fixed;bottom:32px;right:32px;z-index:1050;display:none;">
-            <button id="installPwaBtn" class="btn btn-purple btn-float shadow-lg rounded-circle d-flex align-items-center justify-content-center" style="width:64px;height:64px;font-size:2rem;box-shadow:0 4px 16px rgba(169,146,216,0.25);">
-              <i class="fa-solid fa-download"></i>
-            </button>
-          </div>
-          <script>
-            let deferredPrompt;
-            const installBtn = document.getElementById('installPwaBtn');
-            const installContainer = document.getElementById('installPwaContainer');
-            window.addEventListener('beforeinstallprompt', (e) => {
-              e.preventDefault();
-              deferredPrompt = e;
-              installContainer.style.display = 'block';
-            });
-            if (installBtn) {
-              installBtn.addEventListener('click', async () => {
-                installContainer.style.display = 'none';
-                if (deferredPrompt) {
-                  deferredPrompt.prompt();
-                  const { outcome } = await deferredPrompt.userChoice;
-                  deferredPrompt = null;
-                }
-              });
-            }
-            window.addEventListener('appinstalled', () => {
-              installContainer.style.display = 'none';
-            });
-          </script>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Botones flotantes en fila -->
+  <div class="floating-actions" id="floatingActions">
+    <button id="installPwaBtn" class="btn-floating btn-install" style="display:none;" title="Instalar app">
+      <i class="fa-solid fa-download"></i>
+    </button>
+    <!-- Ejemplo de otros botones flotantes -->
+    <a href="register.html" class="btn-floating btn-main" title="Registrarse">
+      <i class="fa-solid fa-user-plus"></i>
+    </a>
+    <a href="login.html" class="btn-floating btn-main" title="Iniciar sesión">
+      <i class="fa-solid fa-sign-in-alt"></i>
+    </a>
+  </div>
+  <script>
+    let deferredPrompt;
+    const installBtn = document.getElementById('installPwaBtn');
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = 'flex';
+    });
+    if (installBtn) {
+      installBtn.addEventListener('click', async () => {
+        installBtn.style.display = 'none';
+        if (deferredPrompt) {
+          deferredPrompt.prompt();
+          const { outcome } = await deferredPrompt.userChoice;
+          deferredPrompt = null;
+        }
+      });
+    }
+    window.addEventListener('appinstalled', () => {
+      installBtn.style.display = 'none';
+    });
+  </script>
         </ul>
       </div>
     </div>
