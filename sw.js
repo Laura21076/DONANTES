@@ -32,11 +32,11 @@ const urlsToCache = [
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css",
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
-  // Google Fonts
-  "https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700&display=swap",
-  "https://fonts.googleapis.com/css2?family=Rubik:wght@400;600;700&family=Moirai+One&display=swap",
-  "https://fonts.googleapis.com",
-  "https://fonts.gstatic.com",
+  // Fuentes locales (no Google Fonts)
+  "./fonts/Rubik-400.woff2",
+  "./fonts/Rubik-600.woff2",
+  "./fonts/Rubik-700.woff2",
+  "./fonts/MoiraiOne-Regular.woff2",
   // Assets
   "assets/logo.ico",
   "assets/logo192.png",
@@ -61,6 +61,11 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 self.addEventListener('fetch', event => {
+  // No interceptar peticiones externas a la API ni a fuentes remotas
+  const url = event.request.url;
+  if (url.includes('/api/') || url.startsWith('https://fonts.googleapis.com') || url.startsWith('https://fonts.gstatic.com')) {
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then(response => response || fetch(event.request))
   );
