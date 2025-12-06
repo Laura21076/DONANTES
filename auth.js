@@ -59,7 +59,17 @@ export async function login(email, password) {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const idToken = await userCredential.user.getIdToken();
-    await saveToken('access', idToken);
+    // Solicita el JWT del backend usando el idToken de Firebase
+    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
+    const response = await fetch(`${backendUrl}/api/auth/firebase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+    if (!response.ok) throw new Error('No se pudo obtener el JWT del backend');
+    const { token: jwt } = await response.json();
+    // Guarda el JWT del backend
+    await saveToken('access', jwt);
     return userCredential.user;
   } catch (error) {
     handleAuthError(error);
@@ -95,7 +105,17 @@ export async function register(email, password, displayName) {
       await updateProfile(userCredential.user, { displayName });
     }
     const idToken = await userCredential.user.getIdToken();
-    await saveToken('access', idToken);
+    // Solicita el JWT del backend usando el idToken de Firebase
+    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
+    const response = await fetch(`${backendUrl}/api/auth/firebase`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken })
+    });
+    if (!response.ok) throw new Error('No se pudo obtener el JWT del backend');
+    const { token: jwt } = await response.json();
+    // Guarda el JWT del backend
+    await saveToken('access', jwt);
     return userCredential.user;
   } catch (error) {
     handleAuthError(error);
