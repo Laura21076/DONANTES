@@ -33,10 +33,11 @@ const urlsToCache = [
   "https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js",
   "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css",
   // Fuentes locales (no Google Fonts)
-  "./fonts/Rubik-400.woff2",
-  "./fonts/Rubik-600.woff2",
-  "./fonts/Rubik-700.woff2",
-  "./fonts/MoiraiOne-Regular.woff2",
+  "./fonts/Rubik-Regular.ttf",
+  "./fonts/Rubik-Light.ttf",
+  "./fonts/Rubik-Bold.ttf",
+  "./fonts/Rubik-Black.ttf",
+  "./fonts/MoiraiOne-Regular.ttf",
   // Assets
   "assets/logo.ico",
   "assets/logo192.png",
