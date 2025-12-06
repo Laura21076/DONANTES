@@ -1,3 +1,24 @@
+body {
+  font-family: 'Rubik', Arial, sans-serif;
+}
+
+.auth-section {
+  font-family: 'Rubik', Arial, sans-serif;
+}
+
+.auth-card {
+  font-family: 'Rubik', Arial, sans-serif;
+}
+
+.auth-title {
+  font-family: 'Moirai One', cursive;
+}
+
+.forgot-link {
+  display: block;
+  text-align: center;
+  margin-top: 8px;
+}
 /* OPTIMIZACIONES DE PERFORMANCE GLOBALES */
 /* Optimizar rendering en GPU */
 *, *::before, *::after {

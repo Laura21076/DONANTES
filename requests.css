@@ -1,3 +1,38 @@
+body {
+  font-family: 'Rubik', Arial, sans-serif;
+}
+
+.solicitud-card {
+  background: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(169,146,216,0.12);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  font-family: 'Rubik', Arial, sans-serif;
+}
+
+.solicitud-titulo {
+  font-family: 'Moirai One', cursive;
+  font-size: 1.4rem;
+  color: #A992D8;
+  margin-bottom: 0.5rem;
+}
+
+.solicitud-estado {
+  font-weight: 600;
+  color: #6C63FF;
+  margin-bottom: 0.5rem;
+}
+
+.solicitud-detalle {
+  color: #444;
+  font-size: 1rem;
+}
+
+.solicitud-fecha {
+  font-size: 0.9rem;
+  color: #888;
+}
 /* OPTIMIZACIONES DE PERFORMANCE */
 /* Usar transformaciones en GPU para mejor rendimiento */
 * {

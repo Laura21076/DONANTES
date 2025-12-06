@@ -1,28 +1,35 @@
 /* Fuentes locales para DONANTES */
 @font-face {
   font-family: 'Rubik';
-  src: url('./fonts/Rubik-400.woff2') format('woff2');
+  src: url('Rubik-Regular.ttf') format('truetype');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Rubik';
-  src: url('./fonts/Rubik-600.woff2') format('woff2');
-  font-weight: 600;
+  src: url('Rubik-Light.ttf') format('truetype');
+  font-weight: 300;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
   font-family: 'Rubik';
-  src: url('./fonts/Rubik-700.woff2') format('woff2');
+  src: url('Rubik-Bold.ttf') format('truetype');
   font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 @font-face {
+  font-family: 'Rubik';
+  src: url('Rubik-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
   font-family: 'Moirai One';
-  src: url('./fonts/MoiraiOne-Regular.woff2') format('woff2');
+  src: url('MoiraiOne-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
