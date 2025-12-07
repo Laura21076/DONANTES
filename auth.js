@@ -59,6 +59,7 @@ export async function login(email, password) {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const idToken = await userCredential.user.getIdToken();
+    console.log('[auth.js] Firebase idToken:', idToken?.substring(0, 30) + '...');
     // Solicita el JWT del backend usando el idToken de Firebase
     const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
     const response = await fetch(`${backendUrl}/api/auth/firebase`, {
@@ -66,12 +67,15 @@ export async function login(email, password) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     });
+    console.log('[auth.js] POST /api/auth/firebase status:', response.status);
     if (!response.ok) throw new Error('No se pudo obtener el JWT del backend');
     const { token: jwt } = await response.json();
+    console.log('[auth.js] JWT recibido del backend:', jwt?.substring(0, 30) + '...');
     // Guarda el JWT del backend
     await saveToken('access', jwt);
     return userCredential.user;
   } catch (error) {
+    console.error('[auth.js] Error en login:', error);
     handleAuthError(error);
     throw error;
   } finally {
@@ -105,6 +109,7 @@ export async function register(email, password, displayName) {
       await updateProfile(userCredential.user, { displayName });
     }
     const idToken = await userCredential.user.getIdToken();
+    console.log('[auth.js] Firebase idToken (register):', idToken?.substring(0, 30) + '...');
     // Solicita el JWT del backend usando el idToken de Firebase
     const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
     const response = await fetch(`${backendUrl}/api/auth/firebase`, {
@@ -112,12 +117,15 @@ export async function register(email, password, displayName) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ idToken })
     });
+    console.log('[auth.js] POST /api/auth/firebase (register) status:', response.status);
     if (!response.ok) throw new Error('No se pudo obtener el JWT del backend');
     const { token: jwt } = await response.json();
+    console.log('[auth.js] JWT recibido del backend (register):', jwt?.substring(0, 30) + '...');
     // Guarda el JWT del backend
     await saveToken('access', jwt);
     return userCredential.user;
   } catch (error) {
+    console.error('[auth.js] Error en register:', error);
     handleAuthError(error);
     throw error;
   } finally {
