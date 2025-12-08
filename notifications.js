@@ -1,7 +1,7 @@
 // Servicio de notificaciones push para DonantesApp
 import { getCurrentUser, getIdToken } from './auth.js';
 
-const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
+const API_URL = (window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.us-central1.run.app') + '/api';
 
 // ================== INICIALIZACIÓN DE NOTIFICACIONES ==================
 
