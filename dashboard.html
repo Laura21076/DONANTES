@@ -21,28 +21,26 @@
         <link rel="stylesheet" href="styles.css">
         <link rel="stylesheet" href="admin-dashboard.css">
     
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self' https:;
-        script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://maps.googleapis.com https://www.googletagmanager.com https://www.googletagmanager.com/gtag/js https://www.googletagmanager.com/gtag/js?id=G-NR3LS2M6YV chrome-extension:;
-        style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com;
-        font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
-        img-src 'self' data: https: blob: firebasestorage.googleapis.com *.firebasestorage.app *.googleapis.com *.gstatic.com;
-        connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https: wss: firebasestorage.googleapis.com *.googleapis.com *.firebasestorage.app;
-        worker-src 'self' blob:;
-        manifest-src 'self';
-        object-src 'none';
-        base-uri 'self';
-        form-action 'self';
-        frame-src 'self' https:;
-    " />
-    <!-- Google Maps API async/defer -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A&libraries=places" async defer></script>
-    <!-- Alerta de notificaciones denegadas: Mover a JS externo para cumplir CSP -->
-    <script type="module" src="notifications-init.js"></script>
+        <!-- Content Security Policy (unificada) -->
+        <meta http-equiv="Content-Security-Policy" content="
+          default-src 'self' https:;
+          script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://maps.googleapis.com https://www.googletagmanager.com chrome-extension:;
+          style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com;
+          font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
+          img-src 'self' data: https: blob: firebasestorage.googleapis.com *.firebasestorage.app *.googleapis.com *.gstatic.com;
+          connect-src 'self' http://localhost:4000 http://127.0.0.1:4000 https: wss: firebasestorage.googleapis.com *.googleapis.com *.firebasestorage.app;
+          worker-src 'self' blob:;
+          manifest-src 'self';
+          object-src 'none';
+          base-uri 'self';
+          form-action 'self';
+          frame-src 'self' https:;
+        " />
+        <!-- Google Maps API async/defer (solo una vez) -->
+        <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A&libraries=places" async defer></script>
 </head>
     <script src="sw-register.js"></script>
-    <script type="module" src="notifications-init.js"></script>
+        <!-- No scripts inline, toda la lógica JS debe estar en archivos externos -->
 <body class="bg-light">
     <!-- Spacer for fixed navbar -->
         <div class="spacer-navbar"></div>
