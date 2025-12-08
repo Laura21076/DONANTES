@@ -4,7 +4,7 @@
 import { getIdToken } from './auth.js';
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-const API_URL = 'https://donantes-backend-202152301689.northamerica-south1.run.app/api';
+const API_URL = (window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.us-central1.run.app') + '/api';
 
 /**
  * Helper para parsear respuesta del backend de forma segura
