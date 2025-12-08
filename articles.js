@@ -1,61 +1,26 @@
 // articles.js
 // MEJORAS: Manejo robusto de errores no-JSON, logs detallados, nunca queda "cargando"
 
-import { getIdToken } from './auth.js';
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+import { createArticle as fbCreateArticle, getArticles as fbGetArticles, updateArticle as fbUpdateArticle, deleteArticle as fbDeleteArticle } from './articles-firebase.js';
 
-const API_URL = (window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.us-central1.run.app') + '/api';
-
-/**
- * Helper para parsear respuesta del backend de forma segura
- * Si el backend responde con error no-JSON, retorna un objeto de error genérico
- */
-async function safeParseJSON(response) {
-  const text = await response.text();
-  try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error('[PARSE_ERROR] Respuesta no es JSON válido:', text.substring(0, 200));
-    return { error: text || 'Error desconocido del servidor', _raw: text };
-  }
+// Crear un nuevo artículo (Firebase)
+export async function createArticle(articleData) {
+  return fbCreateArticle(articleData);
 }
 
-// Crear un nuevo artículo
-export async function createArticle(articleData) {
-  console.log('[createArticle] Iniciando creación de artículo...', articleData);
-  try {
-    const { getToken } = await import('./db.js');
-    const token = await getToken('access');
-    if (!token) {
-      console.error('[createArticle] No hay token de acceso');
-      throw new Error('No hay token de acceso');
-    }
-    console.log('[createArticle] Token obtenido, enviando al backend...');
+// Obtener todos los artículos (Firebase)
+export async function getArticles() {
+  return fbGetArticles();
+}
 
-    const response = await fetch(`${API_URL}/articles`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(articleData)
-    });
+// Editar artículo (Firebase)
+export async function updateArticle(id, data) {
+  return fbUpdateArticle(id, data);
+}
 
-    console.log('[createArticle] Respuesta del backend:', response.status, response.statusText);
-
-    if (!response.ok) {
-      const errorData = await safeParseJSON(response);
-      console.error('[createArticle] Error del backend:', errorData);
-      throw new Error(errorData.error || `Error al crear artículo (HTTP ${response.status})`);
-    }
-
-    const result = await safeParseJSON(response);
-    console.log('[createArticle] Artículo creado exitosamente:', result);
-    return result;
-  } catch (error) {
-    console.error('[createArticle] Excepción:', error);
-    throw error;
-  }
+// Eliminar artículo (Firebase)
+export async function deleteArticle(id) {
+  return fbDeleteArticle(id);
 }
 
 // Obtener todos los artículos (con filtros opcionales) -- CORREGIDO: ahora siempre pasa el token por seguridad

@@ -1,63 +1,33 @@
 // two-factor-init.js - Inicialización de la página de autenticación de dos factores
 // Separado para cumplir con CSP (Content Security Policy)
 
-import { getCurrentUser, getIdToken } from './auth.js';
-import { auth } from './firebase.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+import { setupRecaptcha, send2FACode, verify2FACode } from './twofa-firebase.js';
 
-let currentUser = null;
-
-// Verificar autenticación al cargar la página y configurar listeners básicos
-window.addEventListener('load', async () => {
-  try {
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        currentUser = user;
-        console.log('✅ Usuario autenticado:', user.email);
-        setupEventListeners();
-      } else {
-        console.log('❌ Usuario no autenticado, redirigiendo...');
-        window.location.href = 'login.html';
-      }
-    });
-  } catch (error) {
-    console.error('Error inicializando página 2FA:', error);
-    showError('Error al cargar la página de configuración');
-  }
-});
-
-function setupEventListeners() {
+// Ejemplo de integración básica para 2FA con Firebase
+// Debes adaptar los IDs de los botones y el flujo visual según tu HTML
+window.addEventListener('DOMContentLoaded', () => {
   const setupBtn = document.getElementById('setupBtn');
   const verifySetupBtn = document.getElementById('verifySetupBtn');
-  const disableBtn = document.getElementById('disableBtn');
-  const regenerateBtn = document.getElementById('regenerateBtn');
-  
-  if (setupBtn) setupBtn.addEventListener('click', setup2FA);
-  if (verifySetupBtn) verifySetupBtn.addEventListener('click', verifySetup);
-  if (disableBtn) disableBtn.addEventListener('click', disable2FA);
-  if (regenerateBtn) regenerateBtn.addEventListener('click', regenerateBackupCodes);
-}
+  let verificationId = null;
 
-
-
-async function setup2FA() {
-  try {
-    showLoading('setupBtn', true);
-    
-    const token = await getIdToken();
-    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-    const response = await fetch(`${backendUrl}/api/auth/2fa/setup`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
+  if (setupBtn) {
+    setupBtn.addEventListener('click', async () => {
+      setupRecaptcha('recaptcha-container', async () => {
+        const phone = document.getElementById('phoneInput').value;
+        verificationId = await send2FACode(phone);
+        alert('Código enviado por SMS');
+      });
     });
+  }
 
-    const data = await response.json();
-    
-    if (data.success) {
-      // Mostrar sección de verificación
+  if (verifySetupBtn) {
+    verifySetupBtn.addEventListener('click', async () => {
+      const code = document.getElementById('codeInput').value;
+      await verify2FACode(verificationId, code);
+      alert('2FA activado correctamente');
+    });
+  }
+});
       const qrSection = document.getElementById('qrSection');
       const setupSection = document.getElementById('setupSection');
       

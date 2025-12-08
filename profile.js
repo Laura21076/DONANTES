@@ -1,112 +1,19 @@
-import { auth } from './firebase.js';
-import { getToken } from './db.js';
-import { getCurrentUser } from './auth.js';
+import { getUserProfile, updateUserProfile, uploadProfileImage } from './profile-firebase.js';
 
-// 1. Obtener el token actual de usuario autenticado
-// Primero intenta obtenerlo del storage (IndexedDB), luego de Firebase Auth
-async function getAuthToken() {
-  // Intentar obtener token del almacenamiento (IndexedDB)
-  let token = await getToken('access'); // JWT propio del backend
-
-  // Si no hay token en storage, intentar obtenerlo de Firebase Auth (robusto)
-  if (!token) {
-    const user = await getCurrentUser();
-    if (user) {
-      token = await user.getIdToken();
-    }
-  }
-
-  // Si aún no hay token, redirigir a login
-  if (!token) {
-    console.warn('No se encontró token de autenticación, redirigiendo a login');
-    window.location.replace('login.html');
-    // Retornar null para indicar que no hay token (la redirección ya está en curso)
-    return null;
-  }
-
-  return token;
-}
-
-// Función auxiliar para manejar respuestas con token inválido
-async function handleResponse(resp) {
-  if (resp.status === 401 || resp.status === 403) {
-    console.warn('Token inválido o expirado, redirigiendo a login');
-    window.location.replace('login.html');
-    // Retornar null para indicar error de autenticación
-    return null;
-  }
-  return resp;
-}
-
-// 2. Obtener perfil de usuario (GET)
+// Obtener perfil de usuario (Firebase)
 export async function getProfile() {
-  const token = await getAuthToken();
-  if (!token) return null; // Redirección en curso
-  
-  const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-  const resp = await fetch(`${backendUrl}/api/users/profile`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    }
-  });
-  
-  // Manejar token inválido/expirado
-  const validatedResp = await handleResponse(resp);
-  if (!validatedResp) return null; // Redirección en curso
-  
-  if (!resp.ok) {
-    const error = await resp.json().catch(() => ({}));
-    throw new Error(error?.error || 'No se pudo obtener el perfil');
-  }
-  return await resp.json();
+  return getUserProfile();
 }
 
-// 3. Actualizar perfil de usuario (PUT)
+// Actualizar perfil de usuario (Firebase)
 export async function updateProfile(data) {
-  const token = await getAuthToken();
-  if (!token) return null; // Redirección en curso
-  
-  const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-  const resp = await fetch(`${backendUrl}/api/users/profile`, {
-    method: 'PUT',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
-  
-  // Manejar token inválido/expirado
-  const validatedResp = await handleResponse(resp);
-  if (!validatedResp) return null; // Redirección en curso
-  
-  if (!resp.ok) {
-    const error = await resp.json().catch(() => ({}));
-    throw new Error(error?.error || 'No se pudo actualizar el perfil');
-  }
-  return await resp.json();
+  return updateUserProfile(data);
 }
 
-// 4. Cambiar contraseña de usuario (POST)
-export async function updatePassword(newPassword) {
-  const token = await getAuthToken();
-  if (!token) return null; // Redirección en curso
-  
-  const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-  const resp = await fetch(`${backendUrl}/api/users/password`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ newPassword })
-  });
-  
-  // Manejar token inválido/expirado
-  const validatedResp = await handleResponse(resp);
-  if (!validatedResp) return null; // Redirección en curso
+// Subir imagen de perfil (Firebase)
+export async function uploadProfilePhoto(file) {
+  return uploadProfileImage(file);
+}
   
   if (!resp.ok) {
     const error = await resp.json().catch(() => ({}));
