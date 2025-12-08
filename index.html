@@ -89,20 +89,19 @@
 
   <!-- Botones flotantes en fila -->
   <div class="floating-actions" id="floatingActions">
-    <button id="installPwaBtn" class="btn-floating btn-install" style="display:none;" title="Instalar app">
-      <i class="fa-solid fa-download"></i>
+    <!-- Botón para instalar PWA (único y visible en todas partes) -->
+    <button id="installBtn" class="btn-floating btn-install btn-install-hidden" title="Instalar aplicación">
+      <i class="fas fa-download"></i>
     </button>
     <!-- Ejemplo de otros botones flotantes -->
     <a href="register.html" class="btn-floating btn-main" title="Registrarse">
       <i class="fa-solid fa-user-plus"></i>
     </a>
-    <a href="login.html" class="btn-floating btn-main" title="Iniciar sesión">
-      <i class="fa-solid fa-sign-in-alt"></i>
-    </a>
+    <!-- El botón principal de acción puede ser para registro o donar, pero el de instalar es único -->
   </div>
   <script>
     let deferredPrompt;
-    const installBtn = document.getElementById('installPwaBtn');
+    const installBtn = document.getElementById('installBtn');
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       deferredPrompt = e;

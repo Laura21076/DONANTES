@@ -7,19 +7,13 @@ import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/fi
 
 let currentUser = null;
 
-// Verificar autenticación al cargar la página
+// Verificar autenticación al cargar la página y configurar listeners básicos
 window.addEventListener('load', async () => {
   try {
-    // Verificar autenticación con Firebase
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
       if (user) {
         currentUser = user;
         console.log('✅ Usuario autenticado:', user.email);
-        
-        // Verificar estado de 2FA
-        await checkTwoFactorStatus();
-        
-        // Configurar event listeners
         setupEventListeners();
       } else {
         console.log('❌ Usuario no autenticado, redirigiendo...');
@@ -44,64 +38,7 @@ function setupEventListeners() {
   if (regenerateBtn) regenerateBtn.addEventListener('click', regenerateBackupCodes);
 }
 
-async function checkTwoFactorStatus() {
-  try {
-    const token = await getIdToken();
-    if (!token) {
-      throw new Error('No se pudo obtener token de autenticación');
-    }
 
-    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-    const response = await fetch(`${backendUrl}/api/auth/2fa-status`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error del servidor: ${response.status}`);
-    }
-
-    const data = await response.json();
-    
-    if (data.success) {
-      updateUIBasedOnStatus(data.status);
-    } else {
-      showError('Error al verificar estado de 2FA');
-    }
-  } catch (error) {
-    console.error('Error verificando estado 2FA:', error);
-    showError('Error de conexión al verificar 2FA: ' + error.message);
-  }
-}
-
-function updateUIBasedOnStatus(status) {
-  const statusDisplay = document.getElementById('statusDisplay');
-  const setupSection = document.getElementById('setupSection');
-  const disableSection = document.getElementById('disableSection');
-  const regenerateSection = document.getElementById('regenerateSection');
-
-  if (status && status.enabled) {
-    if (statusDisplay) {
-      statusDisplay.className = 'alert alert-success-custom';
-      statusDisplay.innerHTML = '<i class="fas fa-check-circle me-2"></i><strong>2FA Activo:</strong> Tu cuenta está protegida con autenticación de dos factores';
-    }
-    
-    if (setupSection) setupSection.style.display = 'none';
-    if (disableSection) disableSection.style.display = 'block';
-    if (regenerateSection) regenerateSection.style.display = 'block';
-  } else {
-    if (statusDisplay) {
-      statusDisplay.className = 'alert alert-warning-custom';
-      statusDisplay.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>2FA Desactivado:</strong> Tu cuenta podría estar en riesgo. Se recomienda activar 2FA';
-    }
-    
-    if (setupSection) setupSection.style.display = 'block';
-    if (disableSection) disableSection.style.display = 'none';
-    if (regenerateSection) regenerateSection.style.display = 'none';
-  }
-}
 
 async function setup2FA() {
   try {
@@ -181,9 +118,7 @@ async function verifySetup() {
       showSuccess('¡2FA configurado exitosamente! Guarda los códigos de respaldo.');
       
       // Actualizar estado después de un momento
-      setTimeout(() => {
-        checkTwoFactorStatus();
-      }, 3000);
+      // Ya no se actualiza automáticamente el estado, simplificado
     } else {
       showError(data.error || 'Código de verificación incorrecto');
     }
@@ -226,7 +161,6 @@ async function disable2FA() {
     
     if (data.success) {
       showSuccess('2FA deshabilitado correctamente');
-      checkTwoFactorStatus();
       if (codeInput) codeInput.value = '';
     } else {
       showError(data.error || 'Error al deshabilitar 2FA');
@@ -442,7 +376,6 @@ function showAlert(message, type) {
 
 // Exportar funciones para uso global si es necesario
 window.twoFactorInit = {
-  checkTwoFactorStatus,
   setup2FA,
   verifySetup,
   disable2FA,
