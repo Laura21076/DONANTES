@@ -149,11 +149,30 @@ async function sendSubscriptionToServer(subscription) {
     // FIX: Await getCurrentUser() ya que retorna una Promise
     const user = await getCurrentUser();
     if (!user) {
+      // Forzar logout si no hay usuario autenticado
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('logout', Date.now());
+        window.location.href = 'login.html';
+      }
       throw new Error('Usuario no autenticado');
     }
 
-    const token = await getIdToken();
+    let token;
+    try {
+      token = await getIdToken();
+    } catch (e) {
+      // Forzar logout si no se puede obtener el token
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('logout', Date.now());
+        window.location.href = 'login.html';
+      }
+      throw new Error('Token no disponible');
+    }
     if (!token) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('logout', Date.now());
+        window.location.href = 'login.html';
+      }
       throw new Error('Token no disponible');
     }
 
@@ -183,21 +202,18 @@ async function sendSubscriptionToServer(subscription) {
     console.log('📥 [NOTIFICATIONS] Respuesta del servidor:', response.status, response.statusText);
     
     if (!response.ok) {
-      // MEJORA: Log completo de errores, especialmente para HTTP 400
+      // MEJORA: Log completo de errores, especialmente para HTTP 400 y 401
       let errorData = {};
       let errorText = '';
-      
       try {
         errorText = await response.text();
         errorData = JSON.parse(errorText);
       } catch (parseError) {
         errorData = { rawResponse: errorText };
       }
-      
       console.error(`❌ [NOTIFICATIONS] Error del servidor (HTTP ${response.status})`);
       console.error('❌ [NOTIFICATIONS] Respuesta completa:', errorData);
       console.error('❌ [NOTIFICATIONS] Datos enviados que causaron el error:', requestBody);
-      
       // Log específico para errores 400 (Bad Request)
       if (response.status === 400) {
         console.error('❌ [NOTIFICATIONS] ERROR 400 - Bad Request: El body enviado no coincide con lo esperado por el backend');
@@ -205,7 +221,14 @@ async function sendSubscriptionToServer(subscription) {
         console.error('❌ [NOTIFICATIONS] subscription.endpoint:', subscriptionData.endpoint);
         console.error('❌ [NOTIFICATIONS] subscription.keys:', subscriptionData.keys);
       }
-      
+      // Log específico para errores 401 (Unauthorized)
+      if (response.status === 401) {
+        // Forzar logout si el token es inválido
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('logout', Date.now());
+          window.location.href = 'login.html';
+        }
+      }
       throw new Error(errorData.error || errorData.message || `Error al enviar suscripción al servidor (HTTP ${response.status})`);
     }
 

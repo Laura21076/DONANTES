@@ -24,7 +24,7 @@
     <!-- Content Security Policy -->
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self' https:;
-        script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://maps.googleapis.com https://www.googletagmanager.com https://www.googletagmanager.com/gtag/js https://www.googletagmanager.com/gtag/js?id=G-NR3LS2M6YV chrome-extension:;
+        script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://www.gstatic.com https://firebase.googleapis.com https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://maps.googleapis.com https://www.googletagmanager.com https://www.googletagmanager.com/gtag/js https://www.googletagmanager.com/gtag/js?id=G-NR3LS2M6YV chrome-extension:;
         style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com;
         font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com;
         img-src 'self' data: https: blob: firebasestorage.googleapis.com *.firebasestorage.app *.googleapis.com *.gstatic.com;
@@ -38,12 +38,8 @@
     " />
     <!-- Google Maps API async/defer -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A&libraries=places" async defer></script>
-    <script>
-        // Mostrar alerta si las notificaciones están denegadas
-        if (window.Notification && Notification.permission === 'denied') {
-            alert('Debes habilitar las notificaciones en la configuración de tu navegador para recibir avisos importantes.');
-        }
-    </script>
+    <!-- Alerta de notificaciones denegadas: Mover a JS externo para cumplir CSP -->
+    <script type="module" src="notifications-init.js"></script>
 </head>
     <script src="sw-register.js"></script>
     <script type="module" src="notifications-init.js"></script>
