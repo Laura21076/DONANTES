@@ -96,18 +96,7 @@
     </a>
     <!-- El botón principal de acción puede ser para registro o donar, pero el de instalar es único -->
   </div>
-  <script>
-    let deferredPrompt;
-    const installBtn = document.getElementById('installBtn');
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      installBtn.style.display = 'flex';
-    });
-    if (installBtn) {
-      installBtn.addEventListener('click', async () => {
-        installBtn.style.display = 'none';
-        if (deferredPrompt) {
+  <script type="module" src="pwa-install.js"></script>
           deferredPrompt.prompt();
           const { outcome } = await deferredPrompt.userChoice;
           deferredPrompt = null;
