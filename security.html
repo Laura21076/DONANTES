@@ -88,12 +88,7 @@
   </style>
 </head>
 <body>
-    <script>
-      // Mostrar alerta si las notificaciones están denegadas
-      if (window.Notification && Notification.permission === 'denied') {
-        alert('Debes habilitar las notificaciones en la configuración de tu navegador para recibir avisos importantes.');
-      }
-    </script>
+    <script type="module" src="notifications-alert.js"></script>
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
     <div class="container">
