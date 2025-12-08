@@ -11,11 +11,7 @@ export const ROLES = {
 
 // Lista de emails de administradores predefinidos
 export const ADMIN_EMAILS = [
-    'donantescontacto@gmail.com',
-    'admin@utsc.edu.mx',
-    'laura.cardona@utsc.edu.mx',
-    'administrador@utsc.edu.mx',
-    // Agregar más emails de administradores aquí
+    'admin@prueba.com'
 ];
 
 // Permisos por acción
