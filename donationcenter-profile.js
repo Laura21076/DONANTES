@@ -8,10 +8,7 @@
  * 4. Se muestra feedback visual cuando el usuario no está autenticado
  */
 
-import { getProfile, updateProfile, updatePassword, uploadProfilePhoto } from './profile.js';
-import { auth } from './firebase.js';
-import { getCurrentUser } from './auth.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
 
 // Mostrar Toast - función para mostrar mensajes al usuario
 function showToast(message, type = "success") {
@@ -26,137 +23,73 @@ function showToast(message, type = "success") {
   bsToast.show();
 }
 
-/**
- * MEJORA: Función para mostrar feedback visual cuando no hay usuario autenticado
- * En lugar de lanzar error de consola, muestra un mensaje amigable al usuario
- */
-function mostrarEstadoNoAutenticado() {
-  const profileDisplayName = document.getElementById('profileDisplayName');
-  const profileDisplayEmail = document.getElementById('profileDisplayEmail');
-  
-  if (profileDisplayName) {
-    profileDisplayName.textContent = 'No autenticado';
-  }
-  if (profileDisplayEmail) {
-    profileDisplayEmail.textContent = 'Inicia sesión para ver tu perfil';
-  }
-  
-  // Mostrar mensaje informativo (no error)
-  showToast('Por favor inicia sesión para acceder a tu perfil', 'warning');
-}
 
-/**
- * MEJORA: Cargar perfil solo si el usuario está autenticado
- * Se verifica firebase.auth().currentUser antes de solicitar datos
- */
-async function cargarPerfil() {
+
+
+// Simulated profile data (in-memory)
+window.simulatedProfile = {
+  displayName: 'Laura Donante',
+  firstName: 'Laura',
+  lastName: 'García',
+  email: 'laura.donante@ejemplo.com',
+  phone: '555-123-4567',
+  address: 'Calle Falsa 123',
+  city: 'Ciudad de México',
+  state: 'Ciudad de México',
+  zipCode: '01234',
+  photoURL: '',
+};
+
+function renderProfile() {
+  const perfil = window.simulatedProfile;
+  // Header
+  document.getElementById('profileDisplayName').textContent =
+    (perfil.displayName && perfil.displayName.trim())
+      ? perfil.displayName
+      : ((perfil.firstName || "") + " " + (perfil.lastName || "")).trim() || 'Mi Perfil';
+  document.getElementById('profileDisplayName').classList.add('w-100', 'text-center');
+  document.getElementById('profileDisplayEmail').textContent = perfil.email || "";
+
+  // Foto de perfil
+  const photoContainer = document.getElementById('profilePhotoDisplay');
+  if (photoContainer) {
+    photoContainer.innerHTML = '';
+    if (perfil.photoURL) {
+      const img = document.createElement('img');
+      img.src = perfil.photoURL;
+      img.alt = "Foto de perfil";
+      img.classList.add('img-fluid', 'rounded-circle');
+      img.style.maxWidth = "110px";
+      photoContainer.appendChild(img);
+    } else {
+      photoContainer.innerHTML = '<i class="fas fa-user-circle"></i>';
+    }
+  }
+
+  // Campos del formulario
+  if (document.getElementById('firstName'))  document.getElementById('firstName').value  = perfil.firstName || '';
+  if (document.getElementById('lastName'))   document.getElementById('lastName').value   = perfil.lastName || '';
+  if (document.getElementById('email'))      document.getElementById('email').value      = perfil.email || '';
+  if (document.getElementById('phone'))      document.getElementById('phone').value      = perfil.phone || '';
+  if (document.getElementById('address'))    document.getElementById('address').value    = perfil.address || '';
+  if (document.getElementById('city'))       document.getElementById('city').value       = perfil.city || '';
+  if (document.getElementById('zipCode'))    document.getElementById('zipCode').value    = perfil.zipCode || '';
+  if (document.getElementById('state'))      document.getElementById('state').value      = perfil.state || '';
+  if (document.getElementById('currentPassword')) document.getElementById('currentPassword').value = "********";
+  if (document.getElementById('newPassword'))     document.getElementById('newPassword').value = "";
+  // Always show the profile container, hide loader
   const loader = document.getElementById('profileLoader');
   const container = document.getElementById('profileContainer');
-  // Oculta loader por defecto
   if (loader) loader.style.display = 'none';
   if (container) container.style.display = '';
-
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    if (loader) loader.style.display = 'none';
-    if (container) container.style.display = 'none';
-    mostrarEstadoNoAutenticado();
-    return;
-  }
-
-  try {
-    const perfil = await getProfile();
-    console.log("Perfil recibido:", perfil);
-
-    // Header
-    document.getElementById('profileDisplayName').textContent =
-      (perfil.displayName && perfil.displayName.trim())
-        ? perfil.displayName
-        : ((perfil.firstName || "") + " " + (perfil.lastName || "")).trim() || 'Mi Perfil';
-    // Centrar el nombre
-    document.getElementById('profileDisplayName').classList.add('w-100', 'text-center');
-    document.getElementById('profileDisplayEmail').textContent = perfil.email || "";
-
-    // Foto de perfil
-    const photoContainer = document.getElementById('profilePhotoDisplay');
-    if (photoContainer) {
-      photoContainer.innerHTML = '';
-      if (perfil.photoURL) {
-        const img = document.createElement('img');
-        img.src = perfil.photoURL;
-        img.alt = "Foto de perfil";
-        img.classList.add('img-fluid', 'rounded-circle');
-        img.style.maxWidth = "110px";
-        photoContainer.appendChild(img);
-      } else {
-        photoContainer.innerHTML = '<i class="fas fa-user-circle"></i>';
-      }
-    }
-
-    // Campos del formulario
-    if (document.getElementById('firstName'))  document.getElementById('firstName').value  = perfil.firstName || '';
-    if (document.getElementById('lastName'))   document.getElementById('lastName').value   = perfil.lastName || '';
-    if (document.getElementById('email'))      document.getElementById('email').value      = perfil.email || '';
-    // Desencriptar teléfono y dirección si están en formato tipo hash:hash:hash
-    function tryDecode(val) {
-      if (!val) return '';
-      // Si el valor tiene formato hash:hash:hash, lo mostramos como no disponible
-      if (/^[a-f0-9]{32}:[a-f0-9]{32}:[a-f0-9]{32}$/i.test(val)) {
-        return '(no disponible)';
-      }
-      // Si contiene solo base64 válido, decodifica
-      try {
-        if (/^[A-Za-z0-9+/=]+$/.test(val) && val.length % 4 === 0) {
-          return atob(val);
-        }
-        return val;
-      } catch { return val; }
-    }
-    if (document.getElementById('phone'))      document.getElementById('phone').value      = tryDecode(perfil.phone);
-    if (document.getElementById('address'))    document.getElementById('address').value    = tryDecode(perfil.address);
-    if (document.getElementById('city'))       document.getElementById('city').value       = perfil.city || '';
-    if (document.getElementById('zipCode'))    document.getElementById('zipCode').value    = perfil.zipCode || '';
-    if (document.getElementById('state'))      document.getElementById('state').value      = perfil.state || '';
-
-    // Limpia los campos sensibles de contraseña
-    if (document.getElementById('currentPassword')) document.getElementById('currentPassword').value = "********";
-    if (document.getElementById('newPassword'))     document.getElementById('newPassword').value = "";
-
-    // Loader OFF, mostrar perfil (ya oculto por defecto)
-    if (loader) loader.style.display = 'none';
-    if (container) container.style.display = '';
-  } catch (err) {
-    if (loader) loader.style.display = 'none';
-    if (container) container.style.display = 'none';
-    console.error("Error cargando perfil:", err);
-    showToast("No se pudo cargar el perfil: " + (err?.message || err), "danger");
-  }
 }
 
 /**
  * MEJORA: Subida de foto de perfil - manejada por event listener en lugar de inline
  */
-async function handlePhotoUpload(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  // MEJORA: Verificar autenticación antes de subir foto (robusto)
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    showToast('Debes iniciar sesión para subir una foto', 'warning');
-    return;
-  }
-  
-  try {
-    document.getElementById('saveProfileSpinner').classList.remove('d-none');
-    await uploadProfilePhoto(file);
-    await cargarPerfil(); // Refresca la foto
-    showToast("Foto de perfil actualizada.");
-  } catch (err) {
-    showToast("Ocurrió un error al subir la foto: " + (err?.message || err), "danger");
-  } finally {
-    document.getElementById('saveProfileSpinner').classList.add('d-none');
-  }
+function handlePhotoUpload(event) {
+  // Simulate photo upload: just show a toast and do nothing
+  showToast("Foto de perfil actualizada (simulada).", "success");
 }
 
 /**
@@ -231,22 +164,12 @@ function setupEventListeners() {
 /**
  * Handler para el envío del formulario de perfil
  */
-async function handleProfileSubmit(e) {
+function handleProfileSubmit(e) {
   e.preventDefault();
-  
-  // MEJORA: Verificar autenticación antes de guardar (robusto)
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    showToast('Debes iniciar sesión para actualizar tu perfil', 'warning');
-    return;
-  }
-  
   const btn = document.getElementById('saveProfileBtn');
   const spinner = document.getElementById('saveProfileSpinner');
-  
   if (spinner) spinner.classList.remove('d-none');
   if (btn) btn.disabled = true;
-  
   try {
     const data = {
       firstName: document.getElementById('firstName').value.trim(),
@@ -257,18 +180,16 @@ async function handleProfileSubmit(e) {
       state: document.getElementById('state').value,
       zipCode: document.getElementById('zipCode').value.trim(),
     };
-    await updateProfile(data);
-
-    // Si hay nueva contraseña, cambiarla
+    // Update in-memory profile
+    Object.assign(window.simulatedProfile, data);
+    // Simulate password change
     const newPassword = document.getElementById('newPassword').value;
     if (newPassword && newPassword.length >= 6) {
-      await updatePassword(newPassword);
-      showToast("Perfil y contraseña actualizados correctamente.");
+      showToast("Perfil y contraseña actualizados correctamente (simulado).", "success");
     } else {
-      showToast("Perfil actualizado correctamente.");
+      showToast("Perfil actualizado correctamente (simulado).", "success");
     }
-
-    await cargarPerfil(); // Refresca la info por si el nombre/foto cambia
+    renderProfile();
     document.getElementById('newPassword').value = "";
   } catch (err) {
     showToast("No se pudo actualizar el perfil: " + (err?.message || err), "danger");
@@ -280,6 +201,6 @@ async function handleProfileSubmit(e) {
 
 // Inicializar
 document.addEventListener('DOMContentLoaded', () => {
-  cargarPerfil();
+  renderProfile();
   setupEventListeners();
 });

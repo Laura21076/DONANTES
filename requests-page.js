@@ -1,30 +1,17 @@
-import { getMySentRequests, getMyReceivedRequests, approveRequest, rejectRequest, confirmPickup } from './requests.js';
-import { getCurrentUser } from './auth.js';
-import { getCurrentLockerCode } from './locker.js';
-
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      console.warn('⚠️ Usuario no autenticado, redirigiendo a login...');
-      window.location.href = 'login.html';
-      return;
-    }
-    console.log('✅ Usuario autenticado, cargando solicitudes...');
-    
-    await loadSentRequests();
-
-    document.getElementById('received-tab').addEventListener('shown.bs.tab', loadReceivedRequests);
-    
-    // Setup event listeners for modal buttons
-    setupModalEventListeners();
-  } catch (error) {
-    console.error('❌ Error durante inicialización:', error);
-    showMessage('Error de autenticación. Redirigiendo...', 'warning');
-    setTimeout(() => {
-      window.location.href = 'login.html';
-    }, 2000);
+// Simulación de solicitudes solo en JS
+let requestsCache = [
+  {
+    id: '1',
+    articleTitle: 'Libro de texto universitario',
+    message: '¿Está disponible?',
+    status: 'pendiente',
+    createdAt: new Date().toISOString()
   }
+];
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderRequests();
+  setupRequestForm();
 });
 
 // Setup event listeners for modal buttons
@@ -46,21 +33,62 @@ function setupModalEventListeners() {
 }
 
 // ================== CARGAR SOLICITUDES ENVIADAS ==================
-async function loadSentRequests() {
-  try {
-    const user = await getCurrentUser();
-    if (!user) throw new Error('Usuario no autenticado');
-    const requests = await getMySentRequests();
-    displaySentRequests(requests);
-  } catch (error) {
-    console.error('Error al cargar solicitudes enviadas:', error);
-    if (error.message.includes('token') || error.message.includes('autenticado')) {
-      showMessage('Sesión expirada. Redirigiendo...', 'warning');
-      window.location.replace('login.html');
-    } else {
-      showMessage('Error al cargar solicitudes: ' + error.message, 'danger');
-    }
+function renderRequests() {
+  const grid = document.getElementById('sentRequestsGrid');
+  const empty = document.getElementById('sentEmpty');
+  if (!requestsCache || requestsCache.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
   }
+  empty.style.display = 'none';
+  grid.innerHTML = requestsCache.map(req => {
+    let date = 'Fecha no disponible';
+    try {
+      if (req.createdAt) {
+        const parsedDate = new Date(req.createdAt);
+        if (!isNaN(parsedDate.getTime())) {
+          date = parsedDate.toLocaleString('es-ES', {
+            year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+          });
+        }
+      }
+    } catch { date = 'Fecha inválida'; }
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="card request-card h-100" style="border: 1px solid #E8DFF5; background: rgba(255,255,255,0.95); box-shadow: 0 4px 12px rgba(110,73,163,0.15);">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <h5 class="card-title mb-0" style="color: #4A3066; font-weight: 600;">${req.articleTitle}</h5>
+              <span class="badge bg-warning">${req.status}</span>
+            </div>
+            ${req.message ? `<p class="card-text" style="color: #5A4A6B;"><small><i class="fas fa-comment"></i> ${req.message}</small></p>` : ''}
+            <p class="card-text"><small style="color: #6E49A3;"><i class="fas fa-calendar"></i> ${date}</small></p>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function setupRequestForm() {
+  const form = document.getElementById('requestForm');
+  if (!form) return;
+  form.addEventListener('submit', e => {
+    e.preventDefault();
+    const articleTitle = form.querySelector('#requestArticleTitle').value.trim();
+    const message = form.querySelector('#requestMessage').value.trim();
+    if (!articleTitle) return;
+    requestsCache.push({
+      id: Date.now().toString(),
+      articleTitle,
+      message,
+      status: 'pendiente',
+      createdAt: new Date().toISOString()
+    });
+    form.reset();
+    renderRequests();
+  });
 }
 
 function displaySentRequests(requests) {

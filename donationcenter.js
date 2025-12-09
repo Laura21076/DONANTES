@@ -1,10 +1,38 @@
-import { getCurrentLockerCode } from './locker.js';
-import { createArticle, getArticles, updateArticle, deleteArticle } from './articles.js';
-import { getCurrentUser, getIdToken } from './auth.js';
-import { requestArticle as requestArticleService } from './requests.js';
-import { storage } from './firebase.js';
-import { ref, uploadBytes, getDownloadURL, deleteObject, getMetadata } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
-import { getPlaceholderPath, buildFirebaseStorageUrl } from './image-utils.js';
+// Simulación de artículos y solicitudes solo en JS
+const PLACEHOLDER_IMAGE = 'assets/placeholder.png';
+let articlesCache = [
+  {
+    id: '1',
+    title: 'Libro de texto universitario',
+    description: 'Libro de cálculo avanzado, buen estado.',
+    category: 'Libros',
+    condition: 'Bueno',
+    location: 'CDMX',
+    status: 'disponible',
+    imageUrl: '',
+    userId: 'user1'
+  },
+  {
+    id: '2',
+    title: 'Laptop usada',
+    description: 'Laptop Dell, funciona pero tiene detalles en la pantalla.',
+    category: 'Electrónica',
+    condition: 'Regular',
+    location: 'Guadalajara',
+    status: 'disponible',
+    imageUrl: '',
+    userId: 'user2'
+  }
+];
+let requestsCache = [];
+let currentArticleId = null;
+function escapeHtml(unsafe) {
+  return unsafe.replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 // ========== CONSTANTES Y VARIABLES ==========
 const PLACEHOLDER_IMAGE = getPlaceholderPath();
@@ -91,36 +119,9 @@ function withTimeout(promise, timeoutMs, operationName) {
 
 // ========== INICIO Y PERFIL ==========
 
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    let user = await getCurrentUser();
-    if (!user) {
-      window.location.replace('login.html');
-      return;
-    }
-    // Mostrar toast de notificaciones solo una vez y solo aquí
-    if (window.Notification) {
-      if (Notification.permission === 'default' && !localStorage.getItem('notifMsgShown')) {
-        showMessage('Activa las notificaciones para recibir avisos importantes sobre tus donaciones.', 'warning');
-        localStorage.setItem('notifMsgShown', '1');
-      } else if (Notification.permission === 'denied' && !localStorage.getItem('notifDeniedMsgShown')) {
-        showMessage('Debes habilitar las notificaciones en la configuración de tu navegador para recibir avisos importantes.', 'warning');
-        localStorage.setItem('notifDeniedMsgShown', '1');
-      }
-    }
-    const [profileResult, articlesResult] = await Promise.allSettled([
-      loadUserProfile(),
-      loadArticles(true)
-    ]);
-    if (profileResult.status === 'rejected') showMessage('Error cargando perfil', 'warning');
-    if (articlesResult.status === 'rejected') showMessage('Error al cargar artículos', 'warning');
-    setupFormHandlers();
-    setupImageErrorHandlers();
-    setupImagePreviewHandler();
-  } catch (error) {
-    // Solo mostrar error visual, no log
-    showMessage('Error de inicialización. Intenta recargar la página.', 'danger');
-  }
+document.addEventListener('DOMContentLoaded', () => {
+  renderArticles();
+  setupFormHandlers();
 });
 // Vista previa de imagen en el modal de publicación
 function setupImagePreviewHandler() {
@@ -194,29 +195,35 @@ window.updateNavbarProfile = updateNavbarProfile;
 
 // ========== CARGA Y VISUALIZACIÓN DE ARTÍCULOS ==========
 
-async function loadArticles(forceReload = false) {
-  if (
-    !forceReload &&
-    articlesCache.length > 0 &&
-    Date.now() - lastLoadTime < CACHE_DURATION
-  ) {
-    displayArticles(articlesCache);
+function renderArticles() {
+  const grid = document.getElementById('articlesGrid');
+  const emptyState = document.getElementById('emptyState');
+  if (!articlesCache || articlesCache.length === 0) {
+    if (grid) grid.style.display = 'none';
+    if (emptyState) emptyState.style.display = 'block';
     return;
   }
-  try {
-    const articles = await getArticles(); // getArticles ya usa el token correcto
-    if (!Array.isArray(articles)) {
-      showMessage('Respuesta inesperada al cargar artículos', 'danger');
-      return;
-    }
-    articlesCache = articles;
-    lastLoadTime = Date.now();
-    displayArticles(articles);
-    if (articles && articles.length > 0) preloadImages(articles);
-  } catch (error) {
-    showMessage('Error al cargar artículos: ' + (error?.message || error), 'danger');
-    console.error(error);
-  }
+  if (grid) grid.style.display = 'flex';
+  if (emptyState) emptyState.style.display = 'none';
+  grid.innerHTML = articlesCache.map(article => `
+    <div class="col-md-6 col-lg-4">
+      <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
+        <div class="position-relative article-image-container">
+          <img src="${PLACEHOLDER_IMAGE}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">
+          <span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>
+        </div>
+        <div class="card-body d-flex flex-column px-4 pb-4" style="background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%); border-radius: 0 0 20px 20px;">
+          <h5 class="card-title text-purple-primary mb-2 fw-bold">${escapeHtml(article.title)}</h5>
+          <p class="card-text mb-2" style="color:#5A4A6B;">${escapeHtml(article.description)}</p>
+          <div class="mb-2">
+            <span class="badge bg-purple-light me-2 px-3 py-1">${escapeHtml(article.category || "General")}</span>
+            <span class="badge bg-purple-primary px-3 py-1">${escapeHtml(article.condition || "Bueno")}</span>
+          </div>
+          <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
+        </div>
+      </div>
+    </div>
+  `).join('');
 }
 
 function preloadImages(articles) {
