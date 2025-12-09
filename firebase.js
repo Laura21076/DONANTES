@@ -13,8 +13,7 @@ const firebaseConfig = {
   measurementId: "G-NR3LS2M6YV"
 };
 
-export const app = initializeApp(firebaseConfig);
-export const analytics = getAnalytics(app);import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js';
 import {
   getAuth,
   setPersistence,
@@ -22,7 +21,7 @@ import {
   connectAuthEmulator
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getFirestore, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js';
+import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js';
 import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 import './error-handler.js';
@@ -101,14 +100,14 @@ isSupported().then(supported => {
 
 // ======= Emuladores solo si es necesario =====
 const useEmulators = [true, 'true', 1, '1', 'yes', 'on'].includes(getEnvVar('USE_FIREBASE_EMULATOR'));
-if (useEmulators) {
-  try {
-    connectAuthEmulator(auth, 'http://localhost:9099', { disableWarnings: true });
-    connectFirestoreEmulator(db, 'localhost', 8080);
-    console.log('🔧 Conectado a los emuladores de Firebase');
-  } catch (error) {
-    console.warn('⚠️ Error al conectar con los emuladores:', error);
-  }
-}
+// ==== Firebase config ====
+const firebaseConfig = {
+  apiKey: getEnvVar('FIREBASE_API_KEY') || "AIzaSyBaBir5mquN-xK-6H-92Wcf_Mp6muY4cSQ",
+  authDomain: getEnvVar('FIREBASE_AUTH_DOMAIN') || "donantes-400ba.firebaseapp.com",
+  projectId: getEnvVar('FIREBASE_PROJECT_ID') || "donantes-400ba",
+  storageBucket: getEnvVar('FIREBASE_STORAGE_BUCKET') || "donantes-400ba.appspot.com",
+  messagingSenderId: getEnvVar('FIREBASE_MESSAGING_SENDER_ID') || "202152301689",
+  appId: getEnvVar('FIREBASE_APP_ID') || "1:202152301689:web:5485bb0344ba6a821030a8",
+  measurementId: getEnvVar('FIREBASE_MEASUREMENT_ID') || "G-NR3LS2M6YV"
 
 export { app, auth, db, storage, analytics };
