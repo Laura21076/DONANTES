@@ -61,38 +61,13 @@ class AdminDashboard {
                 window.location.href = 'login.html';
                 return;
             }
-
-            // Obtener el token JWT propio del backend
-            const { getToken } = await import('./db.js');
-            const token = await getToken('access');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
-
-            // Consultar el perfil al backend para obtener el rol
-            const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-            const resp = await fetch(`${backendUrl}/api/users/profile`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            if (!resp.ok) {
-                window.location.href = 'login.html';
-                return;
-            }
-            const profile = await resp.json();
-            this.isAdminUser = profile.role === 'admin';
-
+            // Simulación: admin si el email termina en @admin.com
+            this.isAdminUser = this.currentUser.email && this.currentUser.email.endsWith('@admin.com');
             if (!this.isAdminUser) {
-                this.showAccessDenied();
+                window.location.href = 'donationcenter.html';
                 return;
             }
-
-            // Actualizar badge de usuario
             this.updateUserInfo();
-
         } catch (error) {
             console.error('Error verificando acceso de administrador:', error);
             window.location.href = 'login.html';
