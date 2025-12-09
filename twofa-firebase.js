@@ -2,8 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
 import { getAuth, PhoneAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, multiFactor, PhoneMultiFactorGenerator } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 
-const firebaseConfig = window.__ENV__;
-const app = initializeApp(firebaseConfig);
+import { app } from "./firebase.js";
 const auth = getAuth(app);
 
 // Inicializar reCAPTCHA para 2FA

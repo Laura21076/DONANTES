@@ -1,11 +1,11 @@
 // profile-firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { app } from "./firebase.js";
 import { getFirestore, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 import { getAuth, updateProfile } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-storage.js";
 
 const firebaseConfig = window.__ENV__;
-const app = initializeApp(firebaseConfig);
+// const app = initializeApp(firebaseConfig); // Removed local initialization
 const db = getFirestore(app);
 const auth = getAuth(app);
 const storage = getStorage(app);

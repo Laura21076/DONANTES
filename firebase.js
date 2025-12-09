@@ -1,4 +1,20 @@
-import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+// firebase.js
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBaBir5mquN-xK-6H-92Wcf_Mp6muY4cSQ",
+  authDomain: "donantes-400ba.firebaseapp.com",
+  databaseURL: "https://donantes-400ba-default-rtdb.firebaseio.com",
+  projectId: "donantes-400ba",
+  storageBucket: "donantes-400ba.appspot.com",
+  messagingSenderId: "202152301689",
+  appId: "1:202152301689:web:5485bb0344ba6a821030a8",
+  measurementId: "G-NR3LS2M6YV"
+};
+
+export const app = initializeApp(firebaseConfig);
+export const analytics = getAnalytics(app);import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
 import {
   getAuth,
   setPersistence,

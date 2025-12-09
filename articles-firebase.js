@@ -3,10 +3,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebas
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 
-const firebaseConfig = window.__ENV__;
-const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+import { app } from "./firebase.js";
 
 // Crear artículo (siempre inicia como pendiente)
 export async function createArticle(data) {
