@@ -3,9 +3,6 @@
 import { initializeNotifications } from './notifications.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Mostrar alerta si las notificaciones están denegadas
-  if (window.Notification && Notification.permission === 'denied') {
-    alert('Debes habilitar las notificaciones en la configuración de tu navegador para recibir avisos importantes.');
-  }
+  // Solo inicializar notificaciones en background, sin mostrar alertas ni pedir permisos visuales
   initializeNotifications();
 });

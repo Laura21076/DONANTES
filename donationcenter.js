@@ -95,6 +95,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.location.replace('login.html');
       return;
     }
+    // Mostrar toast de notificaciones solo una vez y solo aquí
+    if (window.Notification && Notification.permission === 'default' && !localStorage.getItem('notifMsgShown')) {
+      showMessage('Activa las notificaciones para recibir avisos importantes sobre tus donaciones.', 'warning');
+      localStorage.setItem('notifMsgShown', '1');
+    }
     const [profileResult, articlesResult] = await Promise.allSettled([
       loadUserProfile(),
       loadArticles(true)

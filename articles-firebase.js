@@ -6,7 +6,7 @@ const auth = getAuth(app);
 import { app } from "./firebase.js";
 
 // Crear artículo (siempre inicia como pendiente)
-export async function createArticle(data) {
+export async function createArticle(data) {s
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
   // Generar código de locker/caja fuerte (4 dígitos aleatorios)
@@ -26,7 +26,7 @@ export async function getArticles(isAdmin = false) {
   const querySnapshot = await getDocs(collection(db, "articles"));
   return querySnapshot.docs
     .map(doc => ({ id: doc.id, ...doc.data() }))
-    .filter(art => isAdmin || art.status === "publicado");
+    .filter(art => isAdmin || art.status === "publicado" || art.status === "disponible");
 }
 // Aprobar y publicar artículo (solo admin)
 export async function approveArticle(id) {
