@@ -3,6 +3,7 @@
 import { getCurrentUser } from './auth.js';
 import { signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { auth } from './firebase.js';
+import { getArticles, approveArticle } from './articles-firebase.js';
 // Si deseas importar tu roleManager explícitamente, descomenta la siguiente línea y ajusta el nombre:
 // import { roleManager } from './roles.js';
 
@@ -159,13 +160,13 @@ class AdminDashboard {
 
     async loadArticleStats() {
         try {
-            // Importar dinámicamente la función getArticles
-            const { getArticles } = await import('./articles.js');
-            const articles = await getArticles();
-            this.stats.totalArticles = Array.isArray(articles) ? articles.length : 0;
+            // Obtener todos los artículos (incluye pendientes)
+            const articles = await getArticles(true);
+            this.stats.totalArticles = articles.length;
+            this.pendingArticles = articles.filter(a => a.status === 'pendiente');
+            this.renderPendingArticles();
         } catch (error) {
-            console.error('Error cargando estadísticas de artículos:', error);
-            this.stats.totalArticles = 0;
+            console.error('Error cargando artículos:', error);
         }
     }
 
@@ -246,6 +247,64 @@ class AdminDashboard {
                 </div>
             </div>
         `).join('');
+    }
+
+    renderPendingArticles() {
+        // Crear sección visual para artículos pendientes
+        const adminPanel = document.querySelector('.admin-panel');
+        if (!adminPanel) return;
+        let html = `
+            <h4 class="text-purple mt-4 mb-3">
+                <i class="bi bi-hourglass-split me-2"></i>Artículos Pendientes de Revisión
+            </h4>
+            <div class="list-group mb-4">
+        `;
+        if (this.pendingArticles.length === 0) {
+            html += `<div class="text-center text-muted py-3">No hay artículos pendientes.</div>`;
+        } else {
+            this.pendingArticles.forEach(art => {
+                html += `
+                    <div class="list-group-item d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-2">
+                        <div>
+                            <strong class="text-dark">${art.titulo || 'Sin título'}</strong>
+                            <span class="badge bg-warning ms-2">Pendiente</span>
+                            <div class="text-muted small">${art.descripcion || ''}</div>
+                        </div>
+                        <button class="btn btn-success btn-sm mt-2 mt-md-0 approve-btn" data-id="${art.id}">
+                            <i class="bi bi-check-circle me-1"></i>Aprobar y Publicar
+                        </button>
+                    </div>
+                `;
+            });
+        }
+        html += `</div>`;
+        // Insertar en el panel admin
+        const oldSection = adminPanel.querySelector('.pending-articles-section');
+        if (oldSection) oldSection.remove();
+        const section = document.createElement('div');
+        section.className = 'pending-articles-section';
+        section.innerHTML = html;
+        adminPanel.appendChild(section);
+        // Event listeners para aprobar
+        section.querySelectorAll('.approve-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                const id = btn.getAttribute('data-id');
+                btn.disabled = true;
+                btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Procesando...';
+                try {
+                    await approveArticle(id);
+                    btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Publicado';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-secondary');
+                    btn.disabled = true;
+                } catch (err) {
+                    btn.innerHTML = '<i class="bi bi-x-circle me-1"></i>Error';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-danger');
+                    setTimeout(() => { btn.innerHTML = '<i class="bi bi-check-circle me-1"></i>Aprobar y Publicar'; btn.classList.remove('btn-danger'); btn.classList.add('btn-success'); btn.disabled = false; }, 2000);
+                }
+            });
+        });
     }
 
     updateUI() {
