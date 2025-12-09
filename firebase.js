@@ -1,6 +1,9 @@
 // firebase.js
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+import { initializeApp, getApps } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js";
+import { getAuth, setPersistence, browserLocalPersistence, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
+import { getFirestore, connectFirestoreEmulator } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js";
+import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBaBir5mquN-xK-6H-92Wcf_Mp6muY4cSQ",
@@ -12,17 +15,6 @@ const firebaseConfig = {
   appId: "1:202152301689:web:5485bb0344ba6a821030a8",
   measurementId: "G-NR3LS2M6YV"
 };
-
-import { getApps } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js';
-import {
-  getAuth,
-  setPersistence,
-  browserLocalPersistence,
-  connectAuthEmulator
-} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { getFirestore, connectFirestoreEmulator } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-import { getAnalytics, isSupported } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js';
-import { getStorage } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 import './error-handler.js';
 
