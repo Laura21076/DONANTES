@@ -190,7 +190,24 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script type="module" src="notifications-init.js"></script>
 <script type="module" src="auth-guard.js"></script>
-<script type="module" src="two-factor-init.js"></script>
+<script type="module">
+import './simple-2fa.js';
+window.addEventListener('DOMContentLoaded', () => {
+  // Inicializa la interfaz simplificada de 2FA en el contenedor principal
+  const container = document.getElementById('statusSection');
+  if (container) {
+    const simple2fa = new window.Simple2FA();
+    simple2fa.createSetupInterface('statusSection');
+    // Guarda el usuario global para mostrar el email
+    import('./auth.js').then(mod => {
+      mod.getCurrentUser().then(user => {
+        window.currentUser = user;
+        simple2fa.updateStatusDisplay();
+      });
+    });
+  }
+});
+</script>
 </body>
 </html>
 

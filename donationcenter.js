@@ -585,7 +585,17 @@ window.showRequestModal = showRequestModal;
 
 async function requestArticleHandler(articleId, message, articleTitle, lockerCode) {
   try {
-    await requestArticleService(articleId, message, lockerCode);
+    // Obtener el artículo para saber el UID del dueño
+    const article = articlesCache.find(a => a.id === articleId);
+    if (!article || !article.userId) throw new Error('No se pudo obtener el dueño del artículo');
+    const requestData = {
+      articleId,
+      message,
+      lockerCode,
+      receiverId: article.userId,
+      articleTitle
+    };
+    await requestArticleService(requestData);
     showMessage('¡Solicitud enviada!', 'success');
     await loadArticles();
     // Mostrar modal con código, mapa y pasos

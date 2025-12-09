@@ -15,7 +15,7 @@ export async function createArticle(data) {s
     ...data,
     userId: user.uid,
     createdAt: new Date(),
-    status: "pendiente",
+    status: "disponible",
     lockerCode
   });
   return { id: docRef.id, lockerCode };
@@ -51,4 +51,44 @@ export async function deleteArticle(id) {
   if (!user) throw new Error("No autenticado");
   const docRef = doc(db, "articles", id);
   await deleteDoc(docRef);
+}
+
+// --- Artículos de prueba para desarrollo ---
+export async function createTestArticles() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No autenticado");
+  const testArticles = [
+    {
+      title: "Libro de texto universitario",
+      description: "Libro de cálculo avanzado, buen estado.",
+      category: "Libros",
+      location: "CDMX",
+      condition: "Bueno",
+      status: "disponible"
+    },
+    {
+      title: "Laptop usada",
+      description: "Laptop Dell, funciona pero tiene detalles en la pantalla.",
+      category: "Electrónica",
+      location: "Guadalajara",
+      condition: "Regular",
+      status: "disponible"
+    },
+    {
+      title: "Ropa de invierno",
+      description: "Abrigos y bufandas para mujer, talla M.",
+      category: "Ropa",
+      location: "Monterrey",
+      condition: "Excelente",
+      status: "disponible"
+    }
+  ];
+  for (const art of testArticles) {
+    await addDoc(collection(db, "articles"), {
+      ...art,
+      userId: user.uid,
+      createdAt: new Date(),
+      lockerCode: Math.floor(1000 + Math.random() * 9000).toString()
+    });
+  }
 }

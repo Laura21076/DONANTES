@@ -50,9 +50,9 @@ function mostrarEstadoNoAutenticado() {
  * Se verifica firebase.auth().currentUser antes de solicitar datos
  */
 async function cargarPerfil() {
-  // Eliminar loader y mostrar perfil de inmediato
   const loader = document.getElementById('profileLoader');
   const container = document.getElementById('profileContainer');
+  // Oculta loader por defecto
   if (loader) loader.style.display = 'none';
   if (container) container.style.display = '';
 
@@ -60,7 +60,6 @@ async function cargarPerfil() {
   if (!currentUser) {
     if (loader) loader.style.display = 'none';
     if (container) container.style.display = 'none';
-    console.log('No hay usuario autenticado, mostrando estado de no autenticado');
     mostrarEstadoNoAutenticado();
     return;
   }
@@ -98,11 +97,15 @@ async function cargarPerfil() {
     if (document.getElementById('firstName'))  document.getElementById('firstName').value  = perfil.firstName || '';
     if (document.getElementById('lastName'))   document.getElementById('lastName').value   = perfil.lastName || '';
     if (document.getElementById('email'))      document.getElementById('email').value      = perfil.email || '';
-    // Desencriptar teléfono y dirección si parecen base64, si falla mostrar tal cual
+    // Desencriptar teléfono y dirección si están en formato tipo hash:hash:hash
     function tryDecode(val) {
       if (!val) return '';
+      // Si el valor tiene formato hash:hash:hash, lo mostramos como no disponible
+      if (/^[a-f0-9]{32}:[a-f0-9]{32}:[a-f0-9]{32}$/i.test(val)) {
+        return '(no disponible)';
+      }
+      // Si contiene solo base64 válido, decodifica
       try {
-        // Si contiene solo base64 válido, decodifica
         if (/^[A-Za-z0-9+/=]+$/.test(val) && val.length % 4 === 0) {
           return atob(val);
         }
@@ -119,7 +122,7 @@ async function cargarPerfil() {
     if (document.getElementById('currentPassword')) document.getElementById('currentPassword').value = "********";
     if (document.getElementById('newPassword'))     document.getElementById('newPassword').value = "";
 
-    // Loader OFF, mostrar perfil
+    // Loader OFF, mostrar perfil (ya oculto por defecto)
     if (loader) loader.style.display = 'none';
     if (container) container.style.display = '';
   } catch (err) {
