@@ -5,16 +5,6 @@ import { getFirestore, connectFirestoreEmulator } from "https://www.gstatic.com/
 import { getAnalytics, isSupported } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-analytics.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-storage.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyBaBir5mquN-xK-6H-92Wcf_Mp6muY4cSQ",
-  authDomain: "donantes-400ba.firebaseapp.com",
-  databaseURL: "https://donantes-400ba-default-rtdb.firebaseio.com",
-  projectId: "donantes-400ba",
-  storageBucket: "donantes-400ba.appspot.com",
-  messagingSenderId: "202152301689",
-  appId: "1:202152301689:web:5485bb0344ba6a821030a8",
-  measurementId: "G-NR3LS2M6YV"
-};
 
 import './error-handler.js';
 
@@ -39,16 +29,6 @@ for (const envVar of requiredEnvVars) {
   }
 }
 
-// ==== Firebase config ====
-const firebaseConfig = {
-  apiKey: getEnvVar('FIREBASE_API_KEY'),
-  authDomain: getEnvVar('FIREBASE_AUTH_DOMAIN'),
-  projectId: getEnvVar('FIREBASE_PROJECT_ID'),
-  storageBucket: getEnvVar('FIREBASE_STORAGE_BUCKET'),
-  messagingSenderId: getEnvVar('FIREBASE_MESSAGING_SENDER_ID'),
-  appId: getEnvVar('FIREBASE_APP_ID'),
-  measurementId: getEnvVar('FIREBASE_MEASUREMENT_ID')
-};
 
 // === Inicializar (ONLY ONCE) ===
 // Soporta hot reload y SPA.
