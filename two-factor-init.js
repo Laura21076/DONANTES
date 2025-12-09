@@ -1,13 +1,15 @@
 // two-factor-init.js - Inicialización de la página de autenticación de dos factores
 // Separado para cumplir con CSP (Content Security Policy)
 
-import { setupRecaptcha, send2FACode, verify2FACode } from './twofa-firebase.js';
+import { setupRecaptcha, send2FACode, verify2FACode, disable2FAFirebase, regenerateBackupCodesFirebase } from './twofa-firebase.js';
 
 // Ejemplo de integración básica para 2FA con Firebase
 // Debes adaptar los IDs de los botones y el flujo visual según tu HTML
 window.addEventListener('DOMContentLoaded', () => {
   const setupBtn = document.getElementById('setupBtn');
   const verifySetupBtn = document.getElementById('verifySetupBtn');
+  const disableBtn = document.getElementById('disableBtn');
+  const regenerateBtn = document.getElementById('regenerateBtn');
   let verificationId = null;
 
   if (setupBtn) {
@@ -15,7 +17,7 @@ window.addEventListener('DOMContentLoaded', () => {
       setupRecaptcha('recaptcha-container', async () => {
         const phone = document.getElementById('phoneInput').value;
         verificationId = await send2FACode(phone);
-        alert('Código enviado por SMS');
+        showSuccess('Código enviado por SMS');
       });
     });
   }
@@ -23,167 +25,56 @@ window.addEventListener('DOMContentLoaded', () => {
   if (verifySetupBtn) {
     verifySetupBtn.addEventListener('click', async () => {
       const code = document.getElementById('codeInput').value;
-      await verify2FACode(verificationId, code);
-      alert('2FA activado correctamente');
+      const result = await verify2FACode(verificationId, code);
+      if (result.success) {
+        showSuccess('2FA activado correctamente');
+        if (result.backupCodes) displayBackupCodes(result.backupCodes);
+      } else {
+        showError(result.error || 'Código de verificación incorrecto');
+      }
+    });
+  }
+
+  if (disableBtn) {
+    disableBtn.addEventListener('click', async () => {
+      const codeInput = document.getElementById('disableCode');
+      const code = codeInput ? codeInput.value.trim() : '';
+      if (!code) {
+        showError('Por favor, ingresa un código de verificación');
+        return;
+      }
+      if (!confirm('¿Estás seguro de que quieres deshabilitar 2FA? Esto reducirá la seguridad de tu cuenta.')) {
+        return;
+      }
+      const result = await disable2FAFirebase(code);
+      if (result.success) {
+        showSuccess('2FA deshabilitado correctamente');
+        if (codeInput) codeInput.value = '';
+      } else {
+        showError(result.error || 'Error al deshabilitar 2FA');
+      }
+    });
+  }
+
+  if (regenerateBtn) {
+    regenerateBtn.addEventListener('click', async () => {
+      const codeInput = document.getElementById('regenerateCode');
+      const code = codeInput ? codeInput.value.trim() : '';
+      if (!code || code.length !== 6) {
+        showError('Por favor, ingresa un código de 6 dígitos válido');
+        return;
+      }
+      const result = await regenerateBackupCodesFirebase(code);
+      if (result.success) {
+        displayBackupCodes(result.backupCodes);
+        showSuccess('Códigos de respaldo regenerados exitosamente');
+        if (codeInput) codeInput.value = '';
+      } else {
+        showError(result.error || 'Error al regenerar códigos');
+      }
     });
   }
 });
-      const qrSection = document.getElementById('qrSection');
-      const setupSection = document.getElementById('setupSection');
-      
-      if (qrSection) {
-        qrSection.classList.remove('section-hidden');
-        qrSection.style.display = 'block';
-      }
-      if (setupSection) setupSection.style.display = 'none';
-      
-      showSuccess('Código enviado a tu correo electrónico. Ingresa el código de 6 dígitos.');
-    } else {
-      showError(data.error || 'Error al configurar 2FA');
-    }
-  } catch (error) {
-    console.error('Error configurando 2FA:', error);
-    showError('Error de conexión al configurar 2FA');
-  } finally {
-    showLoading('setupBtn', false);
-  }
-}
-
-async function verifySetup() {
-  const codeInput = document.getElementById('verificationCode');
-  const code = codeInput ? codeInput.value.trim() : '';
-  
-  if (!code || code.length !== 6) {
-    showError('Por favor, ingresa un código de 6 dígitos válido');
-    return;
-  }
-
-  try {
-    showLoading('verifySetupBtn', true);
-    
-    const token = await getIdToken();
-    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-    const response = await fetch(`${backendUrl}/api/auth/2fa/verify-setup`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ code })
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      // Mostrar códigos de respaldo si existen
-      if (data.backupCodes) {
-        displayBackupCodes(data.backupCodes);
-        const backupSection = document.getElementById('backupSection');
-        if (backupSection) backupSection.style.display = 'block';
-      }
-      
-      const qrSection = document.getElementById('qrSection');
-      if (qrSection) qrSection.style.display = 'none';
-      
-      showSuccess('¡2FA configurado exitosamente! Guarda los códigos de respaldo.');
-      
-      // Actualizar estado después de un momento
-      // Ya no se actualiza automáticamente el estado, simplificado
-    } else {
-      showError(data.error || 'Código de verificación incorrecto');
-    }
-  } catch (error) {
-    console.error('Error verificando configuración 2FA:', error);
-    showError('Error de conexión al verificar código');
-  } finally {
-    showLoading('verifySetupBtn', false);
-  }
-}
-
-async function disable2FA() {
-  const codeInput = document.getElementById('disableCode');
-  const code = codeInput ? codeInput.value.trim() : '';
-  
-  if (!code) {
-    showError('Por favor, ingresa un código de verificación');
-    return;
-  }
-
-  if (!confirm('¿Estás seguro de que quieres deshabilitar 2FA? Esto reducirá la seguridad de tu cuenta.')) {
-    return;
-  }
-
-  try {
-    showLoading('disableBtn', true);
-    
-    const token = await getIdToken();
-    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-    const response = await fetch(`${backendUrl}/api/auth/2fa/disable`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ code })
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      showSuccess('2FA deshabilitado correctamente');
-      if (codeInput) codeInput.value = '';
-    } else {
-      showError(data.error || 'Error al deshabilitar 2FA');
-    }
-  } catch (error) {
-    console.error('Error deshabilitando 2FA:', error);
-    showError('Error de conexión al deshabilitar 2FA');
-  } finally {
-    showLoading('disableBtn', false);
-  }
-}
-
-async function regenerateBackupCodes() {
-  const codeInput = document.getElementById('regenerateCode');
-  const code = codeInput ? codeInput.value.trim() : '';
-  
-  if (!code || code.length !== 6) {
-    showError('Por favor, ingresa un código de 6 dígitos válido');
-    return;
-  }
-
-  try {
-    showLoading('regenerateBtn', true);
-    
-    const token = await getIdToken();
-    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-    const response = await fetch(`${backendUrl}/api/auth/2fa/regenerate-backup`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ code })
-    });
-
-    const data = await response.json();
-    
-    if (data.success) {
-      displayBackupCodes(data.backupCodes);
-      const backupSection = document.getElementById('backupSection');
-      if (backupSection) backupSection.style.display = 'block';
-      if (codeInput) codeInput.value = '';
-      showSuccess('Códigos de respaldo regenerados exitosamente');
-    } else {
-      showError(data.error || 'Error al regenerar códigos');
-    }
-  } catch (error) {
-    console.error('Error regenerando códigos:', error);
-    showError('Error de conexión al regenerar códigos');
-  } finally {
-    showLoading('regenerateBtn', false);
-  }
-}
 
 function displayBackupCodes(codes) {
   const backupCodesDiv = document.getElementById('backupCodes');
@@ -344,10 +235,5 @@ function showAlert(message, type) {
   }, 5000);
 }
 
-// Exportar funciones para uso global si es necesario
-window.twoFactorInit = {
-  setup2FA,
-  verifySetup,
-  disable2FA,
-  regenerateBackupCodes
-};
+// Exportar funciones para uso global si es necesario (ya no se usan, pero se mantienen para compatibilidad)
+window.twoFactorInit = {};

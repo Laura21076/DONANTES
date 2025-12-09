@@ -1,0 +1,37 @@
+DONANTES - Proyecto Integrador
+
+Fecha de entrega: 8 de diciembre de 2025
+
+Integrantes del equipo:
+- [Nombre 1]
+- [Nombre 2]
+- [Nombre 3]
+
+Materia: [Nombre de la materia]
+
+URL pública de la aplicación:
+[Coloca aquí la URL de tu app desplegada]
+
+Checklist de requerimientos:
+- Instalabilidad en PC y móvil (PWA)
+- Diseño responsivo (UI/UX)
+- Dashboard funcional
+- Gestión de roles (admin, usuario)
+- Protección de rutas
+- Despliegue en la nube
+
+Capturas requeridas:
+- Página informativa
+- Pantalla de Login
+- Dashboard
+- Instalación en PC/móvil
+- Diferentes roles y rutas protegidas
+
+Evidencias:
+- Comentarios y pruebas realizadas durante la presentación
+- Logs y mensajes de éxito/error
+
+Conclusión:
+La aplicación DONANTES cumple con todos los criterios de evaluación y está lista para entrega y presentación presencial.
+
+[Agrega aquí cualquier comentario adicional o evidencia relevante]

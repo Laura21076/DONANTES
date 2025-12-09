@@ -97,16 +97,6 @@
     <!-- El botón principal de acción puede ser para registro o donar, pero el de instalar es único -->
   </div>
   <script type="module" src="pwa-install.js"></script>
-          deferredPrompt.prompt();
-          const { outcome } = await deferredPrompt.userChoice;
-          deferredPrompt = null;
-        }
-      });
-    }
-    window.addEventListener('appinstalled', () => {
-      installBtn.style.display = 'none';
-    });
-  </script>
         </ul>
       </div>
     </div>
