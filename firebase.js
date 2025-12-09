@@ -72,14 +72,4 @@ isSupported().then(supported => {
 
 // ======= Emuladores solo si es necesario =====
 const useEmulators = [true, 'true', 1, '1', 'yes', 'on'].includes(getEnvVar('USE_FIREBASE_EMULATOR'));
-// ==== Firebase config ====
-const firebaseConfig = {
-  apiKey: getEnvVar('FIREBASE_API_KEY') || "AIzaSyBaBir5mquN-xK-6H-92Wcf_Mp6muY4cSQ",
-  authDomain: getEnvVar('FIREBASE_AUTH_DOMAIN') || "donantes-400ba.firebaseapp.com",
-  projectId: getEnvVar('FIREBASE_PROJECT_ID') || "donantes-400ba",
-  storageBucket: getEnvVar('FIREBASE_STORAGE_BUCKET') || "donantes-400ba.appspot.com",
-  messagingSenderId: getEnvVar('FIREBASE_MESSAGING_SENDER_ID') || "202152301689",
-  appId: getEnvVar('FIREBASE_APP_ID') || "1:202152301689:web:5485bb0344ba6a821030a8",
-  measurementId: getEnvVar('FIREBASE_MEASUREMENT_ID') || "G-NR3LS2M6YV"
-
 export { app, auth, db, storage, analytics };
