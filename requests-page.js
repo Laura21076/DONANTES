@@ -234,7 +234,7 @@ function showGoogleLockerMap(lockerLocation) {
   } else {
     // Cargar Google Maps API si no está presente
     const script = document.createElement('script');
-    script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyAUNKWZLeNkmUsxWVnKAiPHBexUPjFL02A';
+    // Google Maps API eliminada
     script.async = true;
     script.onload = () => showGoogleLockerMap(lockerLocation);
     document.body.appendChild(script);
