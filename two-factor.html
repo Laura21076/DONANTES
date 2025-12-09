@@ -85,13 +85,23 @@
                 </div>
                 
                 <!-- Estado Actual -->
-                <div id="statusSection" class="status-card">
+                <div id="simple2faSection" class="status-card">
                   <h5 class="section-header">
-                    <i class="fas fa-info-circle"></i> Estado Actual
+                    <i class="fas fa-shield-alt"></i> Activar 2FA sencillo
                   </h5>
-                  <div id="statusDisplay" class="alert alert-info-custom">
-                    <i class="fas fa-spinner fa-spin me-2"></i> Verificando estado del sistema 2FA...
+                  <div class="mb-3">
+                    <label for="simple2faInput" class="form-label">Correo electrónico o celular</label>
+                    <input type="text" id="simple2faInput" class="form-control" placeholder="Tu correo o celular" autocomplete="username">
                   </div>
+                  <div class="d-flex gap-2 mb-3">
+                    <button id="simple2faSendBtn" class="btn btn-primary">Enviar código</button>
+                    <button id="simple2faVerifyBtn" class="btn btn-success">Verificar código</button>
+                  </div>
+                  <div class="mb-3">
+                    <label for="simple2faCode" class="form-label">Código recibido</label>
+                    <input type="text" id="simple2faCode" class="form-control" maxlength="6" placeholder="Código de 6 dígitos">
+                  </div>
+                  <div id="simple2faMsg" class="mt-2"></div>
                 </div>
                 
                 <!-- Sección de Configuración -->
@@ -193,19 +203,47 @@
 <script type="module">
 import './simple-2fa.js';
 window.addEventListener('DOMContentLoaded', () => {
-  // Inicializa la interfaz simplificada de 2FA en el contenedor principal
-  const container = document.getElementById('statusSection');
-  if (container) {
-    const simple2fa = new window.Simple2FA();
-    simple2fa.createSetupInterface('statusSection');
-    // Guarda el usuario global para mostrar el email
-    import('./auth.js').then(mod => {
-      mod.getCurrentUser().then(user => {
-        window.currentUser = user;
-        simple2fa.updateStatusDisplay();
-      });
-    });
-  }
+  const sendBtn = document.getElementById('simple2faSendBtn');
+  const verifyBtn = document.getElementById('simple2faVerifyBtn');
+  const input = document.getElementById('simple2faInput');
+  const codeInput = document.getElementById('simple2faCode');
+  const msgDiv = document.getElementById('simple2faMsg');
+  const simple2fa = new window.Simple2FA();
+
+  sendBtn.addEventListener('click', async () => {
+    const value = input.value.trim();
+    if (!value) {
+      msgDiv.textContent = 'Ingresa tu correo o celular.';
+      msgDiv.className = 'alert alert-warning';
+      return;
+    }
+    try {
+      await simple2fa.requestLoginCode(value);
+      msgDiv.textContent = 'Código enviado. Revisa tu correo o SMS.';
+      msgDiv.className = 'alert alert-success';
+    } catch (err) {
+      msgDiv.textContent = err.message || 'Error al enviar el código.';
+      msgDiv.className = 'alert alert-danger';
+    }
+  });
+
+  verifyBtn.addEventListener('click', async () => {
+    const value = input.value.trim();
+    const code = codeInput.value.trim();
+    if (!value || !code) {
+      msgDiv.textContent = 'Ingresa tu correo/celular y el código.';
+      msgDiv.className = 'alert alert-warning';
+      return;
+    }
+    try {
+      await simple2fa.verifyLogin(value, code);
+      msgDiv.textContent = '¡Código verificado correctamente!';
+      msgDiv.className = 'alert alert-success';
+    } catch (err) {
+      msgDiv.textContent = err.message || 'Código incorrecto.';
+      msgDiv.className = 'alert alert-danger';
+    }
+  });
 });
 </script>
 </body>

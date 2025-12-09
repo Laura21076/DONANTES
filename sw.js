@@ -62,9 +62,14 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 self.addEventListener('fetch', event => {
-  // No interceptar peticiones externas a la API ni a fuentes remotas
+  // No interceptar peticiones externas a la API, fuentes remotas ni Firebase Auth
   const url = event.request.url;
-  if (url.includes('/api/') || url.startsWith('https://fonts.googleapis.com') || url.startsWith('https://fonts.gstatic.com')) {
+  if (
+    url.includes('/api/') ||
+    url.startsWith('https://fonts.googleapis.com') ||
+    url.startsWith('https://fonts.gstatic.com') ||
+    url.includes('identitytoolkit.googleapis.com')
+  ) {
     return;
   }
   event.respondWith(
