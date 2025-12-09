@@ -4,6 +4,8 @@ import { getCurrentUser } from './auth.js';
 import { signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { auth } from './firebase.js';
 import { getArticles, approveArticle } from './articles-firebase.js';
+import { getUserProfile } from './profile-firebase.js';
+import { getMySentRequests, getMyReceivedRequests } from './requests.js';
 // Si deseas importar tu roleManager explícitamente, descomenta la siguiente línea y ajusta el nombre:
 // import { roleManager } from './roles.js';
 
@@ -132,6 +134,61 @@ class AdminDashboard {
         }
     }
 
+    async loadProfile() {
+        try {
+            const profile = await getUserProfile();
+            // Renderizar perfil en el dashboard (puedes personalizar el HTML)
+            const profileDiv = document.getElementById('admin-profile-section');
+            if (profileDiv) {
+                profileDiv.innerHTML = `
+                    <div class="dashboard-card p-3 mb-3">
+                        <h4 class="text-purple mb-2"><i class="bi bi-person-circle me-2"></i>Perfil Administrador</h4>
+                        <div class="d-flex align-items-center">
+                            <img src="${profile.photoURL || 'assets/default-profile.png'}" alt="Foto" class="rounded-circle me-3" width="64" height="64">
+                            <div>
+                                <strong>${profile.displayName || 'Sin nombre'}</strong><br>
+                                <span class="text-muted">${profile.email || ''}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Error cargando perfil:', error);
+        }
+    }
+
+    async loadRequests() {
+        try {
+            const sent = await getMySentRequests();
+            const received = await getMyReceivedRequests();
+            // Renderizar solicitudes en el dashboard (puedes personalizar el HTML)
+            const requestsDiv = document.getElementById('admin-requests-section');
+            if (requestsDiv) {
+                let html = `<div class="dashboard-card p-3 mb-3">
+                    <h4 class="text-purple mb-2"><i class="bi bi-envelope-heart me-2"></i>Solicitudes</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="mb-2">Enviadas</h6>
+                            <ul class="list-group mb-3">
+                                ${sent.length === 0 ? '<li class="list-group-item text-muted">Sin solicitudes enviadas</li>' : sent.map(r => `<li class="list-group-item">${r.descripcion || 'Sin descripción'}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="mb-2">Recibidas</h6>
+                            <ul class="list-group mb-3">
+                                ${received.length === 0 ? '<li class="list-group-item text-muted">Sin solicitudes recibidas</li>' : received.map(r => `<li class="list-group-item">${r.descripcion || 'Sin descripción'}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                </div>`;
+                requestsDiv.innerHTML = html;
+            }
+        } catch (error) {
+            console.error('Error cargando solicitudes:', error);
+        }
+    }
+
     async loadDashboardData() {
         try {
             // Simular carga de datos (en producción, estos vendrían de la API)
@@ -140,6 +197,8 @@ class AdminDashboard {
             await this.loadDonationStats();
             await this.loadReportStats();
             await this.loadRecentActivity();
+            await this.loadProfile();
+            await this.loadRequests();
 
         } catch (error) {
             console.error('Error cargando datos del dashboard:', error);
@@ -160,11 +219,11 @@ class AdminDashboard {
 
     async loadArticleStats() {
         try {
-            // Obtener todos los artículos (incluye pendientes)
-            const articles = await getArticles(true);
+            // Obtener todos los artículos (incluye pendientes) SOLO si es admin
+            const articles = await getArticles(this.isAdminUser);
             this.stats.totalArticles = articles.length;
-            this.pendingArticles = articles.filter(a => a.status === 'pendiente');
-            this.renderPendingArticles();
+            this.pendingArticles = this.isAdminUser ? articles.filter(a => a.status === 'pendiente') : [];
+            if (this.isAdminUser) this.renderPendingArticles();
         } catch (error) {
             console.error('Error cargando artículos:', error);
         }
