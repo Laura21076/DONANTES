@@ -239,6 +239,47 @@
                 </div>
             </div>
         </div>
+
+        <!-- Formulario para crear artículo -->
+        <div class="dashboard-card p-4 mb-4">
+          <h4 class="text-purple mb-3"><i class="bi bi-plus-circle me-2"></i>Crear Artículo</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="text" id="articleTitle" class="form-control" placeholder="Título del artículo">
+            </div>
+            <div class="col-md-6">
+              <input type="text" id="articleCategory" class="form-control" placeholder="Categoría">
+            </div>
+            <div class="col-md-12">
+              <textarea id="articleDescription" class="form-control" placeholder="Descripción" rows="2"></textarea>
+            </div>
+            <div class="col-md-6">
+              <input type="text" id="articleLocation" class="form-control" placeholder="Ubicación">
+            </div>
+            <div class="col-md-6 d-flex align-items-end">
+              <button class="btn btn-primary w-100" id="createArticleBtn"><i class="bi bi-plus-circle me-2"></i>Crear Artículo</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulario para solicitar artículo -->
+        <div class="dashboard-card p-4 mb-4">
+          <h4 class="text-purple mb-3"><i class="bi bi-envelope-heart me-2"></i>Solicitar Artículo</h4>
+          <div class="row g-3">
+            <div class="col-md-6">
+              <input type="text" id="requestArticleId" class="form-control" placeholder="ID del artículo a solicitar">
+            </div>
+            <div class="col-md-6">
+              <input type="text" id="requestMessage" class="form-control" placeholder="Mensaje para el donante">
+            </div>
+            <div class="col-md-12 d-flex align-items-end">
+              <button class="btn btn-success w-100" id="createRequestBtn"><i class="bi bi-envelope-heart me-2"></i>Solicitar Artículo</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Contenedor para mostrar locker y mapa -->
+        <div id="lockerInfo" class="mb-4"></div>
     </main>
 
     <!-- Scripts -->

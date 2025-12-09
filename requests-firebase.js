@@ -11,19 +11,22 @@ const auth = getAuth(app);
 export async function createRequest(data) {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const docRef = await addDoc(collection(db, "solicitudes"), {
+  // Generar código de locker/caja fuerte (4 dígitos aleatorios)
+  const lockerCode = Math.floor(1000 + Math.random() * 9000).toString();
+  const docRef = await addDoc(collection(db, "requests"), {
     ...data,
     senderId: user.uid,
-    createdAt: new Date()
+    createdAt: new Date(),
+    lockerCode
   });
-  return docRef.id;
+  return { id: docRef.id, lockerCode };
 }
 
 // Obtener solicitudes enviadas por el usuario
 export async function getSentRequests() {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const q = query(collection(db, "solicitudes"), where("senderId", "==", user.uid));
+  const q = query(collection(db, "requests"), where("senderId", "==", user.uid));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
@@ -32,19 +35,19 @@ export async function getSentRequests() {
 export async function getReceivedRequests() {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const q = query(collection(db, "solicitudes"), where("receiverId", "==", user.uid));
+  const q = query(collection(db, "requests"), where("receiverId", "==", user.uid));
   const querySnapshot = await getDocs(q);
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
 // Actualizar solicitud
 export async function updateRequest(id, data) {
-  const docRef = doc(db, "solicitudes", id);
+  const docRef = doc(db, "requests", id);
   await updateDoc(docRef, { ...data, updatedAt: new Date() });
 }
 
 // Eliminar solicitud
 export async function deleteRequest(id) {
-  const docRef = doc(db, "solicitudes", id);
+  const docRef = doc(db, "requests", id);
   await deleteDoc(docRef);
 }

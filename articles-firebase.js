@@ -11,18 +11,21 @@ import { app } from "./firebase.js";
 export async function createArticle(data) {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const docRef = await addDoc(collection(db, "articulos"), {
+  // Generar código de locker/caja fuerte (4 dígitos aleatorios)
+  const lockerCode = Math.floor(1000 + Math.random() * 9000).toString();
+  const docRef = await addDoc(collection(db, "articles"), {
     ...data,
     userId: user.uid,
     createdAt: new Date(),
-    status: "pendiente"
+    status: "pendiente",
+    lockerCode
   });
-  return docRef.id;
+  return { id: docRef.id, lockerCode };
 }
 
 // Leer todos los artículos (solo publicados para usuarios normales)
 export async function getArticles(isAdmin = false) {
-  const querySnapshot = await getDocs(collection(db, "articulos"));
+  const querySnapshot = await getDocs(collection(db, "articles"));
   return querySnapshot.docs
     .map(doc => ({ id: doc.id, ...doc.data() }))
     .filter(art => isAdmin || art.status === "publicado");
@@ -32,7 +35,7 @@ export async function approveArticle(id) {
   const user = auth.currentUser;
   // Simulación: solo permite si el usuario tiene email de admin
   if (!user || !user.email.endsWith('@admin.com')) throw new Error("No autorizado");
-  const docRef = doc(db, "articulos", id);
+  const docRef = doc(db, "articles", id);
   await updateDoc(docRef, { status: "publicado", approvedAt: new Date() });
 }
 
@@ -40,7 +43,7 @@ export async function approveArticle(id) {
 export async function updateArticle(id, data) {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const docRef = doc(db, "articulos", id);
+  const docRef = doc(db, "articles", id);
   await updateDoc(docRef, { ...data, updatedAt: new Date() });
 }
 
@@ -48,6 +51,6 @@ export async function updateArticle(id, data) {
 export async function deleteArticle(id) {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const docRef = doc(db, "articulos", id);
+  const docRef = doc(db, "articles", id);
   await deleteDoc(docRef);
 }

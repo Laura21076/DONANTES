@@ -14,7 +14,7 @@ const storage = getStorage(app);
 export async function getUserProfile() {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const docRef = doc(db, "usuarios", user.uid);
+  const docRef = doc(db, "users", user.uid);
   const docSnap = await getDoc(docRef);
   return docSnap.exists() ? docSnap.data() : null;
 }
@@ -23,7 +23,7 @@ export async function getUserProfile() {
 export async function updateUserProfile(data) {
   const user = auth.currentUser;
   if (!user) throw new Error("No autenticado");
-  const docRef = doc(db, "usuarios", user.uid);
+  const docRef = doc(db, "users", user.uid);
   await setDoc(docRef, data, { merge: true });
   if (data.displayName || data.photoURL) {
     await updateProfile(user, {

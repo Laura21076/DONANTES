@@ -182,85 +182,73 @@ class AdminDashboard {
 
     async loadUserStats() {
         try {
-            this.stats.totalUsers = 156; // Simulated data
-
-            // TODO: Implementar consulta real a Firestore
-            // const usersSnapshot = await getDocs(collection(db, 'users'));
-            // this.stats.totalUsers = usersSnapshot.size;
+            // Consulta real a Firestore (usuarios)
+            // Requiere que tengas la colección 'usuarios' en Firestore
+            const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js');
+            const { app } = await import('./firebase.js');
+            const db = getFirestore(app);
+            const usersSnapshot = await getDocs(collection(db, 'usuarios'));
+            this.stats.totalUsers = usersSnapshot.size;
+            console.log('Usuarios totales:', this.stats.totalUsers);
         } catch (error) {
             console.error('Error cargando estadísticas de usuarios:', error);
+            this.stats.totalUsers = 0;
         }
     }
 
     async loadArticleStats() {
         try {
-            // Obtener todos los artículos (incluye pendientes) SOLO si es admin
+            // Obtener todos los artículos reales desde Firestore
             const articles = await getArticles(this.isAdminUser);
             this.stats.totalArticles = articles.length;
             this.pendingArticles = this.isAdminUser ? articles.filter(a => a.status === 'pendiente') : [];
+            console.log('Artículos:', articles);
             if (this.isAdminUser) this.renderPendingArticles();
         } catch (error) {
             console.error('Error cargando artículos:', error);
+            this.stats.totalArticles = 0;
         }
     }
 
     async loadDonationStats() {
         try {
-            this.stats.completedDonations = 67; // Simulated data
+            // Si tienes una colección 'donaciones', consulta real aquí
+            // const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js');
+            // const { app } = await import('./firebase.js');
+            // const db = getFirestore(app);
+            // const donationsSnapshot = await getDocs(collection(db, 'donaciones'));
+            // this.stats.completedDonations = donationsSnapshot.size;
+            this.stats.completedDonations = 0; // Si no tienes la colección, dejar en 0
         } catch (error) {
             console.error('Error cargando estadísticas de donaciones:', error);
+            this.stats.completedDonations = 0;
         }
     }
 
     async loadReportStats() {
         try {
-            this.stats.pendingReports = 3; // Simulated data
+            // Si tienes una colección 'reportes', consulta real aquí
+            // const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js');
+            // const { app } = await import('./firebase.js');
+            // const db = getFirestore(app);
+            // const reportsSnapshot = await getDocs(collection(db, 'reportes'));
+            // this.stats.pendingReports = reportsSnapshot.size;
+            this.stats.pendingReports = 0; // Si no tienes la colección, dejar en 0
         } catch (error) {
             console.error('Error cargando estadísticas de reportes:', error);
+            this.stats.pendingReports = 0;
         }
     }
 
     async loadRecentActivity() {
-        // Simular actividad reciente
-        const activities = [
-            {
-                type: 'user_registration',
-                message: 'Nuevo usuario registrado: maria.gonzalez@utsc.edu.mx',
-                time: '2 minutos',
-                icon: 'bi-person-plus-fill',
-                color: 'success'
-            },
-            {
-                type: 'article_published',
-                message: 'Artículo publicado: "Laptop DELL en buen estado"',
-                time: '15 minutos',
-                icon: 'bi-heart-fill',
-                color: 'primary'
-            },
-            {
-                type: 'donation_completed',
-                message: 'Donación completada: "Libros de Programación"',
-                time: '1 hora',
-                icon: 'bi-check-circle-fill',
-                color: 'success'
-            },
-            {
-                type: 'report_submitted',
-                message: 'Reporte de contenido inapropiado',
-                time: '2 horas',
-                icon: 'bi-flag-fill',
-                color: 'warning'
-            },
-            {
-                type: 'user_verified',
-                message: 'Usuario verificado: carlos.rodriguez@utsc.edu.mx',
-                time: '3 horas',
-                icon: 'bi-shield-check',
-                color: 'info'
-            }
-        ];
-
-        this.renderRecentActivity(activities);
+        // Si tienes una colección 'actividad', consulta real aquí
+        // const { getFirestore, collection, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.2/firebase-firestore.js');
+        // const { app } = await import('./firebase.js');
+        // const db = getFirestore(app);
+        // const activitySnapshot = await getDocs(collection(db, 'actividad'));
+        // const activities = activitySnapshot.docs.map(doc => doc.data());
+        // this.renderRecentActivity(activities);
+        this.renderRecentActivity([]); // Si no tienes la colección, dejar vacío
     }
 
     renderRecentActivity(activities) {
@@ -339,6 +327,81 @@ class AdminDashboard {
                 }
             });
         });
+    }
+
+    renderLockerInfo(lockerCode) {
+        const lockerDiv = document.getElementById('lockerInfo');
+        if (lockerDiv) {
+            lockerDiv.innerHTML = `
+                <div class="alert alert-info mt-3">
+                    <strong>Código de Locker/Caja Fuerte:</strong> <span class="fs-4">${lockerCode}</span><br>
+                    <span>Usa este código para dejar o recoger el artículo.</span>
+                </div>
+                <div class="mt-3 text-center">
+                    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3595.3651338348855!2d-100.51443152638271!3d25.69233201147141!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x86629ecd749f16df%3A0x525aada7e2a78b2c!2sUniversidad%20Tecnol%C3%B3gica%20Santa%20Catarina!5e0!3m2!1ses-419!2smx!4v1765277454590!5m2!1ses-419!2smx" width="350" height="250" style="border:0; border-radius:8px; box-shadow:0 2px 8px #ccc;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                    <div class="text-muted mt-2">Ubicación aproximada del locker</div>
+                </div>
+            `;
+        }
+    }
+
+    async createArticleAndShowLocker(data) {
+        try {
+            const result = await createArticle(data);
+            this.renderLockerInfo(result.lockerCode);
+            showToast('Artículo creado. Código de locker generado.', 'success');
+        } catch (error) {
+            showToast('Error al crear artículo: ' + (error?.message || error), 'danger');
+        }
+    }
+
+    async createRequestAndShowLocker(data) {
+        try {
+            const result = await createRequest(data);
+            this.renderLockerInfo(result.lockerCode);
+            showToast('Solicitud creada. Código de locker generado.', 'success');
+        } catch (error) {
+            showToast('Error al crear solicitud: ' + (error?.message || error), 'danger');
+        }
+    }
+
+    setupEventListeners() {
+        // Ejemplo: conectar botón de crear artículo
+        const createArticleBtn = document.getElementById('createArticleBtn');
+        if (createArticleBtn) {
+            createArticleBtn.addEventListener('click', async () => {
+                const data = this.collectArticleFormData();
+                await this.createArticleAndShowLocker(data);
+            });
+        }
+        // Ejemplo: conectar botón de solicitar artículo
+        const createRequestBtn = document.getElementById('createRequestBtn');
+        if (createRequestBtn) {
+            createRequestBtn.addEventListener('click', async () => {
+                const data = this.collectRequestFormData();
+                await this.createRequestAndShowLocker(data);
+            });
+        }
+    }
+
+    collectArticleFormData() {
+        // Implementa la recolección de datos del formulario de artículo
+        // Ejemplo:
+        return {
+            title: document.getElementById('articleTitle').value,
+            description: document.getElementById('articleDescription').value,
+            category: document.getElementById('articleCategory').value,
+            location: document.getElementById('articleLocation').value
+        };
+    }
+
+    collectRequestFormData() {
+        // Implementa la recolección de datos del formulario de solicitud
+        // Ejemplo:
+        return {
+            articleId: document.getElementById('requestArticleId').value,
+            message: document.getElementById('requestMessage').value
+        };
     }
 
     updateUI() {
