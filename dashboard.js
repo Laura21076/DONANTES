@@ -3,9 +3,10 @@
 import { getCurrentUser } from './auth.js';
 import { signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { auth } from './firebase.js';
-import { getArticles, approveArticle } from './articles-firebase.js';
+import { getArticles, approveArticle } from './articles.js';
 import { getUserProfile } from './profile-firebase.js';
 import { getMySentRequests, getMyReceivedRequests } from './requests.js';
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js';
 // Si deseas importar tu roleManager explícitamente, descomenta la siguiente línea y ajusta el nombre:
 // import { roleManager } from './roles.js';
 
@@ -61,7 +62,7 @@ class AdminDashboard {
                 window.location.href = 'login.html';
                 return;
             }
-            // Simulación: admin si el email termina en @admin.com
+            // Admin si el email termina en @admin.com
             this.isAdminUser = this.currentUser.email && this.currentUser.email.endsWith('@admin.com');
             if (!this.isAdminUser) {
                 window.location.href = 'donationcenter.html';
@@ -501,14 +502,20 @@ async function logout() {
     }
 }
 
+
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
     // Attach event listeners for dashboard buttons (CSP compatible)
     attachDashboardEventListeners();
-    
-    setTimeout(() => {
-        new AdminDashboard();
-    }, 1500);
+
+    // Esperar a que Firebase Auth detecte el usuario autenticado
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            new AdminDashboard();
+        } else {
+            window.location.href = 'login.html';
+        }
+    });
 
     // Event delegation for dashboard action buttons (CSP compliance)
     document.addEventListener('click', (event) => {
@@ -588,6 +595,7 @@ function attachDashboardEventListeners() {
             moderateContent();
         });
     });
+
 
     document.querySelectorAll('.btn-admin-analytics').forEach(btn => {
         btn.addEventListener('click', function() {

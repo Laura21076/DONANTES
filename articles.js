@@ -9,8 +9,8 @@ export async function createArticle(articleData) {
 }
 
 // Obtener todos los artículos (Firebase)
-export async function getArticles() {
-  return fbGetArticles();
+export async function getArticles(isAdmin = false) {
+  return fbGetArticles(isAdmin);
 }
 
 // Editar artículo (Firebase)

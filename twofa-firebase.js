@@ -1,3 +1,12 @@
+// Desactivar 2FA para el usuario actual
+export async function disable2FAFirebase() {
+  const user = auth.currentUser;
+  if (!user) throw new Error("No autenticado");
+  const enrolledFactors = multiFactor(user).enrolledFactors;
+  for (const factor of enrolledFactors) {
+    await multiFactor(user).unenroll(factor.uid);
+  }
+}
 import { getAuth, PhoneAuthProvider, RecaptchaVerifier, signInWithPhoneNumber, multiFactor, PhoneMultiFactorGenerator } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
 
 import { app } from "./firebase.js";

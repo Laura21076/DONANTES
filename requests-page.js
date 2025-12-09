@@ -1,4 +1,4 @@
-import { getMyRequests, getReceivedRequests, approveRequest, rejectRequest, confirmPickup } from './requests.js';
+import { getMySentRequests, getMyReceivedRequests, approveRequest, rejectRequest, confirmPickup } from './requests.js';
 import { getCurrentUser } from './auth.js';
 import { getCurrentLockerCode } from './locker.js';
 
@@ -50,7 +50,7 @@ async function loadSentRequests() {
   try {
     const user = await getCurrentUser();
     if (!user) throw new Error('Usuario no autenticado');
-    const requests = await getMyRequests();
+    const requests = await getMySentRequests();
     displaySentRequests(requests);
   } catch (error) {
     console.error('Error al cargar solicitudes enviadas:', error);
