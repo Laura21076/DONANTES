@@ -13,7 +13,7 @@ const firebaseConfig = {
   measurementId: "G-NR3LS2M6YV"
 };
 
-import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js';
+import { getApps } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-app.js';
 import {
   getAuth,
   setPersistence,
