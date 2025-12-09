@@ -50,11 +50,11 @@ function mostrarEstadoNoAutenticado() {
  * Se verifica firebase.auth().currentUser antes de solicitar datos
  */
 async function cargarPerfil() {
-  // Loader ON
+  // Eliminar loader y mostrar perfil de inmediato
   const loader = document.getElementById('profileLoader');
   const container = document.getElementById('profileContainer');
-  if (loader) loader.style.display = '';
-  if (container) container.style.display = 'none';
+  if (loader) loader.style.display = 'none';
+  if (container) container.style.display = '';
 
   const currentUser = await getCurrentUser();
   if (!currentUser) {
@@ -71,9 +71,11 @@ async function cargarPerfil() {
 
     // Header
     document.getElementById('profileDisplayName').textContent =
-      perfil.displayName && perfil.displayName.trim()
+      (perfil.displayName && perfil.displayName.trim())
         ? perfil.displayName
         : ((perfil.firstName || "") + " " + (perfil.lastName || "")).trim() || 'Mi Perfil';
+    // Centrar el nombre
+    document.getElementById('profileDisplayName').classList.add('w-100', 'text-center');
     document.getElementById('profileDisplayEmail').textContent = perfil.email || "";
 
     // Foto de perfil
@@ -96,8 +98,19 @@ async function cargarPerfil() {
     if (document.getElementById('firstName'))  document.getElementById('firstName').value  = perfil.firstName || '';
     if (document.getElementById('lastName'))   document.getElementById('lastName').value   = perfil.lastName || '';
     if (document.getElementById('email'))      document.getElementById('email').value      = perfil.email || '';
-    if (document.getElementById('phone'))      document.getElementById('phone').value      = perfil.phone || '';
-    if (document.getElementById('address'))    document.getElementById('address').value    = perfil.address || '';
+    // Desencriptar teléfono y dirección si parecen base64, si falla mostrar tal cual
+    function tryDecode(val) {
+      if (!val) return '';
+      try {
+        // Si contiene solo base64 válido, decodifica
+        if (/^[A-Za-z0-9+/=]+$/.test(val) && val.length % 4 === 0) {
+          return atob(val);
+        }
+        return val;
+      } catch { return val; }
+    }
+    if (document.getElementById('phone'))      document.getElementById('phone').value      = tryDecode(perfil.phone);
+    if (document.getElementById('address'))    document.getElementById('address').value    = tryDecode(perfil.address);
     if (document.getElementById('city'))       document.getElementById('city').value       = perfil.city || '';
     if (document.getElementById('zipCode'))    document.getElementById('zipCode').value    = perfil.zipCode || '';
     if (document.getElementById('state'))      document.getElementById('state').value      = perfil.state || '';

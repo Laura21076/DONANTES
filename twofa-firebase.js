@@ -43,8 +43,22 @@ export async function signInWith2FA(phoneNumber, appVerifier) {
   return verificationId;
 }
 
+
 // Completar login con código 2FA
 export async function finalize2FALogin(verificationId, code) {
   const cred = PhoneAuthProvider.credential(verificationId, code);
   return signInWithPhoneNumber(auth, cred);
+}
+
+// Simular regeneración de códigos de respaldo para 2FA
+export async function regenerateBackupCodesFirebase(code) {
+  // Validar código (simulado)
+  if (!code || code.length !== 6) {
+    return { success: false, error: 'Código inválido' };
+  }
+  // Generar 8 códigos de respaldo aleatorios de 8 dígitos
+  const backupCodes = Array.from({ length: 8 }, () =>
+    Math.floor(10000000 + Math.random() * 90000000).toString()
+  );
+  return { success: true, backupCodes };
 }

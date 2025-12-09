@@ -34,7 +34,10 @@ function escapeHtml(unsafe) {
 }
 
 function showMessage(text, type) {
-  console.log(`[showMessage] ${type.toUpperCase()}: ${text}`);
+  // Solo log para desarrollo, no en producción
+  if (window.location.hostname === 'localhost' || window.__ENV__?.ENV === 'development') {
+    console.log(`[showMessage] ${type.toUpperCase()}: ${text}`);
+  }
   const toast = document.getElementById('toast');
   if (toast && window.bootstrap?.Toast) {
     const toastBody = toast.querySelector('.toast-body');
@@ -96,9 +99,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
     // Mostrar toast de notificaciones solo una vez y solo aquí
-    if (window.Notification && Notification.permission === 'default' && !localStorage.getItem('notifMsgShown')) {
-      showMessage('Activa las notificaciones para recibir avisos importantes sobre tus donaciones.', 'warning');
-      localStorage.setItem('notifMsgShown', '1');
+    if (window.Notification) {
+      if (Notification.permission === 'default' && !localStorage.getItem('notifMsgShown')) {
+        showMessage('Activa las notificaciones para recibir avisos importantes sobre tus donaciones.', 'warning');
+        localStorage.setItem('notifMsgShown', '1');
+      } else if (Notification.permission === 'denied' && !localStorage.getItem('notifDeniedMsgShown')) {
+        showMessage('Debes habilitar las notificaciones en la configuración de tu navegador para recibir avisos importantes.', 'warning');
+        localStorage.setItem('notifDeniedMsgShown', '1');
+      }
     }
     const [profileResult, articlesResult] = await Promise.allSettled([
       loadUserProfile(),
@@ -110,7 +118,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupImageErrorHandlers();
     setupImagePreviewHandler();
   } catch (error) {
-    showMessage('Error de inicialización: ' + error.message, 'danger');
+    // Solo mostrar error visual, no log
+    showMessage('Error de inicialización. Intenta recargar la página.', 'danger');
   }
 });
 // Vista previa de imagen en el modal de publicación
