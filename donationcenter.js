@@ -1,8 +1,5 @@
-
-// Artículos simulados en memoria
-const PLACEHOLDER_IMAGE = 'assets/placeholder.png';
-let currentArticleId = null;
-let articlesCache = [
+// Eliminar displayArticles, usar solo renderArticles
+  attachArticleEventListeners();
   {
     id: '1',
     title: 'Libro de texto universitario',
