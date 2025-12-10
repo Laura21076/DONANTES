@@ -529,7 +529,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-}
 window.editArticle = editArticle;
 
 
