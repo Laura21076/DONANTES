@@ -1,5 +1,5 @@
-// Eliminar displayArticles, usar solo renderArticles
-  attachArticleEventListeners();
+// Artículos simulados en memoria
+let articlesCache = [
   {
     id: '1',
     title: 'Libro de texto universitario',
