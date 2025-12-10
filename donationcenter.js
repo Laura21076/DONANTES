@@ -47,8 +47,8 @@ function escapeHtml(unsafe) {
     .replace(/'/g, "&#039;");
 }
 
-// ========== CONSTANTES Y VARIABLES ==========
-const PLACEHOLDER_IMAGE = getPlaceholderPath();
+// ========== CONSTANTES Y VARIABLES ========== 
+// (PLACEHOLDER_IMAGE ya está declarado arriba, solo se deja una vez)
 const UPLOAD_TIMEOUT_MS = 30000;
 const VERIFY_TIMEOUT_MS = 10000;
 const BACKEND_TIMEOUT_MS = 15000;
