@@ -1,4 +1,5 @@
 // Simulación local de perfil
+// 100% datos simulados, sin fetch ni backend
 let profileCache = {
   displayName: 'Usuario Simulado',
   email: 'simulado@donantes.com',
@@ -17,7 +18,6 @@ export async function updateProfile(data) {
 }
 
 export async function uploadProfilePhoto(file) {
-  // Simulación: no sube realmente, solo actualiza la URL local
   profileCache.photoURL = URL.createObjectURL(file);
   return profileCache.photoURL;
 }

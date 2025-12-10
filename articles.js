@@ -33,17 +33,8 @@ export async function deleteArticle(id) {
 
 
 
-// --- Subida de imágenes a Firebase Storage ---
-
-/**
- * Sube una imagen a Firebase Storage y devuelve la URL pública
- * @param {File} file - Archivo de imagen
- * @param {string} userId - ID del usuario
- * @returns {Promise<string>} URL pública de la imagen
- */
+// Subida simulada de imágenes
 export async function uploadImage(file, userId) {
-  const storage = getStorage();
-  const imageRef = ref(storage, `articles/${userId}/${Date.now()}_${file.name}`);
-  await uploadBytes(imageRef, file);
+  return URL.createObjectURL(file);
   return await getDownloadURL(imageRef);
 }

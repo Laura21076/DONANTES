@@ -38,13 +38,7 @@ let articlesCache = [
 ];
 
 
-function escapeHtml(unsafe) {
-  return unsafe.replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
+
 
 // ========== CONSTANTES Y VARIABLES ========== 
 // (PLACEHOLDER_IMAGE ya está declarado arriba, solo se deja una vez)
@@ -155,26 +149,13 @@ function setupImagePreviewHandler() {
   });
 }
 
-async function loadUserProfile() {
-  try {
-    let user = await getCurrentUser();
-    if (!user) return;
-    const { getToken } = await import('./db.js');
-    const token = await getToken('access');
-    const backendUrl = window.__ENV__?.BACKEND_URL || 'https://donantes-backend-202152301689.northamerica-south1.run.app';
-    const response = await fetch(`${backendUrl}/api/users/profile`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    });
-    if (response.ok) {
-      const profile = await response.json();
-      updateNavbarProfile(profile);
-    }
-  } catch (error) {
-    console.warn('Error al cargar perfil:', error);
-  }
+
+// Simulación: cargar perfil local
+function loadUserProfile() {
+  updateNavbarProfile({
+    photoURL: '',
+    role: 'user'
+  });
 }
 
 function updateNavbarProfile(profile) {

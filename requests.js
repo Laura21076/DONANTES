@@ -1,7 +1,14 @@
-// ...existing code...
-
 // Simulación local de solicitudes
-let requestsCache = [];
+let requestsCache = [
+  {
+    id: '1',
+    articleId: '1',
+    message: 'Me interesa el libro',
+    lockerCode: '1234',
+    receiverId: 'user1',
+    articleTitle: 'Libro de texto universitario'
+  }
+];
 
 export async function requestArticle(data) {
   const id = Math.random().toString(36).substr(2, 9);
