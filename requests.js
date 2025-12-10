@@ -1,30 +1,37 @@
 // ...existing code...
-  import { createRequest, getSentRequests, getReceivedRequests, updateRequest, deleteRequest } from './requests-firebase.js';
 
-  // Crear solicitud (Firebase)
-  export async function requestArticle(data) {
-    return createRequest(data);
-  }
+// Simulación local de solicitudes
+let requestsCache = [];
 
-  // Obtener solicitudes enviadas (Firebase)
-  export async function getMySentRequests() {
-    return getSentRequests();
-  }
+export async function requestArticle(data) {
+  const id = Math.random().toString(36).substr(2, 9);
+  const lockerCode = Math.floor(1000 + Math.random() * 9000).toString();
+  const newRequest = { ...data, id, lockerCode };
+  requestsCache.push(newRequest);
+  return newRequest;
+}
 
-  // Obtener solicitudes recibidas (Firebase)
-  export async function getMyReceivedRequests() {
-    return getReceivedRequests();
-  }
+export async function getMySentRequests() {
+  return requestsCache;
+}
 
-  // Actualizar solicitud (Firebase)
-  export async function updateMyRequest(id, data) {
-    return updateRequest(id, data);
-  }
+export async function getMyReceivedRequests() {
+  return requestsCache;
+}
 
-  // Eliminar solicitud (Firebase)
-  export async function deleteMyRequest(id) {
-    return deleteRequest(id);
+export async function updateMyRequest(id, data) {
+  const idx = requestsCache.findIndex(r => r.id === id);
+  if (idx !== -1) {
+    requestsCache[idx] = { ...requestsCache[idx], ...data };
+    return requestsCache[idx];
   }
+  throw new Error('Solicitud no encontrada');
+}
+
+export async function deleteMyRequest(id) {
+  requestsCache = requestsCache.filter(r => r.id !== id);
+  return true;
+}
 
 // ...existing code...
 

@@ -1,26 +1,33 @@
 // articles.js
 // MEJORAS: Manejo robusto de errores no-JSON, logs detallados, nunca queda "cargando"
 
-import { createArticle as fbCreateArticle, getArticles as fbGetArticles, updateArticle as fbUpdateArticle, deleteArticle as fbDeleteArticle } from './articles-firebase.js';
 
-// Crear un nuevo artículo (Firebase)
+// Simulación local de artículos
+let articlesCache = [];
+
 export async function createArticle(articleData) {
-  return fbCreateArticle(articleData);
+  const id = Math.random().toString(36).substr(2, 9);
+  const newArticle = { ...articleData, id };
+  articlesCache.push(newArticle);
+  return newArticle;
 }
 
-// Obtener todos los artículos (Firebase)
 export async function getArticles(isAdmin = false) {
-  return fbGetArticles(isAdmin);
+  return articlesCache;
 }
 
-// Editar artículo (Firebase)
 export async function updateArticle(id, data) {
-  return fbUpdateArticle(id, data);
+  const idx = articlesCache.findIndex(a => a.id === id);
+  if (idx !== -1) {
+    articlesCache[idx] = { ...articlesCache[idx], ...data };
+    return articlesCache[idx];
+  }
+  throw new Error('Artículo no encontrado');
 }
 
-// Eliminar artículo (Firebase)
 export async function deleteArticle(id) {
-  return fbDeleteArticle(id);
+  articlesCache = articlesCache.filter(a => a.id !== id);
+  return true;
 }
 
 

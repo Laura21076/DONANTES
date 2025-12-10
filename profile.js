@@ -1,26 +1,24 @@
-import { getAuth, updatePassword as firebaseUpdatePassword } from "https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js";
-const auth = getAuth();
+// Simulación local de perfil
+let profileCache = {
+  displayName: 'Usuario Simulado',
+  email: 'simulado@donantes.com',
+  phone: '555-123-4567',
+  address: 'Calle Falsa 123',
+  photoURL: ''
+};
 
-// Cambiar contraseña del usuario actual
-export async function updatePassword(newPassword) {
-  const user = auth.currentUser;
-  if (!user) throw new Error("No autenticado");
-  await firebaseUpdatePassword(user, newPassword);
-}
-import { getUserProfile, updateUserProfile, uploadProfileImage } from './profile-firebase.js';
-
-// Obtener perfil de usuario (Firebase)
 export async function getProfile() {
-  return getUserProfile();
+  return profileCache;
 }
 
-// Actualizar perfil de usuario (Firebase)
 export async function updateProfile(data) {
-  return updateUserProfile(data);
+  profileCache = { ...profileCache, ...data };
+  return profileCache;
 }
 
-// Subir imagen de perfil (Firebase)
 export async function uploadProfilePhoto(file) {
-  return uploadProfileImage(file);
+  // Simulación: no sube realmente, solo actualiza la URL local
+  profileCache.photoURL = URL.createObjectURL(file);
+  return profileCache.photoURL;
 }
 // ...existing code...
