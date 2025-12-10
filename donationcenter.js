@@ -502,6 +502,10 @@ function editArticle(articleId) {
     previewWrap.style.display = 'none';
   }
   const modalElement = document.getElementById('uploadModal');
+  const modalTitle = document.getElementById('uploadModalLabel');
+  const submitBtn = document.getElementById('submitBtn');
+  if (modalTitle) modalTitle.textContent = 'Actualizar artículo';
+  if (submitBtn) submitBtn.textContent = 'Actualizar artículo';
   const modal = window.bootstrap?.Modal.getInstance
     ? window.bootstrap.Modal.getInstance(modalElement) || new window.bootstrap.Modal(modalElement)
     : null;
@@ -512,6 +516,22 @@ function editArticle(articleId) {
       if (firstInput) firstInput.focus();
     }, 400);
   }
+}
+
+// Restaurar texto original al abrir modal para crear
+document.addEventListener('DOMContentLoaded', () => {
+  const uploadModal = document.getElementById('uploadModal');
+  if (uploadModal) {
+    uploadModal.addEventListener('show.bs.modal', function() {
+      if (!currentArticleId) {
+        const modalTitle = document.getElementById('uploadModalLabel');
+        const submitBtn = document.getElementById('submitBtn');
+        if (modalTitle) modalTitle.textContent = 'Publicar artículo';
+        if (submitBtn) submitBtn.textContent = 'Publicar artículo';
+      }
+    });
+  }
+});
 }
 window.editArticle = editArticle;
 
