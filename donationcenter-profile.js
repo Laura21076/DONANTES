@@ -26,22 +26,29 @@ function showToast(message, type = "success") {
 
 
 
-// Simulated profile data (in-memory)
-window.simulatedProfile = {
-  displayName: 'Laura Donante',
-  firstName: 'Laura',
-  lastName: 'García',
-  email: 'laura.donante@ejemplo.com',
-  phone: '555-123-4567',
-  address: 'Calle Falsa 123',
-  city: 'Ciudad de México',
-  state: 'Ciudad de México',
-  zipCode: '01234',
-  photoURL: '',
-};
 
-function renderProfile() {
-  const perfil = window.simulatedProfile;
+import { getProfile } from './profile.js';
+
+// Dirección y teléfono simulados
+const SIMULATED_PHONE = '555-123-4567';
+const SIMULATED_ADDRESS = 'Calle Falsa 123';
+
+
+async function renderProfile() {
+  // Oculta loader y muestra el formulario SIEMPRE
+  const loader = document.getElementById('profileLoader');
+  const container = document.getElementById('profileContainer');
+  if (loader) loader.style.display = 'none';
+  if (container) container.style.display = '';
+
+  let perfil = {};
+  try {
+    perfil = await getProfile();
+  } catch (e) {
+    showToast('No se pudo cargar el perfil real, usando datos simulados', 'warning');
+    perfil = {};
+  }
+
   // Header
   document.getElementById('profileDisplayName').textContent =
     (perfil.displayName && perfil.displayName.trim())
@@ -70,18 +77,13 @@ function renderProfile() {
   if (document.getElementById('firstName'))  document.getElementById('firstName').value  = perfil.firstName || '';
   if (document.getElementById('lastName'))   document.getElementById('lastName').value   = perfil.lastName || '';
   if (document.getElementById('email'))      document.getElementById('email').value      = perfil.email || '';
-  if (document.getElementById('phone'))      document.getElementById('phone').value      = perfil.phone || '';
-  if (document.getElementById('address'))    document.getElementById('address').value    = perfil.address || '';
+  if (document.getElementById('phone'))      document.getElementById('phone').value      = SIMULATED_PHONE;
+  if (document.getElementById('address'))    document.getElementById('address').value    = SIMULATED_ADDRESS;
   if (document.getElementById('city'))       document.getElementById('city').value       = perfil.city || '';
   if (document.getElementById('zipCode'))    document.getElementById('zipCode').value    = perfil.zipCode || '';
   if (document.getElementById('state'))      document.getElementById('state').value      = perfil.state || '';
   if (document.getElementById('currentPassword')) document.getElementById('currentPassword').value = "********";
   if (document.getElementById('newPassword'))     document.getElementById('newPassword').value = "";
-  // Always show the profile container, hide loader
-  const loader = document.getElementById('profileLoader');
-  const container = document.getElementById('profileContainer');
-  if (loader) loader.style.display = 'none';
-  if (container) container.style.display = '';
 }
 
 /**

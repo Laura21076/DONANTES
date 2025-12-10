@@ -1,4 +1,5 @@
-// Simulación de artículos y solicitudes solo en JS
+
+// Artículos simulados en memoria
 const PLACEHOLDER_IMAGE = 'assets/placeholder.png';
 let articlesCache = [
   {
@@ -22,10 +23,22 @@ let articlesCache = [
     status: 'disponible',
     imageUrl: '',
     userId: 'user2'
+  },
+  {
+    id: '3',
+    title: 'Ropa de invierno',
+    description: 'Abrigos y bufandas para mujer, talla M.',
+    category: 'Ropa',
+    condition: 'Excelente',
+    location: 'Monterrey',
+    status: 'disponible',
+    imageUrl: '',
+    userId: 'user3'
   }
 ];
 let requestsCache = [];
 let currentArticleId = null;
+
 function escapeHtml(unsafe) {
   return unsafe.replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
@@ -425,68 +438,68 @@ function setupFormHandlers() {
 
 // ========== SUBIDA Y MANEJO DE ARTÍCULOS ==========
 
+
+function generateLockerCode() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
 async function saveArticle() {
   const fileInput = document.getElementById('articleImageFile');
   const urlInput = document.getElementById('articleImageUrl');
   const submitBtn = document.getElementById('submitBtn');
-  let uploadedFileRef = null;
-  try {
-    const user = await getCurrentUser();
-    if (!user) {
-      showMessage('Error: No hay sesión activa. Por favor inicia sesión.', 'danger');
-      return;
-    }
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
-    }
-    const baseData = {
-      title: document.getElementById('articleName').value.trim(),
-      description: document.getElementById('articleDescription').value.trim(),
-      category: document.getElementById('articleCategory').value,
-      condition: document.getElementById('articleCondition').value,
-      location: document.getElementById('articleLocation').value.trim() || null,
-      status: 'disponible'
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Guardando...';
+  }
+  const baseData = {
+    title: document.getElementById('articleName').value.trim(),
+    description: document.getElementById('articleDescription').value.trim(),
+    category: document.getElementById('articleCategory').value,
+    condition: document.getElementById('articleCondition').value,
+    location: document.getElementById('articleLocation').value.trim() || null,
+    status: 'disponible'
+  };
+  let imageUrl = urlInput?.value?.trim() || '';
+  const file = fileInput?.files?.[0] || null;
+  if (file) {
+    // Solo vista previa local, no se sube
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      imageUrl = e.target.result;
+      finishSave();
     };
-    let imageUrl = urlInput?.value?.trim() || null;
-    const file = fileInput?.files?.[0] || null;
-    // PASO 1: Subir imagen a Firebase Storage si hay archivo seleccionado
-    if (file) {
-      const safeName = file.name.replace(/[^a-zA-Z0-9_.-]/g, '_');
-      const path = `articles/${user.uid}/${Date.now()}_${safeName}`;
-      const fileRef = ref(storage, path);
-      try {
-        await withTimeout(uploadBytes(fileRef, file), UPLOAD_TIMEOUT_MS, 'subida de imagen');
-        await withTimeout(getMetadata(fileRef), VERIFY_TIMEOUT_MS, 'verificación de imagen');
-        imageUrl = await withTimeout(getDownloadURL(fileRef), VERIFY_TIMEOUT_MS, 'obtención de URL');
-        uploadedFileRef = fileRef;
-      } catch (uploadError) {
-        showMessage('Error al subir la imagen: ' + (uploadError?.message || 'Error desconocido. Verifica tu conexión.'), 'danger');
-        return;
-      }
-    }
-    // PASO 2: Enviar datos al backend
-    const articleData = { ...baseData, imageUrl };
-    try {
-      if (currentArticleId) {
-        await withTimeout(updateArticle(currentArticleId, articleData), BACKEND_TIMEOUT_MS, 'actualización de artículo');
+    reader.readAsDataURL(file);
+  } else {
+    finishSave();
+  }
+
+  function finishSave() {
+    if (currentArticleId) {
+      // Editar artículo existente
+      const idx = articlesCache.findIndex(a => a.id === currentArticleId);
+      if (idx !== -1) {
+        articlesCache[idx] = {
+          ...articlesCache[idx],
+          ...baseData,
+          imageUrl: imageUrl || articlesCache[idx].imageUrl
+        };
         showMessage('Artículo actualizado exitosamente', 'success');
-      } else {
-        await withTimeout(createArticle(articleData), BACKEND_TIMEOUT_MS, 'creación de artículo');
-        showMessage('Artículo publicado exitosamente', 'success');
       }
-    } catch (dbError) {
-      if (uploadedFileRef) await eliminarImagenHuerfana(uploadedFileRef);
-      showMessage('Error al guardar el artículo: ' + (dbError?.message || 'Error del servidor'), 'danger');
-      return;
+    } else {
+      // Crear nuevo artículo
+      const newArticle = {
+        id: Date.now().toString(),
+        ...baseData,
+        imageUrl,
+        userId: 'user-local',
+        lockerCode: generateLockerCode()
+      };
+      articlesCache.unshift(newArticle);
+      showMessage('Artículo publicado exitosamente. Código de locker: ' + newArticle.lockerCode, 'success');
     }
     closeUploadModal();
-    await loadArticles(true);
+    renderArticles();
     currentArticleId = null;
-  } catch (error) {
-    showMessage('Error inesperado: ' + (error?.message || 'Por favor intenta de nuevo'), 'danger');
-    if (uploadedFileRef) await eliminarImagenHuerfana(uploadedFileRef);
-  } finally {
     cleanupFormUI();
   }
 }
@@ -561,17 +574,14 @@ function editArticle(articleId) {
 }
 window.editArticle = editArticle;
 
-async function confirmDelete(articleId) {
-  const article = articlesCache.find(a => a.id === articleId);
-  if (!article) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
-  if (!confirm(`¿Estás seguro de eliminar el artículo "${article.title}"?`)) return;
-  try {
-    await deleteArticle(articleId);
-    showMessage('Artículo eliminado exitosamente', 'success');
-    await loadArticles(true);
-  } catch (error) {
-    showMessage('Error al eliminar: ' + (error?.message || error), 'danger');
-  }
+
+function confirmDelete(articleId) {
+  const idx = articlesCache.findIndex(a => a.id === articleId);
+  if (idx === -1) { showMessage('Error: Artículo no encontrado', 'danger'); return; }
+  if (!confirm(`¿Estás seguro de eliminar el artículo "${articlesCache[idx].title}"?`)) return;
+  articlesCache.splice(idx, 1);
+  showMessage('Artículo eliminado exitosamente', 'success');
+  renderArticles();
 }
 window.confirmDelete = confirmDelete;
 
