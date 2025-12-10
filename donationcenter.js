@@ -36,8 +36,7 @@ let articlesCache = [
     userId: 'user3'
   }
 ];
-let requestsCache = [];
-let currentArticleId = null;
+
 
 function escapeHtml(unsafe) {
   return unsafe.replace(/&/g, "&amp;")
@@ -58,11 +57,10 @@ const TOAST_COLORS = {
   warning: '#8C78BF',
   default: '#8C78BF'
 };
-let currentArticleId = null;
-let articlesCache = [];
+
 let lastLoadTime = 0;
 const CACHE_DURATION = 30000;
-const lockerCode = await getCurrentLockerCode();
+// const lockerCode = await getCurrentLockerCode(); // No se usa aquí
 
 // ========== FUNCIONES UTILITARIAS DE USO GENERAL (¡DEBEN IR ARRIBA!) ==========
 

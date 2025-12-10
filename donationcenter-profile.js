@@ -1,3 +1,5 @@
+
+document.addEventListener('DOMContentLoaded', renderProfile);
 /**
  * donationcenter-profile.js
  * 
@@ -34,11 +36,10 @@ const SIMULATED_PHONE = '555-123-4567';
 const SIMULATED_ADDRESS = 'Calle Falsa 123';
 
 
+
 async function renderProfile() {
-  // Oculta loader y muestra el formulario SIEMPRE
-  const loader = document.getElementById('profileLoader');
+  // Siempre mostrar el contenedor de perfil
   const container = document.getElementById('profileContainer');
-  if (loader) loader.style.display = 'none';
   if (container) container.style.display = '';
 
   let perfil = {};
