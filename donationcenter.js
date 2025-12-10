@@ -272,93 +272,8 @@ function preloadImages(articles) {
   });
 }
 
-async function displayArticles(articles) {
-  const grid = document.getElementById('articlesGrid');
-  const emptyState = document.getElementById('emptyState');
-  let currentUser;
-  try {
-    currentUser = await getCurrentUser();
-  } catch {
-    currentUser = null;
-  }
 
-  if (!articles || articles.length === 0) {
-    if (grid) grid.style.display = 'none';
-    if (emptyState) emptyState.style.display = 'block';
-    return;
-  }
-
-  const visibleArticles = articles.filter(article =>
-    article.status === 'disponible' || article.status === 'reservado'
-  );
-  if (visibleArticles.length === 0) {
-    if (grid) grid.style.display = 'none';
-    if (emptyState) emptyState.style.display = 'block';
-    return;
-  }
-  if (grid) grid.style.display = 'flex';
-  if (emptyState) emptyState.style.display = 'none';
-
-  grid.innerHTML = visibleArticles.map(article => {
-    const isOwner = currentUser && currentUser.uid === article.uid;
-    const estado = (article.status === 'expirado')
-      ? `<span class="badge status-badge status-expired position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Expirado</span>`
-      : (article.status === 'reservado')
-        ? `<span class="badge status-badge status-reserved position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Reservado</span>`
-        : `<span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>`;
-
-    const timer = article.expiresAt
-      ? `<span class="article-timer position-absolute top-0 start-0 mt-2 ms-2">
-            <i class="fa-regular fa-clock me-1"></i> ${getTimeRemaining(article.expiresAt)}
-          </span>` : "";
-
-    const imageUrl = article.imageUrl ? buildFirebaseStorageUrl(article.imageUrl) : null;
-
-    return `
-      <div class="col-md-6 col-lg-4">
-        <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
-          <div class="position-relative article-image-container">
-            ${imageUrl
-              ? `<img src="${imageUrl}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;" data-article-id="${article.id}" data-has-fallback="true">`
-              : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;">
-                  <i class="fas fa-image fa-3x text-purple-light mb-2"></i>
-                  <span style="color:#8C78BF;">Sin imagen</span>
-                 </div>`
-            }
-            ${estado}
-            ${timer}
-          </div>
-          <div class="card-body d-flex flex-column px-4 pb-4" style="background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%); border-radius: 0 0 20px 20px;">
-            <h5 class="card-title text-purple-primary mb-2 fw-bold">${escapeHtml(article.title)}</h5>
-            <p class="card-text mb-2" style="color:#5A4A6B;">${escapeHtml(article.description)}</p>
-            <div class="mb-2">
-              <span class="badge bg-purple-light me-2 px-3 py-1">${escapeHtml(article.category || "General")}</span>
-              <span class="badge bg-purple-primary px-3 py-1">${escapeHtml(article.condition || "Bueno")}</span>
-            </div>
-            <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
-            <div class="mt-auto d-flex gap-2">
-              ${isOwner
-                ? `
-                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
-                    <i class="fas fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-article-id="${article.id}">
-                    <i class="fas fa-trash"></i>
-                  </button>
-                `
-                : `
-                  <button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
-                    <i class="fas fa-heart me-1"></i> Me interesa
-                  </button>
-                `
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-  }).join('');
-
+// Eliminar displayArticles, usar solo renderArticles
   attachArticleEventListeners();
 }
 
@@ -520,7 +435,8 @@ async function saveArticle() {
         lockerCode: generateLockerCode()
       };
       articlesCache.unshift(newArticle);
-      showMessage('Artículo publicado exitosamente. Código de locker: ' + newArticle.lockerCode, 'success');
+      showMessage('Artículo publicado exitosamente.', 'success');
+      showLockerInfoModal(newArticle.lockerCode);
     }
     closeUploadModal();
     renderArticles();
@@ -639,8 +555,6 @@ async function requestArticleHandler(articleId, message, articleTitle, lockerCod
     };
     await requestArticleService(requestData);
     showMessage('¡Solicitud enviada!', 'success');
-    await loadArticles();
-    // Mostrar modal con código, mapa y pasos
     showLockerInfoModal(lockerCode);
   } catch (error) {
     showMessage('Error al solicitar: ' + (error?.message || error), 'danger');
