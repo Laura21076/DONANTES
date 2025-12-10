@@ -183,8 +183,8 @@ function handleProfileSubmit(e) {
       state: document.getElementById('state').value,
       zipCode: document.getElementById('zipCode').value.trim(),
     };
-    // Update in-memory profile
-    Object.assign(window.simulatedProfile, data);
+    // Actualizar perfil simulado usando función
+    await updateProfile(data);
     // Simulate password change
     const newPassword = document.getElementById('newPassword').value;
     if (newPassword && newPassword.length >= 6) {

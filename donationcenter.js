@@ -229,7 +229,7 @@ function renderArticles() {
       <div class="col-md-6 col-lg-4">
         <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
           <div class="position-relative article-image-container">
-            ${article.imageUrl ? `<img src="${article.imageUrl}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">` : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:200px;"><i class="fas fa-gamepad fa-3x text-purple-light mb-2"></i><span style="color:#8C78BF;">Sin imagen</span></div>`}
+            ${article.imageUrl ? `<img src="${article.imageUrl}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="width: 100%; height: 220px; object-fit: cover; border-radius: 20px 20px 0 0;">` : `<div class="no-image-placeholder d-flex flex-column align-items-center justify-content-center py-5" style="background: #e5d4f2; height:220px;"><i class="fas fa-gamepad fa-3x text-purple-light mb-2"></i><span style="color:#8C78BF;">Sin imagen</span></div>`}
             <span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>
           </div>
           <div class="card-body d-flex flex-column px-4 pb-4" style="background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%); border-radius: 0 0 20px 20px;">

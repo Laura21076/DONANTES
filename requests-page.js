@@ -21,41 +21,156 @@ let requestsCache = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
-  renderRequests();
-  setupRequestForm();
-});
+  function renderRequests() {
+    // Enviadas
+    const sentGrid = document.getElementById('sentRequestsGrid');
+    const sentEmpty = document.getElementById('sentEmpty');
+    // Recibidas
+    const receivedGrid = document.getElementById('receivedRequestsGrid');
+    const receivedEmpty = document.getElementById('receivedEmpty');
 
-// Setup event listeners for modal buttons
-function setupModalEventListeners() {
-  // Approve modal confirm button
-  const approveModalConfirmBtn = document.getElementById('approveModalConfirmBtn');
-  if (approveModalConfirmBtn) {
-    approveModalConfirmBtn.addEventListener('click', approveRequestHandler);
-  }
-  
-  // Copy pickup code button
-  const copyPickupCodeBtn = document.getElementById('copyPickupCodeBtn');
-  if (copyPickupCodeBtn) {
-    copyPickupCodeBtn.addEventListener('click', function() {
-      const code = document.getElementById('pickupAccessCode')?.textContent || '';
-      copyToClipboard(code);
-    });
-  }
-}
+    const sent = requestsCache.filter(r => r.type === 'sent');
+    const received = requestsCache.filter(r => r.type === 'received');
 
-// ================== CARGAR SOLICITUDES ENVIADAS ==================
-function renderRequests() {
-  const grid = document.getElementById('sentRequestsGrid');
-  const empty = document.getElementById('sentEmpty');
-  if (!requestsCache || requestsCache.length === 0) {
-    grid.innerHTML = '';
-    empty.style.display = 'block';
-    return;
+    // Enviadas
+    if (!sent || sent.length === 0) {
+      sentGrid.innerHTML = '';
+      sentEmpty.style.display = 'block';
+    } else {
+      sentEmpty.style.display = 'none';
+      sentGrid.innerHTML = sent.map(req => {
+        let date = 'Fecha no disponible';
+        try {
+          if (req.createdAt) {
+            const parsedDate = new Date(req.createdAt);
+            if (!isNaN(parsedDate.getTime())) {
+              date = parsedDate.toLocaleString('es-ES', {
+                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+              });
+            }
+          }
+        } catch { date = 'Fecha inválida'; }
+        return `
+          <div class="col-md-6 col-lg-4">
+            <div class="card request-card h-100">
+              <div class="card-body">
+                <h5 class="card-title">${req.articleTitle}</h5>
+                <p class="card-text">${req.message}</p>
+                <p class="card-text"><small class="text-muted">${date}</small></p>
+                ${req.lockerCode ? `<div class="mb-2"><strong>Código de locker:</strong> <span class="access-code">${req.lockerCode}</span></div>` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Recibidas
+    if (!received || received.length === 0) {
+      receivedGrid.innerHTML = '';
+      receivedEmpty.style.display = 'block';
+    } else {
+      receivedEmpty.style.display = 'none';
+      receivedGrid.innerHTML = received.map(req => {
+        let date = 'Fecha no disponible';
+        try {
+          if (req.createdAt) {
+            const parsedDate = new Date(req.createdAt);
+            if (!isNaN(parsedDate.getTime())) {
+              date = parsedDate.toLocaleString('es-ES', {
+                year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+              });
+            }
+          }
+        } catch { date = 'Fecha inválida'; }
+        return `
+          <div class="col-md-6 col-lg-4">
+            <div class="card request-card h-100">
+              <div class="card-body">
+                <h5 class="card-title">${req.articleTitle}</h5>
+                <p class="card-text">${req.message}</p>
+                <p class="card-text"><small class="text-muted">${date}</small></p>
+                <button class="btn btn-success btn-approve-request" data-request-id="${req.id}">Aprobar solicitud</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
   }
-  empty.style.display = 'none';
-  grid.innerHTML = requestsCache.map(req => {
-    let date = 'Fecha no disponible';
-    try {
+
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('btn-approve-request')) {
+      const reqId = e.target.getAttribute('data-request-id');
+      document.getElementById('approveRequestId').value = reqId;
+      const approveModal = new window.bootstrap.Modal(document.getElementById('approveModal'));
+      approveModal.show();
+    }
+  });
+
+  document.getElementById('approveModalConfirmBtn').addEventListener('click', function() {
+    const reqId = document.getElementById('approveRequestId').value;
+    const lockerId = document.getElementById('lockerId').value || 'A1';
+    const lockerLocation = document.getElementById('lockerLocation').value || 'Santa Catarina';
+    const req = requestsCache.find(r => r.id === reqId);
+    if (req) {
+      // Simular lockerCode
+      req.lockerCode = 'ABCD' + Math.floor(Math.random()*9000+1000);
+      req.status = 'aprobado';
+      req.lockerLocation = lockerLocation;
+      renderRequests();
+      showLockerInfoModal(req.lockerCode, req.articleTitle, lockerLocation);
+      const approveModal = window.bootstrap.Modal.getInstance(document.getElementById('approveModal'));
+      approveModal.hide();
+    }
+  });
+
+  function showLockerInfoModal(lockerCode, articleTitle, address) {
+    let modal = document.getElementById('lockerInfoModal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'lockerInfoModal';
+      modal.className = 'modal fade';
+      modal.tabIndex = -1;
+      modal.innerHTML = `
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="fas fa-key me-2"></i>Código y pasos para el locker</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3 text-center">
+                <strong>Artículo:</strong> ${articleTitle || ''}<br>
+                <strong>Código de acceso:</strong>
+                <div class="access-code" style="font-size:2rem;letter-spacing:6px;">${lockerCode || 'No disponible'}</div>
+                <button class="btn btn-outline-success btn-sm mt-2" onclick="navigator.clipboard.writeText('${lockerCode}')"><i class="fas fa-copy"></i> Copiar código</button>
+              </div>
+              <div class="mb-3">
+                <strong>Dirección del casillero:</strong>
+                <div>${address || 'No disponible'}</div>
+              </div>
+              <div class="mb-2">
+                <strong>Pasos para recoger el artículo:</strong>
+                <ol class="mt-2">
+                  <li>Dirígete al casillero indicado.</li>
+                  <li>Verifica tu ubicación.</li>
+                  <li>Ingresa el código mostrado en el teclado del casillero.</li>
+                  <li>Recoge tu artículo y cierra la puerta.</li>
+                </ol>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-purple" data-bs-dismiss="modal"><i class="fas fa-check"></i> Entendido</button>
+            </div>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    const bsModal = new window.bootstrap.Modal(modal);
+    bsModal.show();
+  }
       if (req.createdAt) {
         const parsedDate = new Date(req.createdAt);
         if (!isNaN(parsedDate.getTime())) {
