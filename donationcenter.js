@@ -34,6 +34,28 @@ let articlesCache = [
     status: 'disponible',
     imageUrl: '',
     userId: 'user3'
+  },
+  {
+    id: '4',
+    title: 'Nintendo Switch',
+    description: 'Consola Nintendo Switch en excelente estado, incluye dos controles Joy-Con.',
+    category: 'Videojuegos',
+    condition: 'Excelente',
+    location: 'CDMX',
+    status: 'disponible',
+    imageUrl: 'assets/nintendoswitch.png',
+    userId: 'user4'
+  },
+  {
+    id: '5',
+    title: 'Nintendo Switch Edición Morada',
+    description: 'Edición especial morada, con caja y accesorios originales.',
+    category: 'Videojuegos',
+    condition: 'Nuevo',
+    location: 'Guadalajara',
+    status: 'disponible',
+    imageUrl: 'assets/switchpurple.png',
+    userId: 'user5'
   }
 ];
 
@@ -197,25 +219,48 @@ function renderArticles() {
   }
   if (grid) grid.style.display = 'flex';
   if (emptyState) emptyState.style.display = 'none';
-  grid.innerHTML = articlesCache.map(article => `
-    <div class="col-md-6 col-lg-4">
-      <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
-        <div class="position-relative article-image-container">
-          <img src="${PLACEHOLDER_IMAGE}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">
-          <span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>
-        </div>
-        <div class="card-body d-flex flex-column px-4 pb-4" style="background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%); border-radius: 0 0 20px 20px;">
-          <h5 class="card-title text-purple-primary mb-2 fw-bold">${escapeHtml(article.title)}</h5>
-          <p class="card-text mb-2" style="color:#5A4A6B;">${escapeHtml(article.description)}</p>
-          <div class="mb-2">
-            <span class="badge bg-purple-light me-2 px-3 py-1">${escapeHtml(article.category || "General")}</span>
-            <span class="badge bg-purple-primary px-3 py-1">${escapeHtml(article.condition || "Bueno")}</span>
+
+  grid.innerHTML = articlesCache.map(article => {
+    // Simular usuario actual
+    const currentUserId = 'user-local';
+    const isOwner = article.userId === currentUserId;
+    return `
+      <div class="col-md-6 col-lg-4">
+        <div class="card donation-card position-relative shadow-lg border-0 h-100" style="border-radius: 20px; overflow: hidden;">
+          <div class="position-relative article-image-container">
+            <img src="${PLACEHOLDER_IMAGE}" class="card-img-top article-image" alt="${escapeHtml(article.title)}" style="height: 200px; object-fit: cover; border-radius: 20px 20px 0 0;">
+            <span class="badge status-badge bg-purple-primary position-absolute top-0 end-0 mt-2 me-2 px-3 py-2">Disponible</span>
           </div>
-          <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
+          <div class="card-body d-flex flex-column px-4 pb-4" style="background: linear-gradient(135deg, #F6F1F9 0%, #E8DFF5 100%); border-radius: 0 0 20px 20px;">
+            <h5 class="card-title text-purple-primary mb-2 fw-bold">${escapeHtml(article.title)}</h5>
+            <p class="card-text mb-2" style="color:#5A4A6B;">${escapeHtml(article.description)}</p>
+            <div class="mb-2">
+              <span class="badge bg-purple-light me-2 px-3 py-1">${escapeHtml(article.category || "General")}</span>
+              <span class="badge bg-purple-primary px-3 py-1">${escapeHtml(article.condition || "Bueno")}</span>
+            </div>
+            <small class="d-block text-muted mb-3"><i class="fas fa-map-marker-alt me-1"></i> ${escapeHtml(article.location || "")}</small>
+            <div class="mt-auto d-flex gap-2">
+              ${isOwner
+                ? `
+                  <button class="btn btn-outline-purple flex-fill shadow-sm btn-edit-article" data-article-id="${article.id}">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn btn-outline-danger flex-fill shadow-sm btn-delete-article" data-article-id="${article.id}">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                `
+                : `
+                  <button class="btn btn-purple flex-fill shadow-sm btn-request-article" data-article-id="${article.id}" data-article-title="${escapeHtml(article.title)}">
+                    <i class="fas fa-heart me-1"></i> Me interesa
+                  </button>
+                `
+              }
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function preloadImages(articles) {
