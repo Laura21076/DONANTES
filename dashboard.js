@@ -1,12 +1,9 @@
 // admin-dashboard-firebase.js
 
 import { getCurrentUser } from './auth.js';
-import { signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { auth } from './firebase.js';
 import { getArticles, approveArticle } from './articles.js';
-import { getUserProfile } from './profile-firebase.js';
+import { getUserProfile } from './profile.js';
 import { getMySentRequests, getMyReceivedRequests } from './requests.js';
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.2/firebase-auth.js';
 // Si deseas importar tu roleManager explícitamente, descomenta la siguiente línea y ajusta el nombre:
 // import { roleManager } from './roles.js';
 

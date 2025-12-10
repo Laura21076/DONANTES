@@ -27,8 +27,7 @@
   "author": "Universidad Tecnológica Santa Catarina",
   "license": "MIT",
   "dependencies": {
-    "express-rate-limit": "^8.2.1",
-    "firebase": "^12.5.0"
+    "express-rate-limit": "^8.2.1"
   },
   "devDependencies": {
     "@capacitor/android": "^6.2.1",
