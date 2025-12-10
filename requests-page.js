@@ -5,7 +5,18 @@ let requestsCache = [
     articleTitle: 'Libro de texto universitario',
     message: '¿Está disponible?',
     status: 'pendiente',
-    createdAt: new Date().toISOString()
+    createdAt: new Date().toISOString(),
+    lockerCode: '1234',
+    type: 'sent'
+  },
+  {
+    id: '2',
+    articleTitle: 'Nintendo Switch',
+    message: '¡Felicidades! Has recibido una solicitud para tu Nintendo Switch.',
+    status: 'recibida',
+    createdAt: new Date().toISOString(),
+    lockerCode: '5678',
+    type: 'received'
   }
 ];
 

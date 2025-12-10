@@ -515,7 +515,7 @@ async function saveArticle() {
       const newArticle = {
         id: Date.now().toString(),
         ...baseData,
-        imageUrl,
+        imageUrl: imageUrl || '',
         userId: 'user-local',
         lockerCode: generateLockerCode()
       };
